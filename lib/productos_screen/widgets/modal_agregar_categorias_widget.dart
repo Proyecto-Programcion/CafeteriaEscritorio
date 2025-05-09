@@ -21,14 +21,15 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
   final ObtenerCategoriasController obtenerCategoriasController =
       Get.put(ObtenerCategoriasController());
   // Clave para el formulario
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  GlobalKey<FormState> formKeyActualizar = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKeyActualizar = GlobalKey<FormState>();
 
   // Controlador para el campo de texto
   final TextEditingController nombreCategoriaController =
       TextEditingController();
   final TextEditingController nombreCategoriaControllerActualizar =
       TextEditingController();
+      
 
   void agregarCategoria(BuildContext context) async {
     if (formKey.currentState!.validate()) {

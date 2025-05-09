@@ -1,4 +1,6 @@
-import 'package:cafe/logica/productos/controllers/actualizar_imagen_producto_controller.dart';
+import 'dart:convert';
+
+import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
 import 'package:cafe/logica/productos/controllers/agregar_producto_controller.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +20,10 @@ class ModalEditarProducto extends StatefulWidget {
   final double precio;
   final double cantidad;
   final String unidadMedida;
-  final String urlImagen;
+  final String imgBase64;
+  final int idCategoria;
   final double descuento;
+
   ModalEditarProducto({
     super.key,
     required this.idProducto,
@@ -31,7 +35,8 @@ class ModalEditarProducto extends StatefulWidget {
     required this.precio,
     required this.cantidad,
     required this.unidadMedida,
-    required this.urlImagen,
+    required this.imgBase64,
+    required this.idCategoria,
     required this.descuento,
   });
 
@@ -42,15 +47,22 @@ class ModalEditarProducto extends StatefulWidget {
 class _ModalEditarProductoState extends State<ModalEditarProducto> {
   //Controladores para los TextField
   final TextEditingController nombreController = TextEditingController();
+
   final TextEditingController codigoDeBarraController = TextEditingController();
+
   final TextEditingController descripcionController = TextEditingController();
+
   final TextEditingController costoController = TextEditingController();
+
   final TextEditingController precioController = TextEditingController();
+
   final TextEditingController cantidadController = TextEditingController();
+
+  final TextEditingController descuentoController = TextEditingController();
 
   String unidadMedidaController = 'Gramo';
 
-  String categoriaController = '0';
+  String categoriaController = '1';
 
   String imagenController = '';
 
@@ -76,6 +88,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
 
   void agregarNuevoProducto() {
     if (formKey.currentState!.validate()) {
+      print('codigo de barras: ${codigoDeBarraController.text}');
       final AgregarProductoController agregarProductoController =
           Get.put(AgregarProductoController());
       agregarProductoController.agregarProducto(
@@ -83,12 +96,16 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
           descripcionController.text,
           codigoDeBarraController.text,
           categoriaController,
-          double.parse(costoController.text),
+          double.parse(
+              costoController.text.isEmpty ? '0.0' : costoController.text),
           double.parse(precioController.text),
-          double.parse(cantidadController.text),
+          double.parse(cantidadController.text.isEmpty
+              ? '0.0'
+              : cantidadController.text),
           unidadMedidaController,
           imagenController,
           int.parse(categoriaController));
+      Navigator.pop(context);
     }
   }
 
@@ -100,19 +117,24 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
     unidadMedidaController = value;
   }
 
+  //obtener categorias para el dropdown
+  final ObtenerCategoriasController obtenerCategoriasController =
+      Get.put(ObtenerCategoriasController());
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    obtenerCategoriasController.obtenerCategorias();
     nombreController.text = widget.nombre;
     descripcionController.text = widget.descripcion;
     codigoDeBarraController.text = widget.codigoDeBarras;
+    categoriaController = widget.idCategoria.toString();
     costoController.text = widget.costo.toString();
     precioController.text = widget.precio.toString();
     cantidadController.text = widget.cantidad.toString();
     unidadMedidaController = widget.unidadMedida;
-    categoriaController = widget.categoria;
-    imagenController = widget.urlImagen;
+    descuentoController.text = widget.descuento.toString();
   }
 
   @override
@@ -225,8 +247,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                         ],
                       )),
                   Expanded(
-                    child: (imagenController != '' &&
-                            imagenController != 'urlImagen')
+                    child: (imagenController != '')
                         ? SizedBox(
                             width: 120,
                             height: 120,
@@ -237,7 +258,18 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                                   const Icon(Icons.broken_image, size: 60),
                             ),
                           )
-                        : Container(),
+                        : (widget.imgBase64.isNotEmpty)
+                            ? SizedBox(
+                                width: 120,
+                                height: 120,
+                                child: Image.memory(
+                                  base64Decode(widget.imgBase64),
+                                  fit: BoxFit.scaleDown,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.broken_image, size: 60),
+                                ),
+                              )
+                            : Container(),
                   )
                 ],
               ),
@@ -265,12 +297,18 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                 unidadDeMedidaController: unidadMedidaController,
                 cantidadController: cantidadController,
               ),
+              const SizedBox(height: 20),
+              //***********************BOTON PARA AGREGAR EL Descuento*/
+              InputDescuento(
+                decuentoController: descuentoController,
+              ),
               //***********************BOTON PARA AGREGAR EL PRODUCTO*/
               const Spacer(),
               SizedBox(
                 width: 300,
                 child: InkWell(
                   onTap: () {
+                    obtenerCategoriasController.obtenerCategorias();
                     agregarNuevoProducto();
                   },
                   borderRadius: BorderRadius.circular(30),
@@ -388,15 +426,6 @@ class InputMedidaYCantidad extends StatelessWidget {
           width: 200,
           child: TextFormField(
             controller: cantidadController,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Ingrese una cantidad';
-              }
-              return null;
-            },
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.transparent,
@@ -530,11 +559,15 @@ class InputCostoYVenta extends StatelessWidget {
 class InputCategoria extends StatelessWidget {
   final String categoriaController;
   final void Function(String) onChanged;
-  const InputCategoria({
+
+  InputCategoria({
     super.key,
     required this.categoriaController,
     required this.onChanged,
   });
+
+  final ObtenerCategoriasController obtenerCategoriasController =
+      Get.put(ObtenerCategoriasController());
 
   @override
   Widget build(BuildContext context) {
@@ -550,36 +583,35 @@ class InputCategoria extends StatelessWidget {
         ),
         const SizedBox(width: 47),
         Expanded(
-          child: DropdownButtonFormField<String>(
-            value: categoriaController,
-            items: const [
-              DropdownMenuItem(value: 'categoria1', child: Text('categoria1')),
-              DropdownMenuItem(value: 'categoria2', child: Text('categoria2')),
-              DropdownMenuItem(value: 'categoria3', child: Text('categoria3')),
-            ],
-            onChanged: (value) {
-              onChanged(value!);
-            },
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.transparent,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+          child: Obx(() {
+            final items = obtenerCategoriasController.dropdownItems;
+            return DropdownButtonFormField<String>(
+              value: categoriaController,
+              items: items,
+              onChanged: (value) {
+                if (value != null) onChanged(value);
+              },
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            ),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-            dropdownColor: Colors.white,
-          ),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              dropdownColor: Colors.white,
+            );
+          }),
         )
       ],
     );
@@ -612,7 +644,7 @@ class InputNombre extends StatelessWidget {
             controller: nombreController,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Por favor ingrese un nombre';
+                return 'Ingrese un nombre';
               }
               return null;
             },
@@ -703,6 +735,7 @@ class InputCodigoDeBarraWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      controller: controller,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.transparent,
@@ -724,6 +757,59 @@ class InputCodigoDeBarraWidget extends StatelessWidget {
       style: const TextStyle(
         backgroundColor: Colors.transparent,
       ),
+    );
+  }
+}
+
+class InputDescuento extends StatelessWidget {
+  final TextEditingController decuentoController;
+  const InputDescuento({
+    super.key,
+    required this.decuentoController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text(
+          'Descuento',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 48),
+        Expanded(
+          child: TextFormField(
+            controller: decuentoController,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.transparent,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            style: const TextStyle(
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+        )
+      ],
     );
   }
 }

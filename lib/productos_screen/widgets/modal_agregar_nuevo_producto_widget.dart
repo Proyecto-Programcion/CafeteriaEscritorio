@@ -33,6 +33,8 @@ class _ModalAgregarNuevoProductoWidgetState
 
   final TextEditingController cantidadController = TextEditingController();
 
+  final TextEditingController descuentoController = TextEditingController();
+
   String unidadMedidaController = 'Gramo';
 
   String categoriaController = '1';
@@ -250,6 +252,11 @@ class _ModalAgregarNuevoProductoWidgetState
                 onChanged: cambiarUnidadMedida,
                 unidadDeMedidaController: unidadMedidaController,
                 cantidadController: cantidadController,
+              ),
+              const SizedBox(height: 20),
+              //***********************BOTON PARA AGREGAR EL Descuento*/
+              InputDescuento(
+                decuentoController: descuentoController,
               ),
               //***********************BOTON PARA AGREGAR EL PRODUCTO*/
               const Spacer(),
@@ -687,7 +694,6 @@ class InputCodigoDeBarraWidget extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         filled: true,
-        
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -707,6 +713,59 @@ class InputCodigoDeBarraWidget extends StatelessWidget {
       style: const TextStyle(
         backgroundColor: Colors.transparent,
       ),
+    );
+  }
+}
+
+class InputDescuento extends StatelessWidget {
+  final TextEditingController decuentoController;
+  const InputDescuento({
+    super.key,
+    required this.decuentoController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text(
+          'Descuento',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(width: 48),
+        Expanded(
+          child: TextFormField(
+            controller: decuentoController,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.transparent,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black, width: 1),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            style: const TextStyle(
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+        )
+      ],
     );
   }
 }

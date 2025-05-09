@@ -149,6 +149,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
                           builder: (context) {
                             return ModalEditarProducto(
                               idProducto: producto.idProducto,
+                              idCategoria: producto.idCategoria,
                               nombre: producto.nombre,
                               descripcion: producto.descripcion ?? '',
                               codigoDeBarras: producto.codigoDeBarras ?? '',
@@ -157,7 +158,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
                               precio: producto.precio,
                               cantidad: producto.cantidad,
                               unidadMedida: producto.unidadMedida ?? '',
-                              urlImagen: producto.urlImagen ?? '',
+                              imgBase64: producto.urlImagen ?? '',
                               descuento: producto.descuento ?? 0,
                             );
                           });
