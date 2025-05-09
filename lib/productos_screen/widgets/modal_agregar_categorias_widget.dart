@@ -1,5 +1,6 @@
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/common/sesion_activa.dart';
+import 'package:cafe/logica/categorias/controllers/actualizar_categoria_por_id.dart';
 import 'package:cafe/logica/categorias/controllers/agregar_categoria_controller.dart';
 import 'package:cafe/logica/categorias/controllers/eliminar_categoria_controller.dart';
 import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
@@ -16,10 +17,17 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
       return const Color.fromARGB(255, 244, 244, 244); // RGB(244,244,244)
     }
   }
-final ObtenerCategoriasController obtenerCategoriasController =
+
+  final ObtenerCategoriasController obtenerCategoriasController =
       Get.put(ObtenerCategoriasController());
+  // Clave para el formulario
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> formKeyActualizar = GlobalKey<FormState>();
+
+  // Controlador para el campo de texto
   final TextEditingController nombreCategoriaController =
+      TextEditingController();
+  final TextEditingController nombreCategoriaControllerActualizar =
       TextEditingController();
 
   void agregarCategoria(BuildContext context) async {
@@ -28,8 +36,8 @@ final ObtenerCategoriasController obtenerCategoriasController =
       final AgregarCategoriaController agregarCategoriaController = Get.put(
         AgregarCategoriaController(),
       );
-      final categoriaAgregada =
-          await agregarCategoriaController.agregarCategoria(SesionActiva().idUsuario! ,nombreCategoria);
+      final categoriaAgregada = await agregarCategoriaController
+          .agregarCategoria(SesionActiva().idUsuario!, nombreCategoria);
       if (categoriaAgregada) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -37,13 +45,16 @@ final ObtenerCategoriasController obtenerCategoriasController =
             backgroundColor: Colors.green,
           ),
         );
+        nombreCategoriaController.clear();
       }
     }
   }
 
   void eliminarCategoria(BuildContext context, int idCategoria) async {
-    final EliminarCategoriaController eliminarCategoriaController = Get.put(EliminarCategoriaController());
-    final categoriaEliminada = await eliminarCategoriaController.eliminarCategoria(idCategoria);
+    final EliminarCategoriaController eliminarCategoriaController =
+        Get.put(EliminarCategoriaController());
+    final categoriaEliminada =
+        await eliminarCategoriaController.eliminarCategoria(idCategoria);
     if (categoriaEliminada) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -51,6 +62,34 @@ final ObtenerCategoriasController obtenerCategoriasController =
           backgroundColor: Colors.green,
         ),
       );
+    }
+  }
+
+  void actualizarCategoria(BuildContext context, int idCategoria) async {
+    if (formKeyActualizar.currentState!.validate()) {
+      final ActualizarCategoriaPorId actualizarCategoriaPorId =
+          Get.put(ActualizarCategoriaPorId());
+      final resp = await actualizarCategoriaPorId.actualizarCategoria(
+          idCategoria, nombreCategoriaControllerActualizar.text);
+      if (resp) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Categoría actualizada con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        nombreCategoriaControllerActualizar.clear();
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al actualizar la categoría'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -128,7 +167,8 @@ final ObtenerCategoriasController obtenerCategoriasController =
                               Text(obtenerCategoriasController.mensaje.value));
                     } else {
                       return ListView.builder(
-                          itemCount: obtenerCategoriasController.categorias.length,
+                          itemCount:
+                              obtenerCategoriasController.categorias.length,
                           itemBuilder: (context, index) {
                             final categoria =
                                 obtenerCategoriasController.categorias[index];
@@ -149,12 +189,83 @@ final ObtenerCategoriasController obtenerCategoriasController =
                                         fontSize: 17,
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () {
-                                        // Acción al presionar el botón de eliminar
-                                        eliminarCategoria(context, categoria.idCategoria);
-                                      },
+                                    SizedBox(
+                                      width: 90,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      title: Text(
+                                                          'Actualizar Categoría: ${categoria.nombre}'),
+                                                      content: Container(
+                                                        width: 700,
+                                                        height: 100,
+                                                        child: Form(
+                                                          key:
+                                                              formKeyActualizar,
+                                                          child: TextFormField(
+                                                            controller:
+                                                                nombreCategoriaControllerActualizar,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Por favor ingrese un nombre';
+                                                              }
+                                                              return null;
+                                                            },
+                                                            decoration:
+                                                                const InputDecoration(
+                                                              border:
+                                                                  OutlineInputBorder(),
+                                                              labelText:
+                                                                  'Nombre de la categoría',
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      actions: [
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop();
+                                                          },
+                                                          child: const Text(
+                                                              'Cancelar'),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            actualizarCategoria(
+                                                                context,
+                                                                categoria
+                                                                    .idCategoria);
+                                                          },
+                                                          child: const Text(
+                                                              'Actualizar'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () {
+                                              eliminarCategoria(context,
+                                                  categoria.idCategoria);
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
