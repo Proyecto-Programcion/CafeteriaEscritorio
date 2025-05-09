@@ -1,4 +1,7 @@
+import 'package:cafe/common/enums.dart';
+import 'package:cafe/inicio_de_sesion/controllers/iniciar_sesion_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ModalIniciarSesion extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -19,8 +22,8 @@ class ModalIniciarSesion extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Colors.transparent,
       content: Container(
-        width: 800,
-        height: 500,
+        width: 860,
+        height: 590,
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.black, width: 1),
@@ -88,7 +91,7 @@ class ModalIniciarSesion extends StatelessWidget {
                         obscureText: false,
                         controller: correoController,
                       ),
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 50),
                       // Contraseña
                       const Align(
                         alignment: Alignment.centerLeft,
@@ -122,6 +125,28 @@ class ModalIniciarSesion extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
+                      // Obtén el controlador usando GetX
+                      Obx(() {
+                        final IniciarSesionController controller =
+                            Get.find<IniciarSesionController>();
+                        if (controller.estado.value == Estado.carga) {
+                          return const CircularProgressIndicator(
+                            color: Colors.black,
+                          );
+                        } else if (controller.estado.value == Estado.error) {
+                          return Text(
+                            controller.mensajeError.value,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      }),
+                      const Spacer(),
+
                       SizedBox(
                         width: 220,
                         child: ElevatedButton(
@@ -145,7 +170,7 @@ class ModalIniciarSesion extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),
@@ -199,6 +224,12 @@ class _CustomTextFieldState extends State<_CustomTextField> {
       child: TextFormField(
         controller: widget.controller,
         obscureText: _obscure,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Este campo es obligatorio';
+          }
+          return null;
+        },
         decoration: InputDecoration(
           hintText: widget.hintText,
           filled: true,
