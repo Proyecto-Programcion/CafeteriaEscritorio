@@ -13,6 +13,7 @@ class ProductoModelo {
   final bool eliminado;
   final String? descripcion;
   final String? unidadMedida;
+  final String nombreCategoria;
 
   ProductoModelo({
     required this.idProducto,
@@ -28,6 +29,7 @@ class ProductoModelo {
     required this.eliminado,
     this.descripcion,
     this.unidadMedida,
+    required this.nombreCategoria,
   });
 
   factory ProductoModelo.fromMap(Map<String, dynamic> map) => ProductoModelo(
@@ -44,5 +46,6 @@ class ProductoModelo {
         eliminado: map['eliminado'] as bool,
         descripcion: map['descripcion'] as String?,
         unidadMedida: map['unidad_medida'] as String?,
+        nombreCategoria: map['nombre_categoria'] as String,
       );
 }

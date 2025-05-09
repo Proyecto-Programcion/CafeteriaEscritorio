@@ -1,4 +1,4 @@
-import 'package:cafe/logica/productos/controllers/actualizar_imagen_producto_controller.dart';
+import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
 import 'package:cafe/logica/productos/controllers/agregar_producto_controller.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ class _ModalAgregarNuevoProductoWidgetState
 
   String unidadMedidaController = 'Gramo';
 
-  String categoriaController = 'categoria1';
+  String categoriaController = '1';
 
   String imagenController = '';
 
@@ -61,21 +61,23 @@ class _ModalAgregarNuevoProductoWidgetState
 
   void agregarNuevoProducto() {
     if (formKey.currentState!.validate()) {
+      print('codigo de barras: ${codigoDeBarraController.text}');
       final AgregarProductoController agregarProductoController =
           Get.put(AgregarProductoController());
       agregarProductoController.agregarProducto(
-        nombreController.text,
-        descripcionController.text,
-        codigoDeBarraController.text,
-        categoriaController,
-        double.parse(
-            costoController.text.isEmpty ? '0.0' : costoController.text),
-        double.parse(precioController.text),
-        double.parse(
-            cantidadController.text.isEmpty ? '0.0' : cantidadController.text),
-        unidadMedidaController,
-        imagenController,
-      );
+          nombreController.text,
+          descripcionController.text,
+          codigoDeBarraController.text,
+          categoriaController,
+          double.parse(
+              costoController.text.isEmpty ? '0.0' : costoController.text),
+          double.parse(precioController.text),
+          double.parse(cantidadController.text.isEmpty
+              ? '0.0'
+              : cantidadController.text),
+          unidadMedidaController,
+          imagenController,
+          int.parse(categoriaController));
       Navigator.pop(context);
     }
   }
@@ -86,6 +88,17 @@ class _ModalAgregarNuevoProductoWidgetState
 
   void cambiarUnidadMedida(String value) {
     unidadMedidaController = value;
+  }
+
+  //obtener categorias para el dropdown
+  final ObtenerCategoriasController obtenerCategoriasController =
+      Get.put(ObtenerCategoriasController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    obtenerCategoriasController.obtenerCategorias();
   }
 
   @override
@@ -244,6 +257,7 @@ class _ModalAgregarNuevoProductoWidgetState
                 width: 300,
                 child: InkWell(
                   onTap: () {
+                    obtenerCategoriasController.obtenerCategorias();
                     agregarNuevoProducto();
                   },
                   borderRadius: BorderRadius.circular(30),
@@ -494,11 +508,15 @@ class InputCostoYVenta extends StatelessWidget {
 class InputCategoria extends StatelessWidget {
   final String categoriaController;
   final void Function(String) onChanged;
-  const InputCategoria({
+
+  InputCategoria({
     super.key,
     required this.categoriaController,
     required this.onChanged,
   });
+
+  final ObtenerCategoriasController obtenerCategoriasController =
+      Get.put(ObtenerCategoriasController());
 
   @override
   Widget build(BuildContext context) {
@@ -514,36 +532,35 @@ class InputCategoria extends StatelessWidget {
         ),
         const SizedBox(width: 47),
         Expanded(
-          child: DropdownButtonFormField<String>(
-            value: categoriaController,
-            items: const [
-              DropdownMenuItem(value: 'categoria1', child: Text('categoria1')),
-              DropdownMenuItem(value: 'categoria2', child: Text('categoria2')),
-              DropdownMenuItem(value: 'categoria3', child: Text('categoria3')),
-            ],
-            onChanged: (value) {
-              onChanged(value!);
-            },
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.transparent,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+          child: Obx(() {
+            final items = obtenerCategoriasController.dropdownItems;
+            return DropdownButtonFormField<String>(
+              value: categoriaController,
+              items: items,
+              onChanged: (value) {
+                if (value != null) onChanged(value);
+              },
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            ),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-            dropdownColor: Colors.white,
-          ),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              dropdownColor: Colors.white,
+            );
+          }),
         )
       ],
     );
@@ -667,8 +684,10 @@ class InputCodigoDeBarraWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      controller: controller,
       decoration: InputDecoration(
         filled: true,
+        
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),

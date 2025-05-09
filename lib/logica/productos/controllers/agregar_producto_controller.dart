@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -25,6 +26,7 @@ class AgregarProductoController extends GetxController {
     double cantidad,
     String unidadMedida,
     String urlImagen,
+    int idCategoria,
   ) async {
     try {
       estado.value = Estado.carga;
@@ -68,8 +70,8 @@ class AgregarProductoController extends GetxController {
       ''');
 
       await Database.conn.execute(sql, parameters: {
-        'id_categoria': 1,
-        'id_usuario': 1,
+        'id_categoria': idCategoria,
+        'id_usuario': SesionActiva().idUsuario,
         'nombre': nombre,
         'cantidad': cantidad,
         'precio': precio,

@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/categorias/categoria_modelo.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:postgres/postgres.dart';
@@ -25,7 +24,7 @@ class ObtenerCategoriasController extends GetxController {
       resp.forEach((element) {
         categorias.add(CategoriaModelo(
           idCategoria: element[0] as int,
-          idUsuario: element[1] as int,
+          idUsuario: element[1] != null ? element[1] as int : 1,
           nombre: element[2] as String,
         ));
       });
@@ -37,5 +36,14 @@ class ObtenerCategoriasController extends GetxController {
       mensaje.value = 'Error al obtener las categorías: $e';
       return false;
     }
+  }
+
+  List<DropdownMenuItem<String>> get dropdownItems {
+    return [
+      ...categorias.map((cat) => DropdownMenuItem<String>(
+            value: cat.idCategoria.toString(),
+            child: Text(cat.nombre),
+          ))
+    ];
   }
 }

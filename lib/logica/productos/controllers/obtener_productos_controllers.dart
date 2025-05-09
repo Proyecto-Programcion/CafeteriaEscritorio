@@ -1,6 +1,7 @@
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
@@ -20,12 +21,18 @@ class ObtenerProductosControllers extends GetxController {
       estado.value = Estado.carga;
       // Simulación de la obtención de productos
       final sql = Sql.named('''
-        SELECT * FROM productos where eliminado = false ORDER BY id_producto ASC;
+        SELECT 
+          productos.*, 
+          categorias.nombre AS nombre_categoria
+        FROM productos
+        LEFT JOIN categorias ON productos.id_categoria = categorias.id_categoria
+        WHERE productos.eliminado = false
+        ORDER BY productos.id_producto ASC;
       ''');
 
       final resp = await Database.conn.execute(sql);
 
-       // Obtener nombres de columnas
+      // Obtener nombres de columnas
       final columns = resp.schema?.columns.map((c) => c).toList() ?? [];
 
       // Mapear cada fila a ProductoModelo usando fromMap
@@ -36,7 +43,6 @@ class ObtenerProductosControllers extends GetxController {
         }
         return ProductoModelo.fromMap(map);
       }).toList();
-      
 
       estado.value = Estado.exito;
     } catch (e) {

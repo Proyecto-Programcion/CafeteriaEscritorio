@@ -1,7 +1,6 @@
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
-import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:get/instance_manager.dart';
@@ -35,4 +34,6 @@ class EliminarCategoriaController extends GetxController {
       return false;
     }
   }
+
+  
 }

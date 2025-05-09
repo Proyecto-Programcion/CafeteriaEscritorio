@@ -27,8 +27,8 @@ class Database {
         CREATE TABLE IF NOT EXISTS usuarios (
           id_usuario SERIAL PRIMARY KEY,
           nombre VARCHAR,
-          correo VARCHAR,
-          telefono VARCHAR,
+          correo VARCHAR UNIQUE,
+          telefono VARCHAR UNIQUE,
           contrasena VARCHAR,
           rol VARCHAR -- Admin o Empleado
         )
@@ -48,7 +48,7 @@ class Database {
         CREATE TABLE IF NOT EXISTS categorias (
           id_categoria SERIAL PRIMARY KEY,
           id_usuario INT,
-          nombre VARCHAR,
+          nombre VARCHAR UNIQUE,
           eliminado BOOLEAN DEFAULT FALSE
         )
         ''',

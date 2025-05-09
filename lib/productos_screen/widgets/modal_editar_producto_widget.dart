@@ -50,7 +50,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
 
   String unidadMedidaController = 'Gramo';
 
-  String categoriaController = 'categoria1';
+  String categoriaController = '0';
 
   String imagenController = '';
 
@@ -79,16 +79,16 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
       final AgregarProductoController agregarProductoController =
           Get.put(AgregarProductoController());
       agregarProductoController.agregarProducto(
-        nombreController.text,
-        descripcionController.text,
-        codigoDeBarraController.text,
-        categoriaController,
-        double.parse(costoController.text),
-        double.parse(precioController.text),
-        double.parse(cantidadController.text),
-        unidadMedidaController,
-        imagenController,
-      );
+          nombreController.text,
+          descripcionController.text,
+          codigoDeBarraController.text,
+          categoriaController,
+          double.parse(costoController.text),
+          double.parse(precioController.text),
+          double.parse(cantidadController.text),
+          unidadMedidaController,
+          imagenController,
+          int.parse(categoriaController));
     }
   }
 
@@ -113,7 +113,6 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
     unidadMedidaController = widget.unidadMedida;
     categoriaController = widget.categoria;
     imagenController = widget.urlImagen;
-    
   }
 
   @override

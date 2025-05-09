@@ -27,14 +27,17 @@ class AgregarCategoriaController extends GetxController {
       });
 
       estado.value = Estado.exito;
-     final ObtenerCategoriasController obtenerCategoriasController =
+      final ObtenerCategoriasController obtenerCategoriasController =
           Get.put(ObtenerCategoriasController());
-    obtenerCategoriasController.obtenerCategorias();
+      obtenerCategoriasController.obtenerCategorias();
       return true;
     } catch (e) {
       print('Error al agregar la categoría: $e');
-      estado.value = Estado.error;
-      mensaje.value = 'Error al agregar la categoría: $e';
+      if (e.toString().contains('23505:') ) {
+        mensaje.value = 'Categoría duplicada';
+      } else {
+        mensaje.value = 'Error al agregar la categoría: $e';
+      }
       return false;
     }
   }

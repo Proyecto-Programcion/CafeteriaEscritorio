@@ -46,6 +46,13 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
           ),
         );
         nombreCategoriaController.clear();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(agregarCategoriaController.mensaje.value),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

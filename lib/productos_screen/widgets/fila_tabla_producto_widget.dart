@@ -71,10 +71,10 @@ class FilaTablaProductoWidget extends StatelessWidget {
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
             ),
-            const Expanded(
+             Expanded(
               flex: 3,
               child: Text(
-                'categoria',
+                producto.nombreCategoria,
                 textAlign: TextAlign.center,
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
