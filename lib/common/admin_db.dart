@@ -49,7 +49,7 @@ class Database {
           id_categoria SERIAL PRIMARY KEY,
           id_usuario INT,
           nombre VARCHAR,
-          eliminado BOOLEAN DEFAULT FALSE,
+          eliminado BOOLEAN DEFAULT FALSE
         )
         ''',
 

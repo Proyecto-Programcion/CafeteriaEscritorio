@@ -1,4 +1,5 @@
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
 import 'package:cafe/logica/productos/controllers/actualizar_imagen_producto_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/productos_screen/widgets/cabezera_tabla_productos_widgets.dart';
@@ -133,6 +134,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
               InkWell(
                 onTap: () {
                   // Acción al presionar
+                  final ObtenerCategoriasController
+                      obtenerCategoriasController =
+                      Get.put(ObtenerCategoriasController());
+                  obtenerCategoriasController.obtenerCategorias();
                   showDialog(
                       context: context,
                       builder: (context) {

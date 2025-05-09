@@ -9,6 +9,12 @@ class ObtenerProductosControllers extends GetxController {
   Rx<String> mensaje = ''.obs;
   RxList<ProductoModelo> listaProductos = <ProductoModelo>[].obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    obtenerProductos();
+  }
+
   Future<void> obtenerProductos() async {
     try {
       estado.value = Estado.carga;
@@ -32,8 +38,6 @@ class ObtenerProductosControllers extends GetxController {
       }).toList();
       
 
-      print('lista de productos $resp');
-      print('lista de productos $listaProductos');
       estado.value = Estado.exito;
     } catch (e) {
       estado.value = Estado.error;

@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/logica/categorias/categoria_modelo.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:postgres/postgres.dart';
@@ -7,16 +10,26 @@ import 'package:postgres/postgres.dart';
 class ObtenerCategoriasController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
-  RxList<dynamic> categorias = <dynamic>[].obs;
+  RxList<CategoriaModelo> categorias = <CategoriaModelo>[].obs;
 
   Future<bool> obtenerCategorias() async {
     try {
+      // Limpiar la lista de categorías antes de obtener nuevas
+      categorias.clear();
       estado.value = Estado.carga;
       final sql = Sql.named('''
-        SELECT id_categoria, nombre FROM categorias WHERE eliminado = false;
+        SELECT * FROM categorias WHERE eliminado = false;
       ''');
-      final result = await Database.conn.execute(sql);
-      categorias.value = result.toList();
+      final resp = await Database.conn.execute(sql);
+      print('resp: $resp');
+      resp.forEach((element) {
+        categorias.add(CategoriaModelo(
+          idCategoria: element[0] as int,
+          idUsuario: element[1] as int,
+          nombre: element[2] as String,
+        ));
+      });
+
       estado.value = Estado.exito;
       return true;
     } catch (e) {
