@@ -1,6 +1,7 @@
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/logica/usuarios/controllers/elimnarUsuario.dart';
 import 'package:cafe/logica/usuarios/controllers/obtenerUsuarios.dart';
-import 'package:cafe/logica/usuarios/controllers/registrarUsuarios.dart';
+import 'package:cafe/usuarios/widgets/editarNombreCliente.dart';
 import 'package:cafe/usuarios/widgets/registerClientes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,7 @@ class UsuariosScreen extends StatelessWidget {
 
     // Inyecta el controlador solo una vez
     final clientesController = Get.put(ObtenerClientesController());
+    final eliminarController = Get.put(EliminarClienteController());
 
     return Container(
       color: fondoColor,
@@ -36,7 +38,7 @@ class UsuariosScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Botón Nuevo Cliente (abre modal de usuario)
+          // Botón Nuevo Cliente
           Container(
             decoration: BoxDecoration(
               boxShadow: [
@@ -54,10 +56,10 @@ class UsuariosScreen extends StatelessWidget {
                   context: context,
                   builder: (context) => const ModalRegistrarCliente(),
                 );
-                // Si necesitas refrescar el listado, agrégalo aquí
-                // clientesController.obtenerClientes();
+                await clientesController.obtenerClientes();
               },
-              icon: const Icon(Icons.person_add, color: Colors.black87, size: 20),
+              icon:
+                  const Icon(Icons.person_add, color: Colors.black87, size: 20),
               label: const Text(
                 'Nuevo Cliente',
                 style: TextStyle(
@@ -67,7 +69,8 @@ class UsuariosScreen extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black87,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -166,7 +169,8 @@ class UsuariosScreen extends StatelessWidget {
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Text('Acciones',
-                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             )),
                       ],
                     ),
@@ -188,7 +192,8 @@ class UsuariosScreen extends StatelessWidget {
                       return ListView.builder(
                         itemCount: clientesController.clientesFiltrados.length,
                         itemBuilder: (context, i) {
-                          final cliente = clientesController.clientesFiltrados[i];
+                          final cliente =
+                              clientesController.clientesFiltrados[i];
                           return Container(
                             color: i % 2 == 0 ? Colors.white : rowAltColor,
                             padding: const EdgeInsets.symmetric(
@@ -206,17 +211,79 @@ class UsuariosScreen extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.edit, color: primaryTextColor),
+                                        icon: const Icon(Icons.edit,
+                                            color: primaryTextColor),
                                         tooltip: 'Editar',
-                                        onPressed: () {
-                                          // Acción para editar
+                                        onPressed: () async {
+                                          await showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                ModalEditarNombreCliente(
+                                              idCliente: cliente.idCliente,
+                                              nombreActual: cliente.nombre,
+                                            ),
+                                          );
+                                          await clientesController
+                                              .obtenerClientes();
                                         },
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
                                         tooltip: 'Eliminar',
-                                        onPressed: () {
-                                          // Acción para eliminar
+                                        onPressed: () async {
+                                          final confirm =
+                                              await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text(
+                                                  'Eliminar cliente'),
+                                              content: Text(
+                                                  '¿Seguro que quieres eliminar a "${cliente.nombre}"? Esta acción no se puede deshacer.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(false),
+                                                  child: const Text('Cancelar'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(true),
+                                                  child: const Text(
+                                                    'Eliminar',
+                                                    style: TextStyle(
+                                                        color: Colors.red),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          if (confirm == true) {
+                                            try {
+                                              await eliminarController
+                                                  .eliminarCliente(
+                                                      idCliente:
+                                                          cliente.idCliente);
+                                              await clientesController
+                                                  .obtenerClientes();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(const SnackBar(
+                                                content:
+                                                    Text('Cliente eliminado.'),
+                                                backgroundColor:
+                                                    primaryTextColor,
+                                              ));
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    'Error al eliminar: $e'),
+                                                backgroundColor: Colors.red,
+                                              ));
+                                            }
+                                          }
                                         },
                                       ),
                                     ],
@@ -228,47 +295,6 @@ class UsuariosScreen extends StatelessWidget {
                         },
                       );
                     }),
-                  ),
-                  // Paginación
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 17, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(60, 30),
-                            padding: const EdgeInsets.symmetric(horizontal: 17),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text('Anterior',
-                              style: TextStyle(fontSize: 18)),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(60, 30),
-                            padding: const EdgeInsets.symmetric(horizontal: 17),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text('Siguiente',
-                              style: TextStyle(fontSize: 18)),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),

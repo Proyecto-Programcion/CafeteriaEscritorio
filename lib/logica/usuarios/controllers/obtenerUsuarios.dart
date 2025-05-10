@@ -31,6 +31,7 @@ class ObtenerClientesController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         SELECT 
+          id_cliente,
           nombre,
           telefono AS numero_telefono
         FROM clientes
