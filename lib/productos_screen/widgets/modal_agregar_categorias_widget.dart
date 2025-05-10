@@ -29,7 +29,6 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
       TextEditingController();
   final TextEditingController nombreCategoriaControllerActualizar =
       TextEditingController();
-      
 
   void agregarCategoria(BuildContext context) async {
     if (formKey.currentState!.validate()) {

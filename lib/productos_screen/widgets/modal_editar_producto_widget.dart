@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
+import 'package:cafe/logica/productos/controllers/actualizar_producto_controller.dart';
 import 'package:cafe/logica/productos/controllers/agregar_producto_controller.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -86,25 +87,46 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
     });
   }
 
-  void agregarNuevoProducto() {
+  void actualizarProducto() async {
     if (formKey.currentState!.validate()) {
       print('codigo de barras: ${codigoDeBarraController.text}');
-      final AgregarProductoController agregarProductoController =
-          Get.put(AgregarProductoController());
-      agregarProductoController.agregarProducto(
-          nombreController.text,
-          descripcionController.text,
-          codigoDeBarraController.text,
-          categoriaController,
-          double.parse(
-              costoController.text.isEmpty ? '0.0' : costoController.text),
-          double.parse(precioController.text),
-          double.parse(cantidadController.text.isEmpty
-              ? '0.0'
-              : cantidadController.text),
-          unidadMedidaController,
-          imagenController,
-          int.parse(categoriaController));
+      final ActualizarProductoController actualizarProductoController =
+          Get.put(ActualizarProductoController());
+      final resp = await actualizarProductoController.actualizarProducto(
+        widget.idProducto,
+        nombreController.text,
+        descripcionController.text,
+        codigoDeBarraController.text,
+        categoriaController,
+        double.parse(
+            costoController.text.isEmpty ? '0.0' : costoController.text),
+        double.parse(precioController.text),
+        double.parse(
+            cantidadController.text.isEmpty ? '0.0' : cantidadController.text),
+        unidadMedidaController,
+        imagenController,
+        int.parse(categoriaController),
+        double.parse(descuentoController.text.isEmpty
+            ? '0.0'
+            : descuentoController.text),
+      );
+      if (resp) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Producto actualizado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Error al actualizar el producto: ${actualizarProductoController.mensaje}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
       Navigator.pop(context);
     }
   }
@@ -177,7 +199,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                 ],
               ),
               const Text(
-                'Ingrese el nuevo producto',
+                'ACTUALIZANDO PRODUCTO',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -302,14 +324,14 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
               InputDescuento(
                 decuentoController: descuentoController,
               ),
-              //***********************BOTON PARA AGREGAR EL PRODUCTO*/
+              //***********************BOTON PARA ACTUALIZAR EL PRODUCTO*/
               const Spacer(),
               SizedBox(
                 width: 300,
                 child: InkWell(
                   onTap: () {
                     obtenerCategoriasController.obtenerCategorias();
-                    agregarNuevoProducto();
+                    actualizarProducto();
                   },
                   borderRadius: BorderRadius.circular(30),
                   child: Container(
@@ -329,7 +351,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                       ],
                     ),
                     child: const Text(
-                      'Agregar producto',
+                      'Actualizar producto',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 18,

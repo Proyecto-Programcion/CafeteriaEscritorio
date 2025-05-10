@@ -17,7 +17,8 @@ class EliminarProductoController extends GetxController {
 
       final sql = Sql.named('''
         UPDATE productos
-        SET eliminado = true
+        SET eliminado = true,
+            codigo_de_barras = NULL
         WHERE id_producto = @id_producto;
       ''');
 
@@ -26,7 +27,7 @@ class EliminarProductoController extends GetxController {
       });
 
       estado.value = Estado.exito;
-       final ObtenerProductosControllers obtenerProductosControllers =
+      final ObtenerProductosControllers obtenerProductosControllers =
           Get.find<ObtenerProductosControllers>();
       await obtenerProductosControllers.obtenerProductos();
       return true;

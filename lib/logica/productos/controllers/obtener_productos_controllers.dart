@@ -46,6 +46,7 @@ class ObtenerProductosControllers extends GetxController {
 
       estado.value = Estado.exito;
     } catch (e) {
+      print('Error al obtener productos: $e');
       estado.value = Estado.error;
       mensaje.value = 'Error al obtener productos: $e';
     }

@@ -16,7 +16,7 @@ class AgregarProductoController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
 
-  Future<void> agregarProducto(
+  Future<bool> agregarProducto(
     String nombre,
     String descripcion,
     String codigoDeBarras,
@@ -27,6 +27,7 @@ class AgregarProductoController extends GetxController {
     String unidadMedida,
     String urlImagen,
     int idCategoria,
+    double descuento,
   ) async {
     try {
       estado.value = Estado.carga;
@@ -65,7 +66,7 @@ class AgregarProductoController extends GetxController {
           @eliminado,
           @descripcion,
           @unidad_medida,
-          0
+          @descuento
         );
       ''');
 
@@ -76,21 +77,30 @@ class AgregarProductoController extends GetxController {
         'cantidad': cantidad,
         'precio': precio,
         'costo': costo,
-        'codigo_de_barras': codigoDeBarras,
+        'codigo_de_barras': codigoDeBarras.isEmpty
+            ? null
+            : codigoDeBarras, // Permitir null si el campo está vacío
         'url_imagen': imagenBase64,
         'eliminado': false,
         'descripcion': descripcion,
         'unidad_medida': unidadMedida,
+        'descuento': descuento,
       });
 
       estado.value = Estado.exito;
       final ObtenerProductosControllers obtenerProductosControllers =
           Get.find<ObtenerProductosControllers>();
       await obtenerProductosControllers.obtenerProductos();
+      return true;
     } catch (e) {
       print('Error al agregar producto: $e');
-      estado.value = Estado.error;
-      mensaje.value = 'Error al agregar producto: $e';
+      if (e.toString().contains('23505:')) {
+        mensaje.value = 'Codigo de barras duplicado';
+        return false;
+      } else {
+        mensaje.value = 'Error al agregar la categoría: $e';
+        return false;
+      }
     }
   }
 }

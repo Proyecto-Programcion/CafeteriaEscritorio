@@ -61,25 +61,43 @@ class _ModalAgregarNuevoProductoWidgetState
     });
   }
 
-  void agregarNuevoProducto() {
+  void agregarNuevoProducto() async {
     if (formKey.currentState!.validate()) {
       print('codigo de barras: ${codigoDeBarraController.text}');
       final AgregarProductoController agregarProductoController =
           Get.put(AgregarProductoController());
-      agregarProductoController.agregarProducto(
-          nombreController.text,
-          descripcionController.text,
-          codigoDeBarraController.text,
-          categoriaController,
-          double.parse(
-              costoController.text.isEmpty ? '0.0' : costoController.text),
-          double.parse(precioController.text),
-          double.parse(cantidadController.text.isEmpty
-              ? '0.0'
-              : cantidadController.text),
-          unidadMedidaController,
-          imagenController,
-          int.parse(categoriaController));
+      final resp = await agregarProductoController.agregarProducto(
+        nombreController.text,
+        descripcionController.text,
+        codigoDeBarraController.text,
+        categoriaController,
+        double.parse(
+            costoController.text.isEmpty ? '0.0' : costoController.text),
+        double.parse(precioController.text),
+        double.parse(
+            cantidadController.text.isEmpty ? '0.0' : cantidadController.text),
+        unidadMedidaController,
+        imagenController,
+        int.parse(categoriaController),
+        double.parse(descuentoController.text.isEmpty
+            ? '0.0'
+            : descuentoController.text),
+      );
+      if (resp) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Producto agregado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+            content: Text('Error al agregar el producto: ${agregarProductoController.mensaje}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       Navigator.pop(context);
     }
   }

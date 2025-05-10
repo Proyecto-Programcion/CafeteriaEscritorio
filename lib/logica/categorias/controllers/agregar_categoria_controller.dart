@@ -33,7 +33,7 @@ class AgregarCategoriaController extends GetxController {
       return true;
     } catch (e) {
       print('Error al agregar la categoría: $e');
-      if (e.toString().contains('23505')) {
+      if (e.toString().contains('23505:')) {
         mensaje.value = 'Categoría duplicada';
       } else {
         mensaje.value = 'Error al agregar la categoría: $e';

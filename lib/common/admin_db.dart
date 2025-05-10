@@ -64,7 +64,7 @@ class Database {
           precio DOUBLE PRECISION NOT NULL,
           costo DOUBLE PRECISION,
           descuento DOUBLE PRECISION,
-          codigo_de_barras VARCHAR,
+          codigo_de_barras VARCHAR UNIQUE,
           url_imagen VARCHAR,
           eliminado BOOLEAN DEFAULT FALSE,
           descripcion VARCHAR,
