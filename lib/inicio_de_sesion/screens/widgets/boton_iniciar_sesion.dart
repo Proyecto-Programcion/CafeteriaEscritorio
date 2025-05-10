@@ -18,20 +18,17 @@ class BottonIniciarSesion extends StatelessWidget {
   final IniciarSesionController iniciarSesionController =
       Get.put(IniciarSesionController());
 
-  // void _iniciarSesion(BuildContext context) async {
-  //   if (formKey.currentState!.validate()) {
-  //     print('Iniciando sesión con: ${correoController.text}');
-  //     print('Contraseña: ${contrasenaController.text}');
-  //     final resp = await iniciarSesionController.iniciarSesion(
-  //         correoController.text, contrasenaController.text);
-  //     if (resp == true) {
-  //       Navigator.of(context).pop();
-  //       Navigator.pushReplacementNamed(context, '/home');
-  //     }
-  //   }
-  // }
   void _iniciarSesion(BuildContext context) async {
-    Navigator.pushReplacementNamed(context, '/home');
+    if (formKey.currentState!.validate()) {
+      print('Iniciando sesión con: ${correoController.text}');
+      print('Contraseña: ${contrasenaController.text}');
+      final resp = await iniciarSesionController.iniciarSesion(
+          correoController.text, contrasenaController.text);
+      if (resp == true) {
+        Navigator.of(context).pop();
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    }
   }
 
   @override

@@ -49,3 +49,16 @@ class ProductoModelo {
         nombreCategoria: map['nombre_categoria'] as String,
       );
 }
+
+class ProductoCarrito {
+  final ProductoModelo producto;
+  int cantidad;
+
+  ProductoCarrito({required this.producto, this.cantidad = 1});
+
+  double get total {
+    final precio = producto.precio ?? 0;
+    final descuento = producto.descuento ?? 0;
+    return (precio - descuento) * cantidad;
+  }
+}
