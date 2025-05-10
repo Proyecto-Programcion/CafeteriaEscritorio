@@ -5,6 +5,7 @@ import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
 import 'package:cafe/promociones/promocionesScreeen.dart';
 import 'package:cafe/usuarios/usuarios_screen.dart';
+import 'package:cafe/venta_screen/venta_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> listaDeScreens = [
     const InicioScreen(),
     const ProductosScreen(),
-    Center(child: Text('Pantalla Carrito')),
+    const VentaScreen(),
     const UsuariosScreen(),
     const PromocionesPage(),
     Center(child: Text('Pantalla Trending')),
