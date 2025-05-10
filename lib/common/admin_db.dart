@@ -8,9 +8,9 @@ class Database {
       Endpoint(
         host: 'localhost',
         port: 5432,
-        database: 'prueba02',
+        database: 'cafeteria',
         username: 'postgres',
-        password: '211099',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -39,8 +39,8 @@ class Database {
         CREATE TABLE IF NOT EXISTS clientes (
           id_cliente SERIAL PRIMARY KEY,
           nombre VARCHAR,
-          telefono INT UNIQUE
-        )
+          telefono VARCHAR UNIQUE
+        );
         ''',
 
         // TABLA CATEGORIAS
