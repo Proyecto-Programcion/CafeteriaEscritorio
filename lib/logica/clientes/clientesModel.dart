@@ -10,7 +10,6 @@ class usuariMmodel {
   });
 
 factory usuariMmodel.fromMap(Map<String, dynamic> map) {
-  print('DEBUG FROM FROMMAP: ${map['id_cliente']}');
   return usuariMmodel(
     idCliente: map['id_cliente'] is int
         ? map['id_cliente'] as int

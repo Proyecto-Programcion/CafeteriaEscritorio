@@ -31,6 +31,10 @@ class BottonIniciarSesion extends StatelessWidget {
     }
   }
 
+  // void _iniciarSesion(BuildContext context) async {
+  //   Navigator.pushReplacementNamed(context, '/home');
+  // }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(

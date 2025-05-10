@@ -1,7 +1,7 @@
-import 'package:cafe/logica/usuarios/controllers/actualizaUsuario.dart';
+import 'package:cafe/logica/clientes/controllers/actualizaClientes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cafe/logica/usuarios/controllers/obtenerUsuarios.dart';
+import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
 
 class ModalEditarNombreCliente extends StatefulWidget {
   final int idCliente;

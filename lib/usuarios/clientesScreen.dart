@@ -1,13 +1,14 @@
 import 'package:cafe/common/enums.dart';
-import 'package:cafe/logica/usuarios/controllers/elimnarUsuario.dart';
-import 'package:cafe/logica/usuarios/controllers/obtenerUsuarios.dart';
+import 'package:cafe/logica/clientes/controllers/elimnarClientes.dart';
+import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
+
 import 'package:cafe/usuarios/widgets/editarNombreCliente.dart';
 import 'package:cafe/usuarios/widgets/registerClientes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UsuariosScreen extends StatelessWidget {
-  const UsuariosScreen({super.key});
+class ClientesScreen extends StatelessWidget {
+  const ClientesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class UsuariosScreen extends StatelessWidget {
     const tableHeaderColor = Color(0xFFF0F0F0);
     const rowAltColor = Color(0xFFF5F5F5);
 
-    // Inyecta el controlador solo una vez
+    // Inyecta los controladores solo una vez
     final clientesController = Get.put(ObtenerClientesController());
     final eliminarController = Get.put(EliminarClienteController());
 
@@ -175,7 +176,7 @@ class UsuariosScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Filas de usuarios desde la base de datos (con filtro aplicado)
+                  // Filas de clientes desde la base de datos (con filtro aplicado)
                   Expanded(
                     child: Obx(() {
                       if (clientesController.estado.value == Estado.carga) {

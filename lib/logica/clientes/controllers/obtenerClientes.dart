@@ -1,6 +1,6 @@
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
-import 'package:cafe/logica/usuarios/usuarioModel.dart';
+import 'package:cafe/logica/clientes/clientesModel.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
@@ -10,7 +10,6 @@ class ObtenerClientesController extends GetxController {
   RxList<usuariMmodel> listaClientes = <usuariMmodel>[].obs;
   RxString filtro = ''.obs;
 
-  // Lista filtrada según el filtro actual
   List<usuariMmodel> get clientesFiltrados {
     final f = filtro.value.trim().toLowerCase();
     if (f.isEmpty) return listaClientes;
