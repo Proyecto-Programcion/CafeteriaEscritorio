@@ -3,10 +3,12 @@ import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
+import 'package:cafe/promociones/promocionesScreeen.dart';
 import 'package:cafe/usuarios/usuarios_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,10 +47,9 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Cafe Paquito',
       debugShowCheckedModeBanner: false,
       routes: {
@@ -76,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProductosScreen(),
     Center(child: Text('Pantalla Carrito')),
     const UsuariosScreen(),
-    Center(child: Text('Pantalla Email')),
+    const PromocionesPage(),
     Center(child: Text('Pantalla Trending')),
   ];
 
@@ -140,7 +141,7 @@ class NavbarNavegacion extends StatelessWidget {
       Icons.notes,
       Icons.shopping_cart,
       Icons.person,
-      Icons.email,
+      Icons.category_outlined,
       Icons.trending_up,
     ];
 

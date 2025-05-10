@@ -10,7 +10,6 @@ class ObtenerClientesController extends GetxController {
   RxList<usuariMmodel> listaClientes = <usuariMmodel>[].obs;
   RxString filtro = ''.obs;
 
-  // Lista filtrada según el filtro actual
   List<usuariMmodel> get clientesFiltrados {
     final f = filtro.value.trim().toLowerCase();
     if (f.isEmpty) return listaClientes;

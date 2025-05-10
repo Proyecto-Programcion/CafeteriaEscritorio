@@ -142,15 +142,10 @@ class Database {
         '''
         CREATE TABLE IF NOT EXISTS promocion (
           id_promocion SERIAL PRIMARY KEY,
-          id_usuario INT,
-          id_cliente INT,
+          nombrePromocion VARCHAR,
           descripcion VARCHAR,
           porcentaje INT,
-          cantidad DOUBLE PRECISION,
-          codigo VARCHAR,
-          fecha_inicio VARCHAR,
-          fecha_termino VARCHAR,
-          uso_maximo INT,
+          comprasNecesarias INT,
           status BOOLEAN
         )
         ''',
