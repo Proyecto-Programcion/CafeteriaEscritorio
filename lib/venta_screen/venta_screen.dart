@@ -1,11 +1,11 @@
-import 'dart:convert';
-
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
+import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
+import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/instance_manager.dart';
 
 class VentaScreen extends StatefulWidget {
@@ -62,6 +62,23 @@ class _VentaScreenState extends State<VentaScreen> {
             buscadorProductosController.listaProductos);
       });
     }
+  }
+
+  double get totalVenta {
+    return carrito.fold<double>(
+      0,
+      (suma, item) =>
+          suma +
+          (((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
+              item.cantidad),
+    );
+  }
+
+  double get totalDescuento {
+    return carrito.fold<double>(
+      0,
+      (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad),
+    );
   }
 
   @override
@@ -206,49 +223,85 @@ class _VentaScreenState extends State<VentaScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Total de la venta: ',
-                          style: TextStyle(
+                        Text(
+                          'Total de la venta: \$${totalVenta.toStringAsFixed(2)}',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 16),
                         Text(
-                          'Total de la venta: \$${carrito.fold<double>(0, (suma, item) => suma + ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) * item.cantidad).toStringAsFixed(2)}',
+                          'Descuento aplicado: \$${totalDescuento.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            print(carrito);
-                            carrito.map((item) {
-                              print(
-                                  'Producto: ${item.producto.nombre}, Cantidad: ${item.cantidad}, total: ${item.total}');
-                            }).toList();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
+                        Row(
+                          children: [
+                            InkWell(
                               borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'PAGAR',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                letterSpacing: 1.2,
+                              onTap: () {
+                                setState(() {
+                                  carrito.clear();
+                                  focusNodesCarrito.clear();
+                                  selectedIndexes.clear();
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'CANCELAR',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                            const SizedBox(width: 16),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                showDialog(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (context) {
+                                      return ModalRealizarVenta(
+                                        productosCarrito: carrito,
+                                        total: totalVenta,
+                                        descuento: totalDescuento,
+                                      );
+                                    });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 55, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'PAGAR',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -286,403 +339,6 @@ class _VentaScreenState extends State<VentaScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ProductoSeleccionadoFilaWidget extends StatefulWidget {
-  final ProductoCarrito productoCarrito;
-  final ValueChanged<int> onCantidadChanged;
-  final VoidCallback onRemove;
-  final FocusNode? focusNode; // <-- Agrega esto
-
-  const ProductoSeleccionadoFilaWidget({
-    super.key,
-    required this.productoCarrito,
-    required this.onCantidadChanged,
-    required this.onRemove,
-    this.focusNode, // <-- Agrega esto
-  });
-
-  @override
-  State<ProductoSeleccionadoFilaWidget> createState() =>
-      _ProductoSeleccionadoFilaWidgetState();
-}
-
-class _ProductoSeleccionadoFilaWidgetState
-    extends State<ProductoSeleccionadoFilaWidget> {
-  late TextEditingController _cantidadController;
-
-  @override
-  void initState() {
-    super.initState();
-    _cantidadController =
-        TextEditingController(text: widget.productoCarrito.cantidad.toString());
-  }
-
-  @override
-  void didUpdateWidget(covariant ProductoSeleccionadoFilaWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Actualiza el controller si la cantidad cambia desde fuera
-    if (widget.productoCarrito.cantidad.toString() !=
-        _cantidadController.text) {
-      _cantidadController.text = widget.productoCarrito.cantidad.toString();
-    }
-  }
-
-  @override
-  void dispose() {
-    _cantidadController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final producto = widget.productoCarrito.producto;
-    final cantidad = widget.productoCarrito.cantidad;
-    final precio = producto.precio ?? 0;
-    final descuento = producto.descuento ?? 0;
-    final total = (precio - descuento) * cantidad;
-
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F1E7),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(
-              producto.nombre,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '\$${precio.toStringAsFixed(2)}',
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '\$${descuento.toStringAsFixed(2)}',
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: SizedBox(
-              width: double.infinity,
-              height: 22,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      if (cantidad > 1) {
-                        widget.onCantidadChanged(cantidad - 1);
-                        _cantidadController.text = (cantidad - 1).toString();
-                      }
-                    },
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        border: Border.all(color: Colors.black12),
-                      ),
-                      child: const Icon(Icons.remove, size: 14),
-                    ),
-                  ),
-                  Expanded(
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 22,
-                      child: TextFormField(
-                        controller: _cantidadController,
-                        focusNode: widget.focusNode, // <-- Aquí
-                        textAlign: TextAlign.center,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(vertical: 2),
-                        ),
-                        style: const TextStyle(fontSize: 14),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          final nuevaCantidad = int.tryParse(value) ?? 1;
-                          if (nuevaCantidad > 0 &&
-                              nuevaCantidad <= (producto.cantidad ?? 0)) {
-                            widget.onCantidadChanged(nuevaCantidad);
-                          } else if (nuevaCantidad > (producto.cantidad ?? 0)) {
-                            // Si el usuario escribe un número mayor al stock, lo limitas al máximo
-                            _cantidadController.text =
-                                (producto.cantidad ?? 0).toString();
-                            widget.onCantidadChanged(
-                                (producto.cantidad ?? 0).toInt());
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      if (cantidad < (producto.cantidad ?? 0)) {
-                        widget.onCantidadChanged(cantidad + 1);
-                        _cantidadController.text = (cantidad + 1).toString();
-                      }
-                    },
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        border: Border.all(color: Colors.black12),
-                      ),
-                      child: const Icon(Icons.add, size: 14),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '\$${total.toStringAsFixed(2)}',
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(
-            width: 40,
-            child: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: widget.onRemove,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CabezeraTablaCarritoVenta extends StatelessWidget {
-  const CabezeraTablaCarritoVenta({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      color: Colors.amber,
-      child: const Row(children: [
-        Expanded(
-          flex: 4,
-          child: Text(
-            'Nombre del producto',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Precio',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Descuento',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Cant.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Total',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        SizedBox(width: 40), // Espacio para el botón eliminar
-      ]),
-    );
-  }
-}
-
-class ProductoCard extends StatelessWidget {
-  final ProductoModelo producto;
-  final bool seleccionado;
-
-  final VoidCallback? onTap;
-
-  const ProductoCard({
-    super.key,
-    required this.producto,
-    this.onTap,
-    required this.seleccionado,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          height: 150,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9F1E7),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 12,
-                offset: const Offset(6, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Icon(
-                  seleccionado
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: seleccionado ? Colors.black54 : Colors.grey,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
-                  ),
-                  color: (producto.urlImagen?.isEmpty ?? true)
-                      ? Colors.grey[300]
-                      : null,
-                  image: (producto.urlImagen?.isNotEmpty ?? false)
-                      ? DecorationImage(
-                          image: Image.memory(base64Decode(producto.urlImagen!))
-                              .image,
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: (producto.urlImagen?.isEmpty ?? true)
-                    ? const Center(
-                        child: Icon(Icons.image_not_supported,
-                            size: 48, color: Colors.grey),
-                      )
-                    : null,
-              ),
-              Expanded(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        producto.nombre,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            '1 ${producto.unidadMedida}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Cantidad disponible: ${producto.cantidad} ${producto.unidadMedida}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            'Precio sin descuento: \$${producto.precio}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Descuento: \$${producto.descuento}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
