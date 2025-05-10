@@ -4,6 +4,7 @@ import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/venta_screen/modalPgar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/instance_manager.dart';
@@ -50,7 +51,6 @@ class _VentaScreenState extends State<VentaScreen> {
   void _onSearchChanged() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      // Si está vacío, muestra todos los productos
       setState(() {
         productosFiltrados = List<ProductoModelo>.from(
             obtenerProductosControllers.listaProductos);
@@ -66,132 +66,134 @@ class _VentaScreenState extends State<VentaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double totalVenta = carrito.fold<double>(
+      0,
+      (suma, item) => suma +
+          ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
+              item.cantidad,
+    );
+    final double descuento = carrito.fold<double>(
+      0,
+      (suma, item) => suma + (item.producto.descuento ?? 0) * item.cantidad,
+    );
+
     return Padding(
       padding: const EdgeInsets.all(50),
       child: Row(
         children: [
-          ///////**********************************************************PARTE DE LISTAR PRODUCTOS */
+          /// PARTE DE LISTAR PRODUCTOS
           Expanded(
             flex: 20,
-            child: Container(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'LISTA DE PRODUCTOS',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'LISTA DE PRODUCTOS',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 153, 103, 8),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: const Text(
+                    'Buscar articulo por nombre nombre o codigo de barras:',
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 19,
                       color: Color.fromARGB(255, 153, 103, 8),
                     ),
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: const Text(
-                      'Buscar articulo por nombre nombre o codigo de barras:',
-                      style: TextStyle(
-                        fontSize: 19,
-                        color: Color.fromARGB(255, 153, 103, 8),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 12,
-                            offset: const Offset(4, 4),
-                          ),
-                        ],
-                      ),
-                      child: TextFormField(
-                        controller: _searchController,
-                        onChanged: (value) {
-                          _onSearchChanged();
-                        },
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 16),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 12,
+                          offset: const Offset(4, 4),
                         ),
-                        style: const TextStyle(color: Colors.black),
-                      ),
+                      ],
                     ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  ///////**********************************************************PARTE DE lISTAR PRODUCTOS SELECCIONADOS */
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        if (obtenerProductosControllers.estado.value ==
-                            Estado.carga) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (obtenerProductosControllers.estado.value ==
-                            Estado.error) {
-                          return const Center(
-                              child: Text('Error al cargar los productos'));
-                        } else if (productosFiltrados.isEmpty) {
-                          return const Center(
-                              child: Text('No hay productos disponibles'));
-                        } else {
-                          return ListView.builder(
-                            itemCount: productosFiltrados.length,
-                            itemBuilder: (context, index) {
-                              final producto = productosFiltrados[index];
-                              return ProductoCard(
-                                producto: producto,
-                                seleccionado: selectedIndexes.contains(index),
-                                onTap: () {
-                                  setState(() {
-                                    final yaEnCarrito = carrito.indexWhere(
-                                      (e) =>
-                                          e.producto.idProducto ==
-                                          producto.idProducto,
-                                    );
-                                    if (yaEnCarrito >= 0) {
-                                      carrito.removeAt(yaEnCarrito);
-                                      focusNodesCarrito.removeAt(
-                                          yaEnCarrito); // <-- Elimina el focusNode
-                                      selectedIndexes.remove(index);
-                                    } else {
-                                      carrito.add(
-                                          ProductoCarrito(producto: producto));
-                                      focusNodesCarrito.add(
-                                          FocusNode()); // <-- Agrega un nuevo focusNode
-                                      selectedIndexes.add(index);
-                                      // Espera a que el widget se reconstruya y luego solicita el foco
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
-                                        focusNodesCarrito.last.requestFocus();
-                                      });
-                                    }
-                                  });
-                                },
-                              );
-                            },
-                          );
-                        }
+                    child: TextFormField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        _onSearchChanged();
                       },
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      ),
+                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+                /// PARTE DE lISTAR PRODUCTOS SELECCIONADOS
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      if (obtenerProductosControllers.estado.value ==
+                          Estado.carga) {
+                        return const Center(
+                            child: CircularProgressIndicator());
+                      } else if (obtenerProductosControllers.estado.value ==
+                          Estado.error) {
+                        return const Center(
+                            child: Text('Error al cargar los productos'));
+                      } else if (productosFiltrados.isEmpty) {
+                        return const Center(
+                            child: Text('No hay productos disponibles'));
+                      } else {
+                        return ListView.builder(
+                          itemCount: productosFiltrados.length,
+                          itemBuilder: (context, index) {
+                            final producto = productosFiltrados[index];
+                            return ProductoCard(
+                              producto: producto,
+                              seleccionado: selectedIndexes.contains(index),
+                              onTap: () {
+                                setState(() {
+                                  final yaEnCarrito = carrito.indexWhere(
+                                    (e) =>
+                                        e.producto.idProducto ==
+                                        producto.idProducto,
+                                  );
+                                  if (yaEnCarrito >= 0) {
+                                    carrito.removeAt(yaEnCarrito);
+                                    focusNodesCarrito.removeAt(
+                                        yaEnCarrito); // <-- Elimina el focusNode
+                                    selectedIndexes.remove(index);
+                                  } else {
+                                    carrito
+                                        .add(ProductoCarrito(producto: producto));
+                                    focusNodesCarrito
+                                        .add(FocusNode()); // <-- Agrega un nuevo focusNode
+                                    selectedIndexes.add(index);
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      focusNodesCarrito.last.requestFocus();
+                                    });
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -215,7 +217,7 @@ class _VentaScreenState extends State<VentaScreen> {
                         ),
                         const SizedBox(width: 16),
                         Text(
-                          'Total de la venta: \$${carrito.fold<double>(0, (suma, item) => suma + ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) * item.cantidad).toStringAsFixed(2)}',
+                          'Total de la venta: \$${totalVenta.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -224,12 +226,17 @@ class _VentaScreenState extends State<VentaScreen> {
                         const SizedBox(width: 16),
                         InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            print(carrito);
-                            carrito.map((item) {
-                              print(
-                                  'Producto: ${item.producto.nombre}, Cantidad: ${item.cantidad}, total: ${item.total}');
-                            }).toList();
+                          onTap: () async {
+                            final resultado = await showDialog<String>(
+                              context: context,
+                              builder: (context) => PagoModal(
+                                totalVenta: totalVenta,
+                                descuento: descuento,
+                              ),
+                            );
+                            if (resultado != null) {
+                              print('Seleccionado: $resultado');
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -248,12 +255,11 @@ class _VentaScreenState extends State<VentaScreen> {
                               ),
                             ),
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
                   const CabezeraTablaCarritoVenta(),
-                  // Aquí puedes agregar el contenido del carrito de venta
                   Expanded(
                     child: ListView.builder(
                       itemCount: carrito.length,
@@ -261,7 +267,7 @@ class _VentaScreenState extends State<VentaScreen> {
                         final item = carrito[index];
                         return ProductoSeleccionadoFilaWidget(
                           productoCarrito: item,
-                          focusNode: focusNodesCarrito[index], // <-- Aquí
+                          focusNode: focusNodesCarrito[index],
                           onCantidadChanged: (nuevaCantidad) {
                             setState(() {
                               item.cantidad = nuevaCantidad;
@@ -273,8 +279,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                   p.idProducto == item.producto.idProducto);
                               if (idx >= 0) selectedIndexes.remove(idx);
                               carrito.removeAt(index);
-                              focusNodesCarrito
-                                  .removeAt(index); // <-- Elimina el focusNode
+                              focusNodesCarrito.removeAt(index);
                             });
                           },
                         );
@@ -295,14 +300,14 @@ class ProductoSeleccionadoFilaWidget extends StatefulWidget {
   final ProductoCarrito productoCarrito;
   final ValueChanged<int> onCantidadChanged;
   final VoidCallback onRemove;
-  final FocusNode? focusNode; // <-- Agrega esto
+  final FocusNode? focusNode;
 
   const ProductoSeleccionadoFilaWidget({
     super.key,
     required this.productoCarrito,
     required this.onCantidadChanged,
     required this.onRemove,
-    this.focusNode, // <-- Agrega esto
+    this.focusNode,
   });
 
   @override
@@ -324,7 +329,6 @@ class _ProductoSeleccionadoFilaWidgetState
   @override
   void didUpdateWidget(covariant ProductoSeleccionadoFilaWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Actualiza el controller si la cantidad cambia desde fuera
     if (widget.productoCarrito.cantidad.toString() !=
         _cantidadController.text) {
       _cantidadController.text = widget.productoCarrito.cantidad.toString();
@@ -405,7 +409,7 @@ class _ProductoSeleccionadoFilaWidgetState
                       height: 22,
                       child: TextFormField(
                         controller: _cantidadController,
-                        focusNode: widget.focusNode, // <-- Aquí
+                        focusNode: widget.focusNode,
                         textAlign: TextAlign.center,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -419,7 +423,6 @@ class _ProductoSeleccionadoFilaWidgetState
                               nuevaCantidad <= (producto.cantidad ?? 0)) {
                             widget.onCantidadChanged(nuevaCantidad);
                           } else if (nuevaCantidad > (producto.cantidad ?? 0)) {
-                            // Si el usuario escribe un número mayor al stock, lo limitas al máximo
                             _cantidadController.text =
                                 (producto.cantidad ?? 0).toString();
                             widget.onCantidadChanged(
@@ -535,7 +538,7 @@ class CabezeraTablaCarritoVenta extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: 40), // Espacio para el botón eliminar
+        SizedBox(width: 40),
       ]),
     );
   }

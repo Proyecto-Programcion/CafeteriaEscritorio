@@ -4,7 +4,7 @@ import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
 import 'package:cafe/promociones/promocionesScreeen.dart';
-import 'package:cafe/usuarios/usuarios_screen.dart';
+import 'package:cafe/usuarios/clientesScreen.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const InicioScreen(),
     const ProductosScreen(),
     const VentaScreen(),
-    const UsuariosScreen(),
+    const ClientesScreen(),
     const PromocionesPage(),
     Center(child: Text('Pantalla Trending')),
   ];

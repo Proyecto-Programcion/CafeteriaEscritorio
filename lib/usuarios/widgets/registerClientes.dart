@@ -1,7 +1,7 @@
-import 'package:cafe/logica/usuarios/controllers/registrarUsuarios.dart';
+import 'package:cafe/logica/clientes/controllers/registrarClientes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cafe/logica/usuarios/controllers/obtenerUsuarios.dart';
+import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
 import 'package:flutter/services.dart';
 
 class ModalRegistrarCliente extends StatefulWidget {

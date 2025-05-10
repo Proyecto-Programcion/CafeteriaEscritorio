@@ -8,9 +8,9 @@ class Database {
       Endpoint(
         host: 'localhost',
         port: 5432,
-        database: 'prueba02',
+        database: 'cafeteria',
         username: 'postgres',
-        password: '211099',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -18,7 +18,7 @@ class Database {
     await _crearTablasSiNoExisten();
   }
 
-  static Future<void> _crearTablasSiNoExisten() async {
+static Future<void> _crearTablasSiNoExisten() async {
     try {
       // Ejecutar cada sentencia SQL por separado
       final statements = [
@@ -149,6 +149,90 @@ class Database {
           status BOOLEAN
         )
         ''',
+        
+        // RELACIONES
+        '''
+        DO \$\$
+        BEGIN
+          -- Relaciones para categorias
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_categorias_usuario') THEN
+            ALTER TABLE categorias ADD CONSTRAINT fk_categorias_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para productos
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_categoria') THEN
+            ALTER TABLE productos ADD CONSTRAINT fk_productos_categoria
+            FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_usuario') THEN
+            ALTER TABLE productos ADD CONSTRAINT fk_productos_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para ingresoproducto
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ingresoproducto_usuario') THEN
+            ALTER TABLE ingresoproducto ADD CONSTRAINT fk_ingresoproducto_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para detallessingresoproducto
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_ingresoproducto') THEN
+            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_ingresoproducto
+            FOREIGN KEY (id_ingreso_producto) REFERENCES ingresoproducto(id_ingreso_producto) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_producto') THEN
+            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_producto
+            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para ventas
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_usuario') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_cliente') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_cliente
+            FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_cupon') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_cupon
+            FOREIGN KEY (id_cupon) REFERENCES cupones(id_cupon) ON DELETE SET NULL;
+          END IF;
+          
+          -- Relaciones para detallesventa
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_venta') THEN
+            ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_venta
+            FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_producto') THEN
+            ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_producto
+            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_promocion') THEN
+            ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_promocion
+            FOREIGN KEY (id_promocion) REFERENCES promocion(id_promocion) ON DELETE SET NULL;
+          END IF;
+          
+          -- Relaciones para cupones
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_cupones_usuario') THEN
+            ALTER TABLE cupones ADD CONSTRAINT fk_cupones_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_cupones_cliente') THEN
+            ALTER TABLE cupones ADD CONSTRAINT fk_cupones_cliente
+            FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE;
+          END IF;
+        END
+        \$\$;
+        '''
       ];
 
       // Ejecutar cada sentencia por separado
@@ -156,13 +240,12 @@ class Database {
         await conn.execute(sql);
       }
 
-      print('✅ Tablas e índices creados o ya existen.');
+      print('✅ Tablas, relaciones e índices creados o ya existen.');
     } catch (e) {
-      print('❌ Error al crear las tablas: $e');
+      print('❌ Error al crear las tablas o relaciones: $e');
       rethrow;
     }
   }
-
   static Future<void> execute(String sql) async {
     try {
       await conn.execute(sql);

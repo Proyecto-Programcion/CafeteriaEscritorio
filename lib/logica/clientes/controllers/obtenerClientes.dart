@@ -1,6 +1,6 @@
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
-import 'package:cafe/logica/usuarios/usuarioModel.dart';
+import 'package:cafe/logica/clientes/clientesModel.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
