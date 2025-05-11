@@ -8,9 +8,9 @@ class Database {
       Endpoint(
         host: 'localhost',
         port: 5432,
-        database: 'cafeteria',
+        database: 'prueba02',
         username: 'postgres',
-        password: '13960',
+        password: '211099',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -40,6 +40,7 @@ class Database {
         id_cliente SERIAL PRIMARY KEY,
         nombre VARCHAR,
         telefono VARCHAR UNIQUE
+        cantidad_compras INT DEFAULT 0,
       );
       ''',
 

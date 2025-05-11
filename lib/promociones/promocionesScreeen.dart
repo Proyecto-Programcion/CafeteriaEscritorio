@@ -1,8 +1,8 @@
 import 'package:cafe/common/enums.dart';
-import 'package:cafe/promociones/widgets/actualizarPromocion.dart';
-import 'package:cafe/promociones/widgets/eliminarPromocion.dart';
-import 'package:cafe/promociones/widgets/obenerPromociones.dart';
-import 'package:cafe/promociones/widgets/registrarPromocion.dart';
+import 'package:cafe/logica/promociones/controllers/actualizarPromocion.dart';
+import 'package:cafe/logica/promociones/controllers/eliminarPromocion.dart';
+import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
+import 'package:cafe/logica/promociones/controllers/registrarPromocion.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

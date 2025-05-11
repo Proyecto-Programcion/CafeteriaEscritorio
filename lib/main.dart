@@ -142,7 +142,7 @@ class NavbarNavegacion extends StatelessWidget {
       Icons.notes,
       Icons.shopping_cart,
       Icons.person,
-      Icons.category_outlined,
+      Icons.discount,
       Icons.trending_up,
     ];
 

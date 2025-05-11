@@ -2,7 +2,6 @@ import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
-import 'package:cafe/logica/usuarios/usuarioModel.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 

@@ -1,11 +1,10 @@
+import 'dart:convert';
+
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
-import 'package:cafe/venta_screen/modalPgar.dart';
-import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
-import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 
@@ -233,7 +232,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           ),
                         ),
                         Text(
-                          'Total de la venta: \$${totalVenta.toStringAsFixed(2)}',
+                          'Total de la venta: \$${totalDescuento.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -245,7 +244,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           onTap: () async {
                             final resultado = await showDialog<String>(
                               context: context,
-                              builder: (context) => PagoModal(
+                              builder: (context) => ModalRealizarVenta(
                                 totalVenta: totalVenta,
                                 descuento: descuento,
                               ),
