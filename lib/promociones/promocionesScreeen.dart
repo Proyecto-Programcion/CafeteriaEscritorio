@@ -33,8 +33,8 @@ class _PromocionesPageState extends State<PromocionesPage> {
 
   final ObtenerPromocionesController obtenerController =
       Get.put(ObtenerPromocionesController());
-  final EditarPromocionController editarPromocionController =
-      Get.put(EditarPromocionController());
+  final ActualizarPromocion editarPromocionController =
+      Get.put(ActualizarPromocion());
   final EliminarPromocionController eliminarPromocionController =
       Get.put(EliminarPromocionController());
   final ObtenerPromocionesProductosGratisController

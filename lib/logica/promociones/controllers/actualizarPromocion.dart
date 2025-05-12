@@ -3,16 +3,18 @@ import 'package:cafe/common/enums.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
-class EditarPromocionController extends GetxController {
+class ActualizarPromocion extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
 
-  Future<void> editarPromocion({
+  Future<bool> editarPromocion({
     required int idPromocion,
     required String nombre,
     required String descripcion,
-    required int porcentaje,
+    required double porcentaje,
     required int comprasNecesarias,
+    required double dineroNecesario,
+    required double topeDescuento,
     required bool status,
   }) async {
     try {
@@ -23,6 +25,8 @@ class EditarPromocionController extends GetxController {
             descripcion = @descripcion,
             porcentaje = @porcentaje,
             comprasNecesarias = @comprasNecesarias,
+            dineroNecesario = @dineroNecesario,
+            topeDescuento = @topeDescuento,
             status = @status
         WHERE id_promocion = @idPromocion
       ''');
@@ -32,16 +36,20 @@ class EditarPromocionController extends GetxController {
         'descripcion': descripcion,
         'porcentaje': porcentaje,
         'comprasNecesarias': comprasNecesarias,
+        'dineroNecesario': dineroNecesario,
+        'topeDescuento': topeDescuento,
         'status': status,
         'idPromocion': idPromocion,
       });
 
       estado.value = Estado.exito;
       mensaje.value = 'Promoción actualizada correctamente.';
+      return true;
     } catch (e) {
       estado.value = Estado.error;
       mensaje.value = 'Error al actualizar la promoción: $e';
-      throw Exception('Error al actualizar la promoción: $e');
+      return false;
+      
     }
   }
 }

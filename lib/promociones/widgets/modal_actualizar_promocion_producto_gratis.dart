@@ -1,5 +1,7 @@
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/logica/promociones/controllers/actualizar_promocion_producto_gratis.dart';
+import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
 import 'package:cafe/logica/promociones/controllers/obtener_promociones_productos_gratis.dart';
 import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +45,10 @@ class _ModalActualizarPromocionProductoGratisState
     ObtenerProductosControllers(),
   );
 
+  final ActualizarPromocionProductoGratisController
+      actualizarPromocionProductoGratisController =
+      Get.put(ActualizarPromocionProductoGratisController());
+
   final ObtenerPromocionesProductosGratisController
       obtenerPromocionesProductosGratisController = Get.put(
     ObtenerPromocionesProductosGratisController(),
@@ -81,192 +87,223 @@ class _ModalActualizarPromocionProductoGratisState
     print("Productos cargados, ${productosDropdownMenuItems.length}");
   }
 
+  
 
-  void actualizarPromocion () {
+  void actualizarPromocion() async {
     if (_formKey.currentState!.validate()) {
-      
+      final resp =
+          await actualizarPromocionProductoGratisController.editarPromocion(
+              idPromocion: widget.promocion.idPromocionProductoGratis,
+              nombre: nombreController.text,
+              descripcion: descripcionController.text,
+              idProductoGratis: productoSeleccionadoId!,
+              cantidadProducto:
+                  double.parse(cantidadProductoGratisController.text),
+              comprasNecesarias: int.parse(comprasNecesariasController.text),
+              dineroNecesario: double.parse(dineroNecesarioController.text),
+              status: status);
+      Navigator.pop(context);
+      if (resp) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Promoción creada correctamente"),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '${actualizarPromocionProductoGratisController.mensaje.value}'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+    await obtenerPromocionesProductosGratisController.obtenerPromociones();
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
         content: Container(
-      constraints: const BoxConstraints(maxWidth: 820),
-      width: 820,
-      height: 500,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      margin: const EdgeInsets.only(bottom: 36),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          constraints: const BoxConstraints(maxWidth: 820),
+          width: 820,
+          height: 500,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          margin: const EdgeInsets.only(bottom: 36),
+          child: Form(
+            key: _formKey,
+            child: Column(
               children: [
-                const Text(
-                  "Crear nueva promoción de producto gratis",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 19,
-                  ),
-                ),
-                Icon(Icons.discount)
-              ],
-            ),
-            const SizedBox(height: 18),
-            TextFormField(
-              controller: nombreController,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Campo obligatorio' : null,
-              decoration: _rectFieldDecoration("Nombre de la promoción"),
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: descripcionController,
-              decoration: _rectFieldDecoration("Descripción de la promo"),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<int>(
-                    value: productoSeleccionadoId,
-                    decoration: _rectFieldDecoration("Productos gratis"),
-                    items: productosDropdownMenuItems,
-                    onChanged: (val) {
-                      if (val != null) {
-                        productoSeleccionadoId = int.parse(val.toString());
-                      }
-                    },
-                    validator: (v) {
-                      if (v == null) return "Campo obligatorio";
-
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 190,
-                  child: TextFormField(
-                    controller: cantidadProductoGratisController,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) {
-                        return "Campo obligatorio";
-                      }
-                      final val = double.tryParse(v);
-                      if (val == null || val <= -1) {
-                        return "Debe ser mayor o igual a 0";
-                      }
-                      return null;
-                    },
-                    decoration: _rectFieldDecoration("Cantidad"),
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: comprasNecesariasController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    decoration: _rectFieldDecoration("Compras necesarias"),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) {
-                        return "Campo obligatorio";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    controller: dineroNecesarioController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                    ],
-                    decoration: _rectFieldDecoration("Dinero necesario"),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) {
-                        return "Campo obligatorio";
-                      }
-                      final val = double.tryParse(v);
-                      if (val == null || val < 0) {
-                        return "Debe ser mayor o igual a 0";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                const Text(
-                  "Activa",
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: status,
-                  activeColor: const Color(0xFF9B7B22),
-                  onChanged: (v) => setState(() => status = v),
-                ),
-                const Spacer(),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9B7B22),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  actualizarPromocion();
-                },
-                child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Actualizar Promoción',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Crear nueva promoción de producto gratis",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 19,
                       ),
-              ),
+                    ),
+                    Icon(Icons.discount)
+                  ],
+                ),
+                const SizedBox(height: 18),
+                TextFormField(
+                  controller: nombreController,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Campo obligatorio' : null,
+                  decoration: _rectFieldDecoration("Nombre de la promoción"),
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: descripcionController,
+                  decoration: _rectFieldDecoration("Descripción de la promo"),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: productoSeleccionadoId,
+                        decoration: _rectFieldDecoration("Productos gratis"),
+                        items: productosDropdownMenuItems,
+                        onChanged: (val) {
+                          if (val != null) {
+                            productoSeleccionadoId = int.parse(val.toString());
+                          }
+                        },
+                        validator: (v) {
+                          if (v == null) return "Campo obligatorio";
+
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 190,
+                      child: TextFormField(
+                        controller: cantidadProductoGratisController,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return "Campo obligatorio";
+                          }
+                          final val = double.tryParse(v);
+                          if (val == null || val <= -1) {
+                            return "Debe ser mayor o igual a 0";
+                          }
+                          return null;
+                        },
+                        decoration: _rectFieldDecoration("Cantidad"),
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: comprasNecesariasController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: _rectFieldDecoration("Compras necesarias"),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return "Campo obligatorio";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextFormField(
+                        controller: dineroNecesarioController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}')),
+                        ],
+                        decoration: _rectFieldDecoration("Dinero necesario"),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return "Campo obligatorio";
+                          }
+                          final val = double.tryParse(v);
+                          if (val == null || val < 0) {
+                            return "Debe ser mayor o igual a 0";
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    const Text(
+                      "Activa",
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: status,
+                      activeColor: const Color(0xFF9B7B22),
+                      onChanged: (v) => setState(() => status = v),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9B7B22),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      actualizarPromocion();
+                    },
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Actualizar Promoción',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 
   InputDecoration _rectFieldDecoration(String label) {

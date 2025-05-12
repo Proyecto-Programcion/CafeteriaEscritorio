@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS clientes (
           descripcion VARCHAR,
           porcentaje DOUBLE PRECISION,
           comprasNecesarias INT,
-          dineroNecesario DOUBLE PRECISION,
+             DOUBLE PRECISION,
           topeDescuento DOUBLE PRECISION,
           status BOOLEAN
         )
