@@ -3,7 +3,7 @@ import 'package:cafe/common/enums.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
-class RegistrarPromocionController extends GetxController {
+class RegistrarPromocionProductoGratis extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   RxString mensaje = ''.obs;
 
@@ -11,30 +11,29 @@ class RegistrarPromocionController extends GetxController {
   Future<bool> registrarPromocion({
     required String nombrePromocion,
     required String descripcion,
-    required double porcentaje,
+    required int idProducto,
     required int comprasNecesarias,
     required double dineroNecesario,
-    required double topeDescuento,
     required bool status,
+    required double cantidad_producto,
   }) async {
     try {
       estado.value = Estado.carga;
       mensaje.value = ''; // Limpia mensaje previo
 
       final sql = Sql.named('''
-        INSERT INTO promocion 
-        (nombrePromocion, descripcion, porcentaje, comprasNecesarias, dineroNecesario, topeDescuento, status)
-        VALUES (@nombrePromocion, @descripcion, @porcentaje, @comprasNecesarias, @dineroNecesario, @topeDescuento,  @status)
+       INSERT INTO promocion_producto_gratis (nombre_promocion, descripcion, id_producto, compras_necesarias, dinero_necesario, status, cantidad_producto)
+       VALUES (@nombrePromocion, @descripcion, @idProducto, @comprasNecesarias, @dineroNecesario, @status, @cantidad_producto)
       ''');
 
       await Database.conn.execute(sql, parameters: {
         'nombrePromocion': nombrePromocion,
         'descripcion': descripcion,
-        'porcentaje': porcentaje,
         'comprasNecesarias': comprasNecesarias,
         'dineroNecesario': dineroNecesario,
-        'topeDescuento': topeDescuento,
+        'idProducto': idProducto,
         'status': status,
+        'cantidad_producto': cantidad_producto,
       });
 
       estado.value = Estado.exito;

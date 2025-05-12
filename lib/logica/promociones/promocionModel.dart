@@ -2,8 +2,10 @@ class Promocion {
   final int idPromocion;
   final String nombrePromocion;
   final String descripcion;
-  final int porcentaje;
+  final double porcentaje;
   final int comprasNecesarias;
+  final double dineroNecesario;
+  final double topeDescuento;
   final bool status;
 
   Promocion({
@@ -12,16 +14,20 @@ class Promocion {
     required this.descripcion,
     required this.porcentaje,
     required this.comprasNecesarias,
+    required this.dineroNecesario,
+    required this.topeDescuento,
     required this.status,
   });
 
   factory Promocion.fromMap(Map<String, dynamic> map) {
     return Promocion(
-      idPromocion: map['id_promocion'] as int,
-      nombrePromocion: map['nombrePromocion'] as String? ?? '',
-      descripcion: map['descripcion'] as String? ?? '',
-      porcentaje: map['porcentaje'] as int? ?? 0,
-      comprasNecesarias: map['comprasNecesarias'] as int? ?? 0,
+      idPromocion: map['id_promocion'],
+      nombrePromocion: map['nombrepromocion'],
+      descripcion: map['descripcion'],
+      porcentaje: (map['porcentaje'] as num?)?.toDouble() ?? 0.0,
+      comprasNecesarias: map['comprasnecesarias'] ?? 0,
+      dineroNecesario: (map['dineronecesario'] as num?)?.toDouble() ?? 0.0,
+      topeDescuento: (map['topedescuento'] as num?)?.toDouble() ?? 0.0,
       status: map['status'] == true || map['status'] == 1,
     );
   }

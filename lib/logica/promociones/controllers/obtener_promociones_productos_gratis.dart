@@ -1,24 +1,15 @@
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/promociones/promocionModel.dart';
+import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
-class ObtenerPromocionesController extends GetxController {
+class ObtenerPromocionesProductosGratisController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   RxString mensaje = ''.obs;
-  RxList<Promocion> listaPromociones = <Promocion>[].obs;
-  RxString filtro = ''.obs;
-
-  List<Promocion> get promocionesFiltradas {
-    final f = filtro.value.trim().toLowerCase();
-    if (f.isEmpty) return listaPromociones;
-    return listaPromociones
-        .where((p) =>
-            (p.nombrePromocion).toLowerCase().contains(f) ||
-            (p.descripcion).toLowerCase().contains(f))
-        .toList();
-  }
+  RxList<PromocionProductoGratiConNombreDelProductosModelo> listaPromociones =
+      <PromocionProductoGratiConNombreDelProductosModelo>[].obs;
 
   @override
   void onInit() {
@@ -28,12 +19,18 @@ class ObtenerPromocionesController extends GetxController {
 
   Future<void> obtenerPromociones() async {
     try {
+      //limpiar lista
+      listaPromociones.clear();
       estado.value = Estado.carga;
       mensaje.value = '';
 
       final sql = Sql.named('''
-        SELECT * FROM promocion
-        ORDER BY id_promocion DESC;
+        SELECT 
+          promocion_producto_gratis.*, 
+          productos.nombre AS nombre_producto,
+          productos.unidad_medida AS unidad_de_medida_producto
+          FROM promocion_producto_gratis JOIN productos ON promocion_producto_gratis.id_producto = productos.id_producto 
+        ORDER BY id_promocion_productos_gratis DESC;
       ''');
 
       final resp = await Database.conn.execute(sql);
@@ -46,8 +43,8 @@ class ObtenerPromocionesController extends GetxController {
           map[columns[i].columnName ?? ''] = row[i];
         }
         // Puedes quitar el print si ya no necesitas debug
-        print('PROMO FETCH PROMOCIONES : $map');
-        return Promocion.fromMap(map);
+        print('PROMO FETCH PROMOCIONES PRODUCTOS GRATIS: $map');
+        return PromocionProductoGratiConNombreDelProductosModelo.fromMap(map);
       }).toList();
 
       listaPromociones.value = promociones;
@@ -56,8 +53,9 @@ class ObtenerPromocionesController extends GetxController {
       mensaje.value = 'Promociones obtenidas correctamente';
     } catch (e) {
       estado.value = Estado.error;
-      mensaje.value = 'Error al obtener promociones: ${e.toString()}';
-      print('[ERROR promociones] $e');
+      mensaje.value =
+          'Error al obtener promociones productos gratis: ${e.toString()}';
+      print('[ERROR productos gratis] $e');
     }
   }
 }

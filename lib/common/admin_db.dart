@@ -36,13 +36,13 @@ class Database {
 
         // TABLA CLIENTES
         '''
-      CREATE TABLE IF NOT EXISTS clientes (
-        id_cliente SERIAL PRIMARY KEY,
-        nombre VARCHAR,
-        telefono VARCHAR UNIQUE
-        cantidad_compras INT DEFAULT 0,
-      );
-      ''',
+CREATE TABLE IF NOT EXISTS clientes (
+  id_cliente SERIAL PRIMARY KEY,
+  nombre VARCHAR,
+  telefono VARCHAR UNIQUE,
+  cantidad_compras INT DEFAULT 0
+)
+''',
 
         // TABLA CATEGORIAS
         '''
@@ -125,15 +125,31 @@ class Database {
 
         // TABLA PROMOCION
         '''
-      CREATE TABLE IF NOT EXISTS promocion (
-        id_promocion SERIAL PRIMARY KEY,
-        nombrePromocion VARCHAR,
-        descripcion VARCHAR,
-        porcentaje INT,
-        comprasNecesarias INT,
-        status BOOLEAN
-      )
-      ''',
+        CREATE TABLE IF NOT EXISTS promocion (
+          id_promocion SERIAL PRIMARY KEY,
+          nombrePromocion VARCHAR,
+          descripcion VARCHAR,
+          porcentaje DOUBLE PRECISION,
+          comprasNecesarias INT,
+          dineroNecesario DOUBLE PRECISION,
+          topeDescuento DOUBLE PRECISION,
+          status BOOLEAN
+        )
+        ''',
+
+        '''
+        CREATE TABLE IF NOT EXISTS promocion_producto_gratis (
+          id_promocion_productos_gratis SERIAL PRIMARY KEY,
+          nombre_promocion VARCHAR,
+          descripcion VARCHAR,
+          id_producto INT,
+          compras_necesarias INT,
+          dinero_necesario DOUBLE PRECISION,
+          status BOOLEAN,
+          cantidad_producto DOUBLE PRECISION,
+          FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
+        )
+        ''',
 
         // RELACIONES
         '''
