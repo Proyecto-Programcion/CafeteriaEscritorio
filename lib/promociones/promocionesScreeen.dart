@@ -118,21 +118,6 @@ class _PromocionesPageState extends State<PromocionesPage> {
   }
 }
 
-Widget _chipPromo(String label) {
-  return Container(
-    margin: const EdgeInsets.only(right: 7),
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: const Color(0xFF9B7B22).withOpacity(0.15),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Text(
-      label,
-      style: const TextStyle(color: Color(0xFF9B7B22), fontSize: 13),
-    ),
-  );
-}
-
 void mostrarModalRegistroExitoso(BuildContext context) {
   showDialog(
     context: context,

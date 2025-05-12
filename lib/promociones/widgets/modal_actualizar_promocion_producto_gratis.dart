@@ -1,116 +1,103 @@
-import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
-import 'package:cafe/logica/promociones/controllers/registrarPromocion.dart';
-import 'package:cafe/promociones/promocionesScreeen.dart';
+import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
+import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/logica/promociones/controllers/obtener_promociones_productos_gratis.dart';
+import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
-class FormPromocionDescuento extends StatefulWidget {
-  const FormPromocionDescuento({super.key});
+class ModalActualizarPromocionProductoGratis extends StatefulWidget {
+  final PromocionProductoGratiConNombreDelProductosModelo promocion;
+
+  const ModalActualizarPromocionProductoGratis(
+      {super.key, required this.promocion});
 
   @override
-  State<FormPromocionDescuento> createState() => _FormPromocionDescuentoState();
+  State<ModalActualizarPromocionProductoGratis> createState() =>
+      _ModalActualizarPromocionProductoGratisState();
 }
 
-class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
+class _ModalActualizarPromocionProductoGratisState
+    extends State<ModalActualizarPromocionProductoGratis> {
   final _formKey = GlobalKey<FormState>();
-  final nombreController = TextEditingController();
-  final descripcionController = TextEditingController();
-  final porcentajeController = TextEditingController();
-  final topeDescuentoController = TextEditingController();
-  final comprasNecesariasController = TextEditingController();
-  final dineroNecesarioController = TextEditingController();
-  bool isLoading = false;
-  bool statusPromocionDescuento = true;
-  bool _isLoading = false;
 
-  final RegistrarPromocionController promoController =
-      Get.put(RegistrarPromocionController());
-  final ObtenerPromocionesController obtenerController =
-      Get.put(ObtenerPromocionesController());
+  final nombreController = TextEditingController();
+
+  final descripcionController = TextEditingController();
+
+  final comprasNecesariasController = TextEditingController();
+
+  final dineroNecesarioController = TextEditingController();
+
+  final cantidadProductoGratisController = TextEditingController();
+
+  bool status = true;
+
+  bool isLoading = false;
+
+  int? productoSeleccionadoId;
+
+  List<DropdownMenuItem<int>> productosDropdownMenuItems = [];
+
+  final ObtenerProductosControllers obtenerProductosControllers = Get.put(
+    ObtenerProductosControllers(),
+  );
+
+  final ObtenerPromocionesProductosGratisController
+      obtenerPromocionesProductosGratisController = Get.put(
+    ObtenerPromocionesProductosGratisController(),
+  );
 
   @override
-  void dispose() {
-    nombreController.dispose();
-    descripcionController.dispose();
-    porcentajeController.dispose();
-    topeDescuentoController.dispose();
-    comprasNecesariasController.dispose();
-    dineroNecesarioController.dispose();
-    super.dispose();
+  void initState() {
+    // TODO: implement initState
+    cargarProductos();
+    nombreController.text = widget.promocion.nombrePromocion;
+    descripcionController.text = widget.promocion.descripcion;
+    comprasNecesariasController.text =
+        widget.promocion.comprasNecesarias.toString();
+    dineroNecesarioController.text =
+        widget.promocion.dineroNecesario.toString();
+    cantidadProductoGratisController.text =
+        widget.promocion.cantidadProducto.toString();
+    status = widget.promocion.status;
+    productoSeleccionadoId = widget.promocion.idProducto;
+    super.initState();
   }
 
-  Future<void> agregarPromocion() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
+  void cargarProductos() async {
+    await obtenerProductosControllers.obtenerProductos();
     setState(() {
-      _isLoading = true;
+      final productosFiltrados =
+          List<ProductoModelo>.from(obtenerProductosControllers.listaProductos);
+      productosDropdownMenuItems = productosFiltrados.map((producto) {
+        return DropdownMenuItem(
+          value: producto.idProducto,
+          child: Text(producto.nombre),
+        );
+      }).toList();
     });
 
-    try {
-      final resp = await promoController.registrarPromocion(
-        nombrePromocion: nombreController.text.trim(),
-        descripcion: descripcionController.text.trim(),
-        porcentaje: double.tryParse(porcentajeController.text.trim()) ?? 0,
-        comprasNecesarias:
-            int.tryParse(comprasNecesariasController.text.trim()) ?? 0,
-        dineroNecesario: dineroNecesarioController.text.isNotEmpty
-            ? double.parse(dineroNecesarioController.text.trim())
-            : 0,
-        topeDescuento: topeDescuentoController.text.isNotEmpty
-            ? double.parse(topeDescuentoController.text.trim())
-            : 0,
-        status: statusPromocionDescuento,
-      );
-      nombreController.clear();
-      descripcionController.clear();
-      porcentajeController.clear();
-      comprasNecesariasController.clear();
-      dineroNecesarioController.clear();
-      topeDescuentoController.clear();
-      statusPromocionDescuento = true;
+    print("Productos cargados, ${productosDropdownMenuItems.length}");
+  }
 
-      if (resp) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Promoción creada correctamente'),
-            duration: Duration(seconds: 1),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Error al crear la promoción ${promoController.mensaje}'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
 
-      await obtenerController.obtenerPromociones();
-    } catch (e) {
-      mostrarModalErrorRegistro(
-          context,
-          promoController.mensaje.value.isNotEmpty
-              ? promoController.mensaje.value
-              : (e.toString().isNotEmpty ? e.toString() : 'Ocurrió un error'));
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+  void actualizarPromocion () {
+    if (_formKey.currentState!.validate()) {
+      
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 520),
-      width: 520,
+    return AlertDialog(
+      backgroundColor: Colors.transparent,
+        content: Container(
+      constraints: const BoxConstraints(maxWidth: 820),
+      width: 820,
+      height: 500,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
+        color: const Color(0xFFE8F5E9),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey.shade300),
       ),
@@ -124,13 +111,13 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  "Crear promoción",
+                  "Crear nueva promoción de producto gratis",
                   style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF9B7B22)),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 19,
+                  ),
                 ),
-                Icon(Icons.local_offer)
+                Icon(Icons.discount)
               ],
             ),
             const SizedBox(height: 18),
@@ -149,50 +136,40 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: porcentajeController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                    ],
-                    decoration: _rectFieldDecoration("Porcentaje (%)"),
-                    validator: (v) {
-                      if (v != null && v.isNotEmpty) {
-                        final val = double.tryParse(v);
-                        if (val == null || val < 0 || val > 100) {
-                          return "0-100";
-                        }
-                      } else {
-                        return "Campo obligatorio";
+                  child: DropdownButtonFormField<int>(
+                    value: productoSeleccionadoId,
+                    decoration: _rectFieldDecoration("Productos gratis"),
+                    items: productosDropdownMenuItems,
+                    onChanged: (val) {
+                      if (val != null) {
+                        productoSeleccionadoId = int.parse(val.toString());
                       }
+                    },
+                    validator: (v) {
+                      if (v == null) return "Campo obligatorio";
+
                       return null;
                     },
                   ),
                 ),
                 const SizedBox(width: 10),
-                Expanded(
+                SizedBox(
+                  width: 190,
                   child: TextFormField(
-                    controller: topeDescuentoController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d{0,2}')),
-                    ],
-                    decoration: _rectFieldDecoration("Tope descuento"),
+                    controller: cantidadProductoGratisController,
                     validator: (v) {
-                      if (v != null && v.isNotEmpty) {
-                        final val = double.tryParse(v);
-                        if (val == null || val < 0) {
-                          return "Debe ser mayor o igual a 0";
-                        }
-                      } else {
+                      if (v == null || v.isEmpty) {
                         return "Campo obligatorio";
+                      }
+                      final val = double.tryParse(v);
+                      if (val == null || val <= -1) {
+                        return "Debe ser mayor o igual a 0";
                       }
                       return null;
                     },
+                    decoration: _rectFieldDecoration("Cantidad"),
                   ),
-                ),
+                )
               ],
             ),
             const SizedBox(height: 14),
@@ -210,7 +187,6 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                       if (v == null || v.isEmpty) {
                         return "Campo obligatorio";
                       }
-
                       return null;
                     },
                   ),
@@ -248,10 +224,9 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                 ),
                 const SizedBox(width: 8),
                 Switch(
-                  value: statusPromocionDescuento,
+                  value: status,
                   activeColor: const Color(0xFF9B7B22),
-                  onChanged: (v) =>
-                      setState(() => statusPromocionDescuento = v),
+                  onChanged: (v) => setState(() => status = v),
                 ),
                 const Spacer(),
               ],
@@ -269,7 +244,9 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: 0,
                 ),
-                onPressed: isLoading ? null : agregarPromocion,
+                onPressed: () {
+                  actualizarPromocion();
+                },
                 child: isLoading
                     ? const SizedBox(
                         height: 20,
@@ -280,7 +257,7 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                         ),
                       )
                     : const Text(
-                        'Crear Promoción',
+                        'Actualizar Promoción',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
@@ -289,7 +266,7 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   InputDecoration _rectFieldDecoration(String label) {

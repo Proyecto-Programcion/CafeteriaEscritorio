@@ -1,19 +1,18 @@
-import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
-import 'package:cafe/logica/promociones/controllers/registrarPromocion.dart';
-import 'package:cafe/promociones/promocionesScreeen.dart';
+import 'package:cafe/logica/promociones/promocionModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
-class FormPromocionDescuento extends StatefulWidget {
-  const FormPromocionDescuento({super.key});
+class ModalActualizarPromocionDescuento extends StatefulWidget {
+  final Promocion promocion;
+  ModalActualizarPromocionDescuento({super.key, required this.promocion});
 
   @override
-  State<FormPromocionDescuento> createState() => _FormPromocionDescuentoState();
+  State<ModalActualizarPromocionDescuento> createState() =>
+      _ModalActualizarPromocionDescuentoState();
 }
 
-class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
+class _ModalActualizarPromocionDescuentoState
+    extends State<ModalActualizarPromocionDescuento> {
   final _formKey = GlobalKey<FormState>();
   final nombreController = TextEditingController();
   final descripcionController = TextEditingController();
@@ -24,11 +23,6 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
   bool isLoading = false;
   bool statusPromocionDescuento = true;
   bool _isLoading = false;
-
-  final RegistrarPromocionController promoController =
-      Get.put(RegistrarPromocionController());
-  final ObtenerPromocionesController obtenerController =
-      Get.put(ObtenerPromocionesController());
 
   @override
   void dispose() {
@@ -41,74 +35,35 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
     super.dispose();
   }
 
-  Future<void> agregarPromocion() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  @override
+  void initState() {
+    // TODO: implement initState
+    nombreController.text = widget.promocion.nombrePromocion;
+    descripcionController.text = widget.promocion.descripcion;
+    porcentajeController.text = widget.promocion.porcentaje.toString();
+    topeDescuentoController.text = widget.promocion.topeDescuento.toString();
+    comprasNecesariasController.text =
+        widget.promocion.comprasNecesarias.toString();
+    dineroNecesarioController.text =
+        widget.promocion.dineroNecesario.toString();
+    statusPromocionDescuento = widget.promocion.status;
+    super.initState();
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final resp = await promoController.registrarPromocion(
-        nombrePromocion: nombreController.text.trim(),
-        descripcion: descripcionController.text.trim(),
-        porcentaje: double.tryParse(porcentajeController.text.trim()) ?? 0,
-        comprasNecesarias:
-            int.tryParse(comprasNecesariasController.text.trim()) ?? 0,
-        dineroNecesario: dineroNecesarioController.text.isNotEmpty
-            ? double.parse(dineroNecesarioController.text.trim())
-            : 0,
-        topeDescuento: topeDescuentoController.text.isNotEmpty
-            ? double.parse(topeDescuentoController.text.trim())
-            : 0,
-        status: statusPromocionDescuento,
-      );
-      nombreController.clear();
-      descripcionController.clear();
-      porcentajeController.clear();
-      comprasNecesariasController.clear();
-      dineroNecesarioController.clear();
-      topeDescuentoController.clear();
-      statusPromocionDescuento = true;
-
-      if (resp) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Promoción creada correctamente'),
-            duration: Duration(seconds: 1),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Error al crear la promoción ${promoController.mensaje}'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-
-      await obtenerController.obtenerPromociones();
-    } catch (e) {
-      mostrarModalErrorRegistro(
-          context,
-          promoController.mensaje.value.isNotEmpty
-              ? promoController.mensaje.value
-              : (e.toString().isNotEmpty ? e.toString() : 'Ocurrió un error'));
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+  void _actualizarPromocion() async {
+    if (_formKey.currentState!.validate()) {
+     
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AlertDialog(
+      backgroundColor: Colors.transparent,
+        content: Container(
       constraints: const BoxConstraints(maxWidth: 520),
       width: 520,
+      height: 500,
       decoration: BoxDecoration(
         color: const Color(0xFFFFF8E1),
         borderRadius: BorderRadius.circular(18),
@@ -120,11 +75,11 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
         key: _formKey,
         child: Column(
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Crear promoción",
+                Text(
+                  "Actualizar promoción",
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
@@ -226,7 +181,7 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                     ],
                     decoration: _rectFieldDecoration("Dinero necesario"),
                     validator: (v) {
-                      if (v == null || v.isEmpty) {
+                      if (v == null || v.isEmpty || v == "") {
                         return "Campo obligatorio";
                       }
                       final val = double.tryParse(v);
@@ -269,7 +224,9 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: 0,
                 ),
-                onPressed: isLoading ? null : agregarPromocion,
+                onPressed: () {
+                  _actualizarPromocion();
+                },
                 child: isLoading
                     ? const SizedBox(
                         height: 20,
@@ -280,7 +237,7 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
                         ),
                       )
                     : const Text(
-                        'Crear Promoción',
+                        'Actualizar Promoción',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w500),
                       ),
@@ -289,7 +246,7 @@ class _FormPromocionDescuentoState extends State<FormPromocionDescuento> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   InputDecoration _rectFieldDecoration(String label) {

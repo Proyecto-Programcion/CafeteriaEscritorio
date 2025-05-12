@@ -1,4 +1,5 @@
 import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
+import 'package:cafe/promociones/widgets/modal_actualizar_promocion_producto_gratis.dart';
 import 'package:flutter/material.dart';
 
 class ContenedorPromocionProductoGratis extends StatelessWidget {
@@ -11,13 +12,14 @@ class ContenedorPromocionProductoGratis extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // onTap: () => mostrarModalEditarPromocion(
-      //   context,
-      //   promocion.,
-      //   obtenerController,
-      //   editarPromocionController,
-      //   eliminarPromocionController,
-      // ),
+      onTap: () {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return ModalActualizarPromocionProductoGratis(
+                  promocion: promocion);
+            });
+      },
       child: Card(
         color: promocion.status
             ? const Color(0xFFE8F5E9)
@@ -60,7 +62,8 @@ class ContenedorPromocionProductoGratis extends StatelessWidget {
                             "Compras necesarias: ${promocion.comprasNecesarias}"),
                         _chipPromo(
                             "Dinero necesario: ${promocion.dineroNecesario}"),
-                        _chipPromo("Regalo: ${promocion.nombreProducto} : CANTIDAD: ${promocion.cantidadProducto} ${promocion.unidadDeMedidaProducto}"),
+                        _chipPromo(
+                            "Regalo: ${promocion.nombreProducto} : CANTIDAD: ${promocion.cantidadProducto} ${promocion.unidadDeMedidaProducto}"),
                       ],
                     ),
                   ],

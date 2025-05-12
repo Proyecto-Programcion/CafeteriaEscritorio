@@ -1,6 +1,5 @@
-
-
 import 'package:cafe/logica/promociones/promocionModel.dart';
+import 'package:cafe/promociones/widgets/modal_actualizar_promocion_descuento.dart';
 import 'package:flutter/material.dart';
 
 class ContenedorPromocionDescuento extends StatelessWidget {
@@ -13,13 +12,13 @@ class ContenedorPromocionDescuento extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      // onTap: () => mostrarModalEditarPromocion(
-      //   context,
-      //   promocion.,
-      //   obtenerController,
-      //   editarPromocionController,
-      //   eliminarPromocionController,
-      // ),
+      onTap: () {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return ModalActualizarPromocionDescuento(promocion: promocion);
+            });
+      },
       child: Card(
         color: promocion.status ? const Color(0xFFFFF8E1) : Colors.grey[300],
         shape: RoundedRectangleBorder(
