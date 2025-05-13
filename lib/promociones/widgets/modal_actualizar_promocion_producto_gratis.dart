@@ -87,8 +87,6 @@ class _ModalActualizarPromocionProductoGratisState
     print("Productos cargados, ${productosDropdownMenuItems.length}");
   }
 
-  
-
   void actualizarPromocion() async {
     if (_formKey.currentState!.validate()) {
       final resp =
@@ -154,7 +152,11 @@ class _ModalActualizarPromocionProductoGratisState
                         fontSize: 19,
                       ),
                     ),
-                    Icon(Icons.discount)
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.delete_forever),
+                    ),
+                    const Icon(Icons.discount)
                   ],
                 ),
                 const SizedBox(height: 18),

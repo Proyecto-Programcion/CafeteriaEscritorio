@@ -110,17 +110,18 @@ class _ModalActualizarPromocionDescuentoState
             key: _formKey,
             child: Column(
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       "Actualizar promoción",
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF9B7B22)),
                     ),
-                    Icon(Icons.local_offer)
+                    IconButton(onPressed: (){}, icon: const Icon(Icons.delete_forever),),
+                    const Icon(Icons.local_offer)
                   ],
                 ),
                 const SizedBox(height: 18),

@@ -132,12 +132,13 @@ CREATE TABLE IF NOT EXISTS clientes (
           descripcion VARCHAR,
           porcentaje DOUBLE PRECISION,
           comprasNecesarias INT,
-             DOUBLE PRECISION,
+          dineroNecesario DOUBLE PRECISION,
           topeDescuento DOUBLE PRECISION,
-          status BOOLEAN
+          status BOOLEAN,
+          eliminado BOOLEAN DEFAULT FALSE
         )
         ''',
-        //TABLA DE PROMACION PRODUCTO GRATIS
+        //TABLA DE PROMOCION PRODUCTO GRATIS
         '''
         CREATE TABLE IF NOT EXISTS promocion_producto_gratis (
           id_promocion_productos_gratis SERIAL PRIMARY KEY,
@@ -148,6 +149,7 @@ CREATE TABLE IF NOT EXISTS clientes (
           dinero_necesario DOUBLE PRECISION,
           status BOOLEAN,
           cantidad_producto DOUBLE PRECISION,
+          eliminado BOOLEAN DEFAULT FALSE,
           FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
         )
         ''',
