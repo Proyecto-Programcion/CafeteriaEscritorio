@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS clientes (
         id_usuario INT,
         id_cliente INT,
         id_promocion INT,
+        id_promocion_productos_gratis INT,
         precio_total DOUBLE PRECISION,
         precio_descuento DOUBLE PRECISION,
         fecha VARCHAR,
@@ -136,7 +137,7 @@ CREATE TABLE IF NOT EXISTS clientes (
           status BOOLEAN
         )
         ''',
-
+        //TABLA DE PROMACION PRODUCTO GRATIS
         '''
         CREATE TABLE IF NOT EXISTS promocion_producto_gratis (
           id_promocion_productos_gratis SERIAL PRIMARY KEY,
