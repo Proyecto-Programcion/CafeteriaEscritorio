@@ -33,6 +33,7 @@ class ObtenerPromocionesController extends GetxController {
 
       final sql = Sql.named('''
         SELECT * FROM promocion
+        WHERE eliminado = false
         ORDER BY id_promocion DESC;
       ''');
 

@@ -1,4 +1,5 @@
 import 'package:cafe/common/admin_db.dart';
+import 'package:cafe/common/admin_remote_db.dart';
 import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
 
   try {
     await Database.connect();
+    DatabaseRemote.connect();
   } catch (e) {
     print('Error al conectar a la base de datos: $e');
   }

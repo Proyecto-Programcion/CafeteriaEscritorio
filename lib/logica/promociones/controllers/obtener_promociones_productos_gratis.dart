@@ -24,14 +24,16 @@ class ObtenerPromocionesProductosGratisController extends GetxController {
       estado.value = Estado.carga;
       mensaje.value = '';
 
-      final sql = Sql.named('''
-        SELECT 
-          promocion_producto_gratis.*, 
-          productos.nombre AS nombre_producto,
-          productos.unidad_medida AS unidad_de_medida_producto
-          FROM promocion_producto_gratis JOIN productos ON promocion_producto_gratis.id_producto = productos.id_producto 
-        ORDER BY id_promocion_productos_gratis DESC;
-      ''');
+     final sql = Sql.named('''
+      SELECT 
+        promocion_producto_gratis.*, 
+        productos.nombre AS nombre_producto,
+        productos.unidad_medida AS unidad_de_medida_producto
+      FROM promocion_producto_gratis
+      JOIN productos ON promocion_producto_gratis.id_producto = productos.id_producto 
+      WHERE promocion_producto_gratis.eliminado = false
+      ORDER BY id_promocion_productos_gratis DESC;
+    ''');
 
       final resp = await Database.conn.execute(sql);
 

@@ -1,4 +1,6 @@
 import 'package:cafe/logica/promociones/controllers/actualizarPromocion.dart';
+import 'package:cafe/logica/promociones/controllers/eliminarPromocion.dart';
+import 'package:cafe/logica/promociones/controllers/eliminar_promocion_productos_gratis.dart';
 import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
 import 'package:cafe/logica/promociones/promocionModel.dart';
 import 'package:flutter/material.dart';
@@ -91,6 +93,35 @@ class _ModalActualizarPromocionDescuentoState
     }
   }
 
+  void eliminaPromocion() async {
+    final EliminarPromocionController
+        eliminarPromocionController =
+        Get.put(EliminarPromocionController());
+
+    final resp = await eliminarPromocionController
+        .eliminarPromocion(
+            int.parse(widget.promocion.idPromocion.toString()));
+    Navigator.pop(context);
+    if (resp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Promoción eliminada correctamente"),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${eliminarPromocionController.mensaje.value}'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -120,7 +151,12 @@ class _ModalActualizarPromocionDescuentoState
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF9B7B22)),
                     ),
-                    IconButton(onPressed: (){}, icon: const Icon(Icons.delete_forever),),
+                    IconButton(
+                      onPressed: () {
+                        eliminaPromocion();
+                      },
+                      icon: const Icon(Icons.delete_forever),
+                    ),
                     const Icon(Icons.local_offer)
                   ],
                 ),

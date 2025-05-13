@@ -1,6 +1,7 @@
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:cafe/logica/promociones/controllers/actualizar_promocion_producto_gratis.dart';
+import 'package:cafe/logica/promociones/controllers/eliminar_promocion_productos_gratis.dart';
 import 'package:cafe/logica/promociones/controllers/obenerPromociones.dart';
 import 'package:cafe/logica/promociones/controllers/obtener_promociones_productos_gratis.dart';
 import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
@@ -123,6 +124,35 @@ class _ModalActualizarPromocionProductoGratisState
     await obtenerPromocionesProductosGratisController.obtenerPromociones();
   }
 
+  void eliminaPromocion() async {
+    final EliminarPromocionProductosGratisController
+        eliminarPromocionProductosGratisController =
+        Get.put(EliminarPromocionProductosGratisController());
+
+    final resp = await eliminarPromocionProductosGratisController
+        .eliminarPromocionProductosGratis(
+            int.parse(widget.promocion.idPromocionProductoGratis.toString()));
+    Navigator.pop(context);
+    if (resp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Promoción eliminada correctamente"),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${eliminarPromocionProductosGratisController.mensaje.value}'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -146,14 +176,16 @@ class _ModalActualizarPromocionProductoGratisState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      "Crear nueva promoción de producto gratis",
+                      "Actualizar promoción",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 19,
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        eliminaPromocion();
+                      },
                       icon: const Icon(Icons.delete_forever),
                     ),
                     const Icon(Icons.discount)
