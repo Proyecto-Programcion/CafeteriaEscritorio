@@ -47,77 +47,79 @@ class _PromocionesPageState extends State<PromocionesPage> {
     obtenerController.obtenerPromociones();
     obtenerPromocionesProductosGratisController.obtenerPromociones();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Row(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF8F8F8),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Reemplazamos el Row fijo por un SingleChildScrollView horizontal
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
                 FormPromocionDescuento(),
-                SizedBox(width: 24),
+                const SizedBox(width: 24),
                 FormPromocionProductoGratis()
               ],
             ),
-            const SizedBox(height: 38),
-            const Text(
-              "Promociones activas:",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            const SizedBox(height: 12),
-            Obx(() {
-              if (obtenerController.estado.value == Estado.carga ||
-                  obtenerPromocionesProductosGratisController.estado.value ==
-                      Estado.carga) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (obtenerController.listaPromociones.isEmpty &&
-                  obtenerPromocionesProductosGratisController
-                      .listaPromociones.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: Text("Aún no hay promociones registradas."),
-                );
-              }
-              final List<Object> listaPromociones = [
-                ...obtenerController.promocionesFiltradas,
-                ...obtenerPromocionesProductosGratisController.listaPromociones
-              ];
-              print('PROMOCIONES FILTRADAS: ${listaPromociones}');
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: listaPromociones.length,
-                itemBuilder: (context, i) {
-                  final promo = listaPromociones[i];
-                  // You may want to check the type of promo here and render accordingly
-                  if (promo is Promocion) {
-                    return ContenedorPromocionDescuento(
-                      promocion: promo,
-                    );
-                  } else if (promo
-                      is PromocionProductoGratiConNombreDelProductosModelo) {
-                    return ContenedorPromocionProductoGratis(
-                      promocion: promo,
-                    );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
+          ),
+          const SizedBox(height: 38),
+          const Text(
+            "Promociones activas:",
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            if (obtenerController.estado.value == Estado.carga ||
+                obtenerPromocionesProductosGratisController.estado.value ==
+                    Estado.carga) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (obtenerController.listaPromociones.isEmpty &&
+                obtenerPromocionesProductosGratisController
+                    .listaPromociones.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 24),
+                child: Text("Aún no hay promociones registradas."),
               );
-            }),
-          ],
-        ),
+            }
+            final List<Object> listaPromociones = [
+              ...obtenerController.promocionesFiltradas,
+              ...obtenerPromocionesProductosGratisController.listaPromociones
+            ];
+            print('PROMOCIONES FILTRADAS: ${listaPromociones}');
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: listaPromociones.length,
+              itemBuilder: (context, i) {
+                final promo = listaPromociones[i];
+                // You may want to check the type of promo here and render accordingly
+                if (promo is Promocion) {
+                  return ContenedorPromocionDescuento(
+                    promocion: promo,
+                  );
+                } else if (promo
+                    is PromocionProductoGratiConNombreDelProductosModelo) {
+                  return ContenedorPromocionProductoGratis(
+                    promocion: promo,
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
+            );
+          }),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
-
+}
 void mostrarModalRegistroExitoso(BuildContext context) {
   showDialog(
     context: context,

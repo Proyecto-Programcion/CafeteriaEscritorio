@@ -159,30 +159,34 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
     descuentoController.text = widget.descuento.toString();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.transparent,
-      content: Container(
-        padding: const EdgeInsets.all(20),
-        width: 850,
-        height: 800,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border:
-              Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 8,
-              offset: const Offset(2, 4),
-            ),
-          ],
-        ),
+ @override
+Widget build(BuildContext context) {
+  return AlertDialog(
+    backgroundColor: Colors.transparent,
+    content: Container(
+      padding: const EdgeInsets.all(20),
+      width: 850,
+      // Removemos la altura fija para permitir que el contenido determine el tamaño
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(2, 4),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
         child: Form(
           key: formKey,
           child: Column(
+            mainAxisSize: MainAxisSize.min, // Importante para evitar que ocupe todo el espacio
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -209,10 +213,12 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
               const SizedBox(height: 20),
               //***********************APARTADO DE LA SELECCION DE IMAGEN E INPUT DE CODIGO DE BARRAS */
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start, // Alineación para evitar problemas de layout
                 children: [
                   Expanded(
                       flex: 1,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
@@ -325,7 +331,7 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
                 decuentoController: descuentoController,
               ),
               //***********************BOTON PARA ACTUALIZAR EL PRODUCTO*/
-              const Spacer(),
+              const SizedBox(height: 30), // En lugar de Spacer() que puede causar problemas
               SizedBox(
                 width: 300,
                 child: InkWell(
@@ -369,8 +375,9 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////// WIDGETS

@@ -6,11 +6,11 @@ class Database {
   static Future<void> connect() async {
     conn = await Connection.open(
       Endpoint(
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 5432,
-        database: 'prueba02',
+        database: 'managegym',
         username: 'postgres',
-        password: '211099',
+        password: '211125',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
