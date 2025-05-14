@@ -1,12 +1,14 @@
+// En venta_screen.dart (actualizado)
 import 'dart:convert';
 
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
+import 'package:cafe/logica/venta/controllers/realizar_venta_controller.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
 import 'package:flutter/material.dart';
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 
 class VentaScreen extends StatefulWidget {
   const VentaScreen({super.key});
@@ -17,17 +19,17 @@ class VentaScreen extends StatefulWidget {
 
 class _VentaScreenState extends State<VentaScreen> {
   final TextEditingController _searchController = TextEditingController();
-
+  
+  // Controladores GetX
+  final RealizarVentaController realizarVentaController = Get.put(RealizarVentaController());
   final ObtenerProductosControllers obtenerProductosControllers = Get.put(
     ObtenerProductosControllers(),
   );
-
   final BuscadorProductosController buscadorProductosController = Get.put(
     BuscadorProductosController(),
   );
 
   final Set<int> selectedIndexes = {};
-
   List<ProductoModelo> productosFiltrados = [];
   final List<ProductoCarrito> carrito = [];
   final List<FocusNode> focusNodesCarrito = [];
@@ -78,6 +80,50 @@ class _VentaScreenState extends State<VentaScreen> {
       0,
       (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad),
     );
+  }
+  
+  // Método para realizar la venta usando el controlador
+  Future<void> realizarVenta(int? idCliente) async {
+    // Sincronizar el carrito con el controlador
+    realizarVentaController.sincronizarCarrito(carrito);
+    
+    // Realizar la venta
+    final exito = await realizarVentaController.realizarVenta(
+      idCliente: idCliente,
+    );
+    
+    if (exito) {
+      // Limpiar el carrito local
+      setState(() {
+        carrito.clear();
+        selectedIndexes.clear();
+        focusNodesCarrito.clear();
+      });
+      
+      // Mostrar mensaje de éxito
+      Get.snackbar(
+        '¡Venta exitosa!',
+        'La venta se ha completado correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.8),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(8),
+      );
+      
+      // Recargar productos para actualizar el inventario en pantalla
+      cargarProductos();
+      
+    } else {
+      // Mostrar mensaje de error
+      Get.snackbar(
+        'Error',
+        realizarVentaController.mensaje.value,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(8),
+      );
+    }
   }
 
   @override
@@ -232,7 +278,7 @@ class _VentaScreenState extends State<VentaScreen> {
                           ),
                         ),
                         Text(
-                          'Total de la venta: \$${totalDescuento.toStringAsFixed(2)}',
+                          'Descuento: \$${descuento.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -241,23 +287,27 @@ class _VentaScreenState extends State<VentaScreen> {
                         const SizedBox(width: 16),
                         InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () async {
-                            final resultado = await showDialog<String>(
+                          onTap: carrito.isEmpty ? null : () async {
+                            // Modificamos para usar el ModalRealizarVenta y realizar la venta
+                            await showDialog(
                               context: context,
                               builder: (context) => ModalRealizarVenta(
-                                totalVenta: totalVenta,
-                                descuento: descuento,
-                              ),
+        totalVenta: totalVenta,
+        descuento: descuento,
+        carrito: carrito, // Pasamos el carrito al modal
+        onIrAPagar: (usuario) async {
+          // Aquí usamos el controlador para realizar la venta
+          await realizarVenta(usuario?.idCliente);
+          Navigator.of(context).pop();
+        },
+      ),
                             );
-                            if (resultado != null) {
-                              print('Seleccionado: $resultado');
-                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 5),
                             decoration: BoxDecoration(
-                              color: Colors.black,
+                              color: carrito.isEmpty ? Colors.grey : Colors.black,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Text(

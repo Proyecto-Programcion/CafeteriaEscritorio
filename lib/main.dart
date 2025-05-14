@@ -11,31 +11,42 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:get/get.dart';
 
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart'; // Asegúrate de importarlo solo si lo usas
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Fijar orientaciones permitidas
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  await windowManager.ensureInitialized();
+  // Si está en escritorio, inicializar windowManager
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = const WindowOptions(
-    center: true,
-    title: "Cafe Paquito",
-    backgroundColor: Color.fromRGBO(33, 33, 33, 0.392),
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-    windowButtonVisibility: false,
-  );
+    WindowOptions windowOptions = const WindowOptions(
+      center: true,
+      title: "Cafe Paquito",
+      backgroundColor: Color.fromRGBO(33, 33, 33, 0.392),
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+      windowButtonVisibility: false,
+    );
 
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
 
+  // Conexión a la base de datos
   try {
     await Database.connect();
   } catch (e) {
