@@ -19,9 +19,10 @@ class VentaScreen extends StatefulWidget {
 
 class _VentaScreenState extends State<VentaScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
+
   // Controladores GetX
-  final RealizarVentaController realizarVentaController = Get.put(RealizarVentaController());
+  final RealizarVentaController realizarVentaController =
+      Get.put(RealizarVentaController());
   final ObtenerProductosControllers obtenerProductosControllers = Get.put(
     ObtenerProductosControllers(),
   );
@@ -81,17 +82,17 @@ class _VentaScreenState extends State<VentaScreen> {
       (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad),
     );
   }
-  
+
   // Método para realizar la venta usando el controlador
   Future<void> realizarVenta(int? idCliente) async {
     // Sincronizar el carrito con el controlador
     realizarVentaController.sincronizarCarrito(carrito);
-    
+
     // Realizar la venta
     final exito = await realizarVentaController.realizarVenta(
       idCliente: idCliente,
     );
-    
+
     if (exito) {
       // Limpiar el carrito local
       setState(() {
@@ -99,7 +100,7 @@ class _VentaScreenState extends State<VentaScreen> {
         selectedIndexes.clear();
         focusNodesCarrito.clear();
       });
-      
+
       // Mostrar mensaje de éxito
       Get.snackbar(
         '¡Venta exitosa!',
@@ -109,10 +110,9 @@ class _VentaScreenState extends State<VentaScreen> {
         colorText: Colors.white,
         margin: const EdgeInsets.all(8),
       );
-      
+
       // Recargar productos para actualizar el inventario en pantalla
       cargarProductos();
-      
     } else {
       // Mostrar mensaje de error
       Get.snackbar(
@@ -130,7 +130,8 @@ class _VentaScreenState extends State<VentaScreen> {
   Widget build(BuildContext context) {
     final double totalVenta = carrito.fold<double>(
       0,
-      (suma, item) => suma +
+      (suma, item) =>
+          suma +
           ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
               item.cantidad,
     );
@@ -200,14 +201,14 @@ class _VentaScreenState extends State<VentaScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
+
                 /// PARTE DE lISTAR PRODUCTOS SELECCIONADOS
                 Expanded(
                   child: Builder(
                     builder: (context) {
                       if (obtenerProductosControllers.estado.value ==
                           Estado.carga) {
-                        return const Center(
-                            child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
                       } else if (obtenerProductosControllers.estado.value ==
                           Estado.error) {
                         return const Center(
@@ -236,10 +237,10 @@ class _VentaScreenState extends State<VentaScreen> {
                                         yaEnCarrito); // <-- Elimina el focusNode
                                     selectedIndexes.remove(index);
                                   } else {
-                                    carrito
-                                        .add(ProductoCarrito(producto: producto));
-                                    focusNodesCarrito
-                                        .add(FocusNode()); // <-- Agrega un nuevo focusNode
+                                    carrito.add(
+                                        ProductoCarrito(producto: producto));
+                                    focusNodesCarrito.add(
+                                        FocusNode()); // <-- Agrega un nuevo focusNode
                                     selectedIndexes.add(index);
                                     WidgetsBinding.instance
                                         .addPostFrameCallback((_) {
@@ -287,27 +288,30 @@ class _VentaScreenState extends State<VentaScreen> {
                         const SizedBox(width: 16),
                         InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: carrito.isEmpty ? null : () async {
-                            // Modificamos para usar el ModalRealizarVenta y realizar la venta
-                            await showDialog(
-                              context: context,
-                              builder: (context) => ModalRealizarVenta(
-        totalVenta: totalVenta,
-        descuento: descuento,
-        carrito: carrito, // Pasamos el carrito al modal
-        onIrAPagar: (usuario) async {
-          // Aquí usamos el controlador para realizar la venta
-          await realizarVenta(usuario?.idCliente);
-          Navigator.of(context).pop();
-        },
-      ),
-                            );
-                          },
+                          onTap: carrito.isEmpty
+                              ? null
+                              : () async {
+                                  // Modificamos para usar el ModalRealizarVenta y realizar la venta
+                                  await showDialog(
+                                    context: context,
+                                    builder: (context) => ModalRealizarVenta(
+                                      totalVenta: totalVenta,
+                                      descuento: descuento,
+                                      carrito:
+                                          carrito, // Pasamos el carrito al modal
+                                      onIrAPagar: (usuario) async {
+                                        // Aquí usamos el controlador para realizar la venta
+                                        await realizarVenta(usuario?.idCliente);
+                                      },
+                                    ),
+                                  );
+                                },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 5),
                             decoration: BoxDecoration(
-                              color: carrito.isEmpty ? Colors.grey : Colors.black,
+                              color:
+                                  carrito.isEmpty ? Colors.grey : Colors.black,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Text(
