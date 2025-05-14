@@ -36,78 +36,83 @@ class _InicioScreenState extends State<InicioScreen> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(50),
-      child: Column(
-        children: [
-          const Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'INICIO',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 153, 103, 8),
-                    ),
-                  ),
-                  const Text(
-                    'Sucursal: Centro',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Color.fromARGB(255, 153, 103, 8),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-              child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        child: Wrap(
-                          runSpacing: 12, // Espacio vertical entre líneas
-                          alignment: WrapAlignment.spaceBetween,
-                          children: List.generate(listaInformacionRapida.length,
-                              (index) {
-                            final informacion = listaInformacionRapida[index]
-                                    ['informacion'] ??
-                                '';
-                            final titulo =
-                                listaInformacionRapida[index]['titulo'] ?? '';
-                            final urlLocalImage = listaInformacionRapida[index]
-                                    ['urlLocalImage'] ?? '';
-                            return TarjetaDeInformacionRapidaWidgets(
-                              informacion: informacion,
-                              titulo: titulo,
-                              imagenUrl: urlLocalImage,
-                            );
-                          }),
-                        ),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'INICIO',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 153, 103, 8),
                       ),
-                      const SizedBox(height: 50),
-                      Container(
-                          width: double.infinity,
-                          height: 500,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: 1.7,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: LineChart(mainData()),
-                            ),
-                          )),
-                    ],
-                  ))),
-        ],
+                    ),
+                    Text(
+                      'Sucursal: Centro',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color.fromARGB(255, 153, 103, 8),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    child: Wrap(
+                      runSpacing: 12,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: List.generate(listaInformacionRapida.length,
+                          (index) {
+                        final informacion = listaInformacionRapida[index]
+                                ['informacion'] ??
+                            '';
+                        final titulo =
+                            listaInformacionRapida[index]['titulo'] ?? '';
+                        final urlLocalImage = listaInformacionRapida[index]
+                                ['urlLocalImage'] ??
+                            '';
+                        return TarjetaDeInformacionRapidaWidgets(
+                          informacion: informacion,
+                          titulo: titulo,
+                          imagenUrl: urlLocalImage,
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  Container(
+                    width: double.infinity,
+                    height: 500,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1.7,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: LineChart(mainData()),
+                      ),
+                    ),
+                  ),
+                  
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
