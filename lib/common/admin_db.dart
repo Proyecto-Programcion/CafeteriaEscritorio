@@ -6,11 +6,11 @@ class Database {
   static Future<void> connect() async {
     conn = await Connection.open(
       Endpoint(
-        host: '127.0.0.1',
+        host: '168.231.69.196',
         port: 5432,
-        database: 'prueba02',
+        database: 'cafe',
         username: 'postgres',
-        password: '211099',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -36,13 +36,13 @@ class Database {
 
         // TABLA CLIENTES
         '''
-CREATE TABLE IF NOT EXISTS clientes (
-  id_cliente SERIAL PRIMARY KEY,
-  nombre VARCHAR,
-  telefono VARCHAR UNIQUE,
-  cantidad_compras INT DEFAULT 0
-)
-''',
+        CREATE TABLE IF NOT EXISTS clientes (
+          id_cliente SERIAL PRIMARY KEY,
+          nombre VARCHAR,
+          telefono VARCHAR UNIQUE,
+          cantidad_compras INT DEFAULT 0
+        )
+        ''',
 
         // TABLA CATEGORIAS
         '''

@@ -8,7 +8,7 @@ class DatabaseRemote {
       Endpoint(
         host: '168.231.69.196',
         port: 5432,
-        database: 'cafeteria',
+        database: 'cafe',
         username: 'postgres',
         password: '13960',
       ),

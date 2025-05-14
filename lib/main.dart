@@ -50,7 +50,7 @@ Future<void> main() async {
   // Conexión a la base de datos
   try {
     await Database.connect();
-    DatabaseRemote.connect();
+    //await DatabaseRemote.connect();
   } catch (e) {
     print('Error al conectar a la base de datos: $e');
   }
