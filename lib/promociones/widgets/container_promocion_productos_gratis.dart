@@ -61,7 +61,7 @@ class ContenedorPromocionProductoGratis extends StatelessWidget {
                         _chipPromo(
                             "Compras necesarias: ${promocion.comprasNecesarias}"),
                         _chipPromo(
-                            "Dinero necesario: ${promocion.dineroNecesario}"),
+                            "Compra minima: ${promocion.dineroNecesario}"),
                         _chipPromo(
                             "Regalo: ${promocion.nombreProducto} : CANTIDAD: ${promocion.cantidadProducto} ${promocion.unidadDeMedidaProducto}"),
                       ],

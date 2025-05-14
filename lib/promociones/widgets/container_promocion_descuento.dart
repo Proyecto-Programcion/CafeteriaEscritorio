@@ -59,9 +59,9 @@ class ContenedorPromocionDescuento extends StatelessWidget {
                         _chipPromo(
                             "Tope de descuento: ${promocion.topeDescuento}"),
                         _chipPromo(
-                            "Compras necesarias: ${promocion.comprasNecesarias}"),
+                            "Compra minima: ${promocion.comprasNecesarias}"),
                         _chipPromo(
-                            "Dinero necesario: ${promocion.dineroNecesario}"),
+                            "Compra minima: ${promocion.dineroNecesario}"),
                       ],
                     ),
                   ],

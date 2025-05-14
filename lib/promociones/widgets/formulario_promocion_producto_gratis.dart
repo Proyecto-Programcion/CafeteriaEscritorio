@@ -236,7 +236,7 @@ class _FormPromocionProductoGratisState
                       FilteringTextInputFormatter.allow(
                           RegExp(r'^\d+\.?\d{0,2}')),
                     ],
-                    decoration: _rectFieldDecoration("Dinero necesario"),
+                    decoration: _rectFieldDecoration("Compra minima"),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
                         return "Campo obligatorio";
