@@ -1,3 +1,4 @@
+import 'package:cafe/administradores/administradores_screen.dart';
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/admin_remote_db.dart';
 import 'package:cafe/common/sesion_activa.dart';
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const VentaScreen(),
     const ClientesScreen(),
     const PromocionesPage(),
-    Center(child: Text('Pantalla Trending')),
+    const AdministradoresScreen(),
   ];
 
   void cambiarIndex(int nuevoIndex) {
@@ -156,7 +157,7 @@ class NavbarNavegacion extends StatelessWidget {
       Icons.shopping_cart,
       Icons.person,
       Icons.discount,
-      Icons.trending_up,
+      Icons.badge,
     ];
 
     return Container(

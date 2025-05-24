@@ -182,7 +182,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
             height: 20,
           ),
           ////***********************************************CONTENEDOR DE LA LISTA DE LOS PRODUCTOS */
-          ////// Aquí puedes agregar la lógica para mostrar la lista de productos
           Expanded(
               child: Container(
             width: double.infinity,

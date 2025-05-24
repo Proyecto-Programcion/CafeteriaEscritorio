@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 
-import 'package:get/get_core/src/get_main.dart';
 
 class ModalEditarProducto extends StatefulWidget {
   final int idProducto;
