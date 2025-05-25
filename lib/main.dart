@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart'; // Asegúrate de importarlo solo si lo usas
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -160,7 +159,7 @@ class NavbarNavegacion extends StatelessWidget {
       Icons.person,
       Icons.discount,
       Icons.badge,
-      Icons.money_off_csred_outlined
+      Icons.attach_money_outlined,
     ];
 
     return Container(
