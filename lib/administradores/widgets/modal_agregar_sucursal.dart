@@ -67,46 +67,11 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
   }
 
   void eliminarCategoria(BuildContext context, int idCategoria) async {
-    final EliminarCategoriaController eliminarCategoriaController =
-        Get.put(EliminarCategoriaController());
-    final categoriaEliminada =
-        await eliminarCategoriaController.eliminarCategoria(idCategoria);
-    if (categoriaEliminada) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sucursal eliminada con éxito'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+   
   }
 
   void actualizarCategoria(BuildContext context, int idCategoria) async {
-    if (formKeyActualizar.currentState!.validate()) {
-      final ActualizarCategoriaPorId actualizarCategoriaPorId =
-          Get.put(ActualizarCategoriaPorId());
-      final resp = await actualizarCategoriaPorId.actualizarCategoria(
-          idCategoria, nombreSucursalControllerActualizar.text);
-      if (resp) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sucursal actualizada con éxito'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        nombreSucursalControllerActualizar.clear();
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pop();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sucursal al actualizar la categoría'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+   
   }
 
   @override

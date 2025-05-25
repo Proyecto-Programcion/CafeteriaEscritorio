@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cafe/administradores/widgets/modal_agregar_Administrador.dart';
-import 'package:cafe/administradores/widgets/modal_categorias.dart';
+import 'package:cafe/administradores/widgets/modal_agregar_sucursal.dart';
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/administradores/administrador_modelo.dart';
 import 'package:cafe/logica/administradores/controller/eliminar_administrador_controller.dart';
