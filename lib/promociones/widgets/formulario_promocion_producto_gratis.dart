@@ -48,17 +48,19 @@ class _FormPromocionProductoGratisState
     descripcionController.dispose();
     comprasNecesariasController.dispose();
     dineroNecesarioController.dispose();
-    _formKey.currentState?.dispose();
+    cantidadProductoGratisController.dispose(); // Agregaste este
+    // NO hagas dispose del _formKey.currentState
     super.dispose();
   }
 
   void crearPromocionProductoGratis() async {
-    // Aquí va tu lógica para crear la promoción de producto gratis
-
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+        });
+      }
+      
       final resp = await registrarPromocionProductoGratis.registrarPromocion(
           nombrePromocion: nombreController.text,
           descripcion: descripcionController.text,
@@ -77,28 +79,32 @@ class _FormPromocionProductoGratisState
       productoSeleccionadoId = null;
       
       if (resp) {
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Promoción creada correctamente"),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Promoción creada correctamente"),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
         obtenerPromocionesProductosGratisController.obtenerPromociones();
       } else {
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(registrarPromocionProductoGratis.mensaje.value),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(registrarPromocionProductoGratis.mensaje.value),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -112,16 +118,19 @@ class _FormPromocionProductoGratisState
 
   void cargarProductos() async {
     await obtenerProductosControllers.obtenerProductos();
-    setState(() {
-      final productosFiltrados =
-          List<ProductoModelo>.from(obtenerProductosControllers.listaProductos);
-      productosDropdownMenuItems = productosFiltrados.map((producto) {
-        return DropdownMenuItem(
-          value: producto.idProducto,
-          child: Text(producto.nombre),
-        );
-      }).toList();
-    });
+    
+    if (mounted) {
+      setState(() {
+        final productosFiltrados =
+            List<ProductoModelo>.from(obtenerProductosControllers.listaProductos);
+        productosDropdownMenuItems = productosFiltrados.map((producto) {
+          return DropdownMenuItem(
+            value: producto.idProducto,
+            child: Text(producto.nombre),
+          );
+        }).toList();
+      });
+    }
 
     print("Productos cargados, ${productosDropdownMenuItems.length}");
   }

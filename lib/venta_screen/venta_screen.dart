@@ -42,27 +42,50 @@ class _VentaScreenState extends State<VentaScreen> {
     _searchController.addListener(_onSearchChanged);
   }
 
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged); // Remover listener
+    _searchController.dispose();
+
+    // Limpiar todos los FocusNode
+    for (final focusNode in focusNodesCarrito) {
+      focusNode.dispose();
+    }
+    focusNodesCarrito.clear();
+
+    super.dispose();
+  }
+
   void cargarProductos() async {
     await obtenerProductosControllers.obtenerProductos();
-    setState(() {
-      productosFiltrados =
-          List<ProductoModelo>.from(obtenerProductosControllers.listaProductos);
-    });
+    if (mounted) {
+      // Verificar si está montado
+      setState(() {
+        productosFiltrados = List<ProductoModelo>.from(
+            obtenerProductosControllers.listaProductos);
+      });
+    }
   }
 
   void _onSearchChanged() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      setState(() {
-        productosFiltrados = List<ProductoModelo>.from(
-            obtenerProductosControllers.listaProductos);
-      });
+      if (mounted) {
+        // Verificar si está montado
+        setState(() {
+          productosFiltrados = List<ProductoModelo>.from(
+              obtenerProductosControllers.listaProductos);
+        });
+      }
     } else {
       await buscadorProductosController.obtenerProductos(query);
-      setState(() {
-        productosFiltrados = List<ProductoModelo>.from(
-            buscadorProductosController.listaProductos);
-      });
+      if (mounted) {
+        // Verificar si está montado
+        setState(() {
+          productosFiltrados = List<ProductoModelo>.from(
+              buscadorProductosController.listaProductos);
+        });
+      }
     }
   }
 
@@ -95,34 +118,47 @@ class _VentaScreenState extends State<VentaScreen> {
 
     if (exito) {
       // Limpiar el carrito local
-      setState(() {
-        carrito.clear();
-        selectedIndexes.clear();
-        focusNodesCarrito.clear();
-      });
+      if (mounted) {
+        // Verificar si está montado
+        setState(() {
+          carrito.clear();
+          selectedIndexes.clear();
+          // Limpiar los FocusNode antes de limpiar la lista
+          for (final focusNode in focusNodesCarrito) {
+            focusNode.dispose();
+          }
+          focusNodesCarrito.clear();
+        });
+      }
 
       // Mostrar mensaje de éxito
-      Get.snackbar(
-        '¡Venta exitosa!',
-        'La venta se ha completado correctamente',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withOpacity(0.8),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(8),
-      );
+      if (mounted) {
+        // Verificar si está montado
+        Get.snackbar(
+          '¡Venta exitosa!',
+          'La venta se ha completado correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.withOpacity(0.8),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(8),
+        );
+      }
 
       // Recargar productos para actualizar el inventario en pantalla
       cargarProductos();
     } else {
       // Mostrar mensaje de error
-      Get.snackbar(
-        'Error',
-        realizarVentaController.mensaje.value,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(8),
-      );
+      if (mounted) {
+        // Verificar si está montado
+        Get.snackbar(
+          'Error',
+          realizarVentaController.mensaje.value,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withOpacity(0.8),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(8),
+        );
+      }
     }
   }
 
@@ -225,29 +261,35 @@ class _VentaScreenState extends State<VentaScreen> {
                               producto: producto,
                               seleccionado: selectedIndexes.contains(index),
                               onTap: () {
-                                setState(() {
-                                  final yaEnCarrito = carrito.indexWhere(
-                                    (e) =>
-                                        e.producto.idProducto ==
-                                        producto.idProducto,
-                                  );
-                                  if (yaEnCarrito >= 0) {
-                                    carrito.removeAt(yaEnCarrito);
-                                    focusNodesCarrito.removeAt(
-                                        yaEnCarrito); // <-- Elimina el focusNode
-                                    selectedIndexes.remove(index);
-                                  } else {
-                                    carrito.add(
-                                        ProductoCarrito(producto: producto));
-                                    focusNodesCarrito.add(
-                                        FocusNode()); // <-- Agrega un nuevo focusNode
-                                    selectedIndexes.add(index);
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      focusNodesCarrito.last.requestFocus();
-                                    });
-                                  }
-                                });
+                                if (mounted) {
+                                  // Verificar si está montado
+                                  setState(() {
+                                    final yaEnCarrito = carrito.indexWhere(
+                                      (e) =>
+                                          e.producto.idProducto ==
+                                          producto.idProducto,
+                                    );
+                                    if (yaEnCarrito >= 0) {
+                                      carrito.removeAt(yaEnCarrito);
+                                      // Dispose del FocusNode antes de removerlo
+                                      focusNodesCarrito[yaEnCarrito].dispose();
+                                      focusNodesCarrito.removeAt(yaEnCarrito);
+                                      selectedIndexes.remove(index);
+                                    } else {
+                                      carrito.add(
+                                          ProductoCarrito(producto: producto));
+                                      focusNodesCarrito.add(FocusNode());
+                                      selectedIndexes.add(index);
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        if (mounted &&
+                                            focusNodesCarrito.isNotEmpty) {
+                                          focusNodesCarrito.last.requestFocus();
+                                        }
+                                      });
+                                    }
+                                  });
+                                }
                               },
                             );
                           },
@@ -338,18 +380,26 @@ class _VentaScreenState extends State<VentaScreen> {
                           productoCarrito: item,
                           focusNode: focusNodesCarrito[index],
                           onCantidadChanged: (nuevaCantidad) {
-                            setState(() {
-                              item.cantidad = nuevaCantidad;
-                            });
+                            if (mounted) {
+                              // Verificar si está montado
+                              setState(() {
+                                item.cantidad = nuevaCantidad;
+                              });
+                            }
                           },
                           onRemove: () {
-                            setState(() {
-                              final idx = productosFiltrados.indexWhere((p) =>
-                                  p.idProducto == item.producto.idProducto);
-                              if (idx >= 0) selectedIndexes.remove(idx);
-                              carrito.removeAt(index);
-                              focusNodesCarrito.removeAt(index);
-                            });
+                            if (mounted) {
+                              // Verificar si está montado
+                              setState(() {
+                                final idx = productosFiltrados.indexWhere((p) =>
+                                    p.idProducto == item.producto.idProducto);
+                                if (idx >= 0) selectedIndexes.remove(idx);
+                                carrito.removeAt(index);
+                                // Dispose del FocusNode antes de removerlo
+                                focusNodesCarrito[index].dispose();
+                                focusNodesCarrito.removeAt(index);
+                              });
+                            }
                           },
                         );
                       },
@@ -631,133 +681,133 @@ class ProductoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          height: 150,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF9F1E7),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 12,
-                offset: const Offset(6, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Icon(
-                  seleccionado
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  color: seleccionado ? Colors.black54 : Colors.grey,
-                  size: 28,
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            height: 150,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F1E7),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(6, 6),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
+              ],
+            ),
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: Icon(
+                    seleccionado
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: seleccionado ? Colors.black54 : Colors.grey,
+                    size: 28,
                   ),
-                  color: (producto.urlImagen?.isEmpty ?? true)
-                      ? Colors.grey[300]
-                      : null,
-                  image: (producto.urlImagen?.isNotEmpty ?? false)
-                      ? DecorationImage(
-                          image: Image.memory(base64Decode(producto.urlImagen!))
-                              .image,
-                          fit: BoxFit.cover,
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                    ),
+                    color: (producto.urlImagen?.isEmpty ?? true)
+                        ? Colors.grey[300]
+                        : null,
+                    image: (producto.urlImagen?.isNotEmpty ?? false)
+                        ? DecorationImage(
+                            image:
+                                Image.memory(base64Decode(producto.urlImagen!))
+                                    .image,
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: (producto.urlImagen?.isEmpty ?? true)
+                      ? const Center(
+                          child: Icon(Icons.image_not_supported,
+                              size: 48, color: Colors.grey),
                         )
                       : null,
                 ),
-                child: (producto.urlImagen?.isEmpty ?? true)
-                    ? const Center(
-                        child: Icon(Icons.image_not_supported,
-                            size: 48, color: Colors.grey),
-                      )
-                    : null,
-              ),
-              Expanded(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        producto.nombre,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          producto.nombre,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            '1 ${producto.unidadMedida}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black54,
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              '1 ${producto.unidadMedida}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Cantidad disponible: ${producto.cantidad} ${producto.unidadMedida}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black54,
+                            const SizedBox(width: 12),
+                            Text(
+                              'Cantidad disponible: ${producto.cantidad} ${producto.unidadMedida}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            'Precio sin descuento: \$${producto.precio}',
-                            style: const TextStyle(
-                              fontSize: 18,
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              'Precio sin descuento: \$${producto.precio}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Descuento: \$${producto.descuento}',
-                            style: const TextStyle(
-                              fontSize: 18,
+                            const SizedBox(width: 12),
+                            Text(
+                              'Descuento: \$${producto.descuento}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            const SizedBox(width: 12),
+                            Text(
+                              'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }
