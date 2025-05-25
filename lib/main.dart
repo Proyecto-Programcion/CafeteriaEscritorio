@@ -2,6 +2,7 @@ import 'package:cafe/administradores/administradores_screen.dart';
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/admin_remote_db.dart';
 import 'package:cafe/common/sesion_activa.dart';
+import 'package:cafe/controlVenta/controlGastos.dart';
 import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
@@ -94,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ClientesScreen(),
     const PromocionesPage(),
     const AdministradoresScreen(),
+    const ControlDeGastosScreen(),
   ];
 
   void cambiarIndex(int nuevoIndex) {
@@ -158,6 +160,7 @@ class NavbarNavegacion extends StatelessWidget {
       Icons.person,
       Icons.discount,
       Icons.badge,
+      Icons.money_off_csred_outlined
     ];
 
     return Container(

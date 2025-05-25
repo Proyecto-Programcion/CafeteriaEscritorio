@@ -6,11 +6,11 @@ class Database {
   static Future<void> connect() async {
     conn = await Connection.open(
       Endpoint(
-        host: 'localhost',
+        host: '168.231.69.196',
         port: 5432,
         database: 'cafe',
         username: 'postgres',
-        password: '211099',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -35,6 +35,26 @@ class Database {
         statusDespedido BOOLEAN DEFAULT FALSE,
         rol VARCHAR -- Admin o Empleado
       )
+      ''',
+      ''' 
+        CREATE TABLE categoriaControlGastos (
+          idCategoria SERIAL PRIMARY KEY,
+          nombre VARCHAR(50) NOT NULL UNIQUE,
+          descripcion VARCHAR(200)
+      )
+      ''', 
+      
+      '''
+        CREATE TABLE controlGastos (
+            idGasto SERIAL PRIMARY KEY,
+            idCategoria INTEGER NOT NULL REFERENCES categoriaControlGastos(idCategoria) ON DELETE RESTRICT ON UPDATE CASCADE,
+            descripcion VARCHAR(255) NOT NULL,
+            monto NUMERIC(10,2) NOT NULL,
+            fechaGasto DATE NOT NULL,
+            metodoPago VARCHAR(50) DEFAULT 'Efectivo',
+            notas TEXT,
+            ubicacion VARCHAR(255)
+        )
       ''',
         // TABLA SUCURSALES
         '''
