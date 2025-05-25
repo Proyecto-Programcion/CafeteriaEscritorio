@@ -1,6 +1,15 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cafe/administradores/widgets/modal_agregar_Administrador.dart';
 import 'package:cafe/administradores/widgets/modal_categorias.dart';
+import 'package:cafe/common/enums.dart';
+import 'package:cafe/logica/administradores/administrador_modelo.dart';
+import 'package:cafe/logica/administradores/controller/eliminar_administrador_controller.dart';
+import 'package:cafe/logica/administradores/controller/listar_administradores_controller.dart';
 import 'package:cafe/logica/administradores/controller/listar_sucursales_controller.dart';
+import 'package:file_selector/file_selector.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -13,6 +22,16 @@ class AdministradoresScreen extends StatefulWidget {
 }
 
 class _AdministradoresScreenState extends State<AdministradoresScreen> {
+  final ListarAdministradoresController listarAdministradoresController =
+      Get.put(ListarAdministradoresController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    listarAdministradoresController.obtenerAdministradores();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -150,7 +169,42 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
             child: Column(
               children: [
                 CabezeraTablaAdministradores(),
-                RowTablaAdministradores(),
+                Expanded(child: Obx(() {
+                  if (listarAdministradoresController.estado.value ==
+                      Estado.carga) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (listarAdministradoresController.estado.value ==
+                      Estado.error) {
+                    return const Center(
+                      child: Text('Error al cargar los administradores'),
+                    );
+                  }
+                  if (listarAdministradoresController.estado.value ==
+                      Estado.exito) {
+                    if (listarAdministradoresController
+                        .administradores.isEmpty) {
+                      return const Center(
+                        child: Text('No hay administradores registrados'),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: listarAdministradoresController
+                          .administradores.length,
+                      itemBuilder: (context, index) {
+                        print(listarAdministradoresController
+                            .administradores[index].imagen);
+                        return RowTablaAdministradores(
+                          administradorModelo: listarAdministradoresController
+                              .administradores[index],
+                        );
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }))
               ],
             ),
           )),
@@ -198,7 +252,7 @@ class CabezeraTablaAdministradores extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
                     "Nombre completo°",
@@ -210,10 +264,21 @@ class CabezeraTablaAdministradores extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
+                child: Center(
+                child: Text(
+                  "Telefono",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )),
+              Expanded(
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Correo°",
+                    "Corre",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -222,10 +287,10 @@ class CabezeraTablaAdministradores extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Sucursal°",
+                    "Sucursal",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -234,10 +299,10 @@ class CabezeraTablaAdministradores extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Tipo°",
+                    "Tipo",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -249,7 +314,7 @@ class CabezeraTablaAdministradores extends StatelessWidget {
                 flex: 1,
                 child: Center(
                   child: Text(
-                    "Accion°",
+                    "Accion",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -264,10 +329,44 @@ class CabezeraTablaAdministradores extends StatelessWidget {
 }
 
 class RowTablaAdministradores extends StatelessWidget {
+  final AdministradorModelo administradorModelo;
   RowTablaAdministradores({
     super.key,
+    required this.administradorModelo,
   });
-  String imagenUrl = "https://example.com/image.jpg"; // URL de la imagen
+
+    // Método para convertir base64 a Uint8List
+  Uint8List _base64ToUint8List(String base64String) {
+    try {
+      return base64Decode(base64String);
+    } catch (e) {
+      print('Error al decodificar base64: $e');
+      return Uint8List(0); // Retorna array vacío si hay error
+    }
+  }
+
+
+  void eliminarAdministrador() async{
+    final EliminarAdministradorController eliminarAdministradorController =
+        Get.put(EliminarAdministradorController());
+    final resp = await eliminarAdministradorController.eliminarAdministrador(
+        administradorModelo.idUsuario);
+    if (resp) {
+      Get.snackbar(
+        'Administrador Despedido',
+        'El administrador ha sido despedido correctamente',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } else {
+      Get.snackbar(
+        'Error al despedir',
+        'No se pudo despedir el administrador',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -285,8 +384,8 @@ class RowTablaAdministradores extends StatelessWidget {
                 flex: 1,
                 child: Center(
                   child: Text(
-                    "N°",
-                    style: TextStyle(
+                    "${administradorModelo.idUsuario}",
+                    style: const TextStyle(
                       fontSize: 16, // Más pequeño y sin bold
                     ),
                   ),
@@ -298,10 +397,13 @@ class RowTablaAdministradores extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 32,
                     backgroundColor: Colors.grey[300],
-                    backgroundImage: imagenUrl != null && imagenUrl.isNotEmpty
-                        ? NetworkImage(imagenUrl)
+                    backgroundImage: (administradorModelo.imagen != null &&
+                            administradorModelo.imagen!.isNotEmpty)
+                        ? MemoryImage(
+                            _base64ToUint8List(administradorModelo.imagen!))
                         : null,
-                    child: (imagenUrl == null || imagenUrl.isEmpty)
+                    child: (administradorModelo.imagen == null ||
+                            administradorModelo.imagen!.isEmpty)
                         ? const Icon(Icons.person,
                             color: Colors.white, size: 32)
                         : null,
@@ -309,44 +411,54 @@ class RowTablaAdministradores extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Nombre completo°",
-                    style: TextStyle(
+                    "${administradorModelo.nombre}",
+                    style: const TextStyle(
+                      fontSize: 16, // Más pequeño y sin bold
+                    ),
+                  ),
+                ),
+              ),
+               Expanded(
+                flex: 3,
+                child: Center(
+                child: Text(
+                  "${administradorModelo.telefono}",
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              )),
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: Text(
+                    "${administradorModelo.correo ?? 'No tiene'}",
+                    style: const TextStyle(
                       fontSize: 16, // Más pequeño y sin bold
                     ),
                   ),
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Correo°",
-                    style: TextStyle(
+                    "${administradorModelo.nombreSucursal}",
+                    style: const TextStyle(
                       fontSize: 16, // Más pequeño y sin bold
                     ),
                   ),
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Center(
                   child: Text(
-                    "Sucursal°",
-                    style: TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: Text(
-                    "Tipo°",
-                    style: TextStyle(
+                    "${administradorModelo.rol}",
+                    style: const TextStyle(
                       fontSize: 16, // Más pequeño y sin bold
                     ),
                   ),
@@ -367,7 +479,7 @@ class RowTablaAdministradores extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
-                          // Acción para eliminar
+                          eliminarAdministrador();
                         },
                       ),
                     ],

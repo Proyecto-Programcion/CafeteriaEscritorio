@@ -13,20 +13,20 @@ class ListarAdministradoresController extends GetxController {
     try {
       estado.value = Estado.carga;
       final sql = Sql.named('''
-       SELECT 
-          u.id_usuario,
-          u.nombre,
-          u.correo,
-          u.telefono,
-          u.imagen,
-          u.rol,
-          u.statusDespedido,
-          u.eliminado,
-          s.nombre AS nombre_sucursal
-        FROM usuarios u
-        LEFT JOIN sucursales s ON u.idSucursal = s.id_sucursal
-        WHERE u.eliminado = FALSE AND u.rol = 'Admin';
-      ''');
+     SELECT 
+        u.id_usuario,
+        u.nombre,
+        u.correo,
+        u.telefono,
+        u.imagen,
+        u.rol,
+        u.statusDespedido,
+        u.idSucursal,
+        s.nombre AS nombre_sucursal
+      FROM usuarios u
+      LEFT JOIN sucursales s ON u.idSucursal = s.id_sucursal
+      WHERE u.statusDespedido = FALSE AND u.rol = 'Admin';
+    ''');
       final result = await Database.conn.execute(sql);
       administradores.value = result
           .map((e) => AdministradorModelo.fromMap(e.toColumnMap()))
@@ -34,6 +34,7 @@ class ListarAdministradoresController extends GetxController {
       estado.value = Estado.exito;
       return true;
     } catch (e) {
+      print('Error al obtener administradores: $e');
       estado.value = Estado.error;
       return false;
     }

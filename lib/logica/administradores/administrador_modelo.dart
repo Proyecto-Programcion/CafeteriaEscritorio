@@ -64,7 +64,7 @@ class AdministradorModelo {
       contrasena: map['contrasena'] ?? '',
       imagen: map['imagen'],
       idSucursal: map['idSucursal'] ?? 0,
-      nombreSucursal: map['nombreSucursal'] ?? '',
+      nombreSucursal: map['nombre_sucursal'] ?? '',
       statusDespido: map['statusDespido'] == true || map['statusDespido'] == 1,
       rol: map['rol'] ?? '',
     );
@@ -79,7 +79,7 @@ class AdministradorModelo {
       'contrasena': contrasena,
       'imagen': imagen,
       'idSucursal': idSucursal,
-      'nombreSucursal': nombreSucursal,
+      'nombre_sucursal': nombreSucursal,
       'statusDespido': statusDespido,
       'rol': rol,
     };

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/logica/administradores/controller/listar_administradores_controller.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
 
@@ -31,7 +32,7 @@ class AgregarAdministradorController extends GetxController {
 
       final sql = Sql.named('''
        INSERT INTO usuarios (nombre, correo, telefono, contrasena, imagen, idSucursal, rol)
-      VALUES (@nombre, @correo , @telefono, @contrasena, @imagen, @idsucursal, @rol);
+      VALUES (@nombre, @correo, @telefono, @contrasena, @imagen, @idsucursal, @rol);
       ''');
 
       final resp = await Database.conn.execute(sql, parameters: {
@@ -41,13 +42,17 @@ class AgregarAdministradorController extends GetxController {
         'contrasena': contrasena,
         'imagen': imagenBase64,
         'idsucursal': idSucursal,
-        'rol': 'administrador',
+        'rol': 'Admin',
       });
 
       estado.value = Estado.exito;
+      final ListarAdministradoresController listarAdministradoresController =
+          Get.find<ListarAdministradoresController>();
+      listarAdministradoresController.obtenerAdministradores();
       mensaje.value = 'Administrador agregado exitosamente';
       return true;
     } catch (e) {
+      print('Error al agregar el administrador: $e');
       estado.value = Estado.error;
       mensaje.value = 'Error al agregar el administrador: $e';
       return false;

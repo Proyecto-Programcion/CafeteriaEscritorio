@@ -37,7 +37,7 @@ class IniciarSesionController extends GetxController {
         estado.value = Estado.exito;
         SesionActiva().idUsuario = resp[0][0] as int;
         SesionActiva().nombreUsuario = resp[0][1] as String;
-        SesionActiva().rolUsuario = resp[0][5] as String;
+        SesionActiva().rolUsuario = resp[0][8] as String;
       }
       return true;
     } catch (e) {
