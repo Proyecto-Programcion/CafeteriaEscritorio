@@ -30,7 +30,10 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
   @override
   void initState() {
     // TODO: implement initState
-    listarAdministradoresController.obtenerAdministradores();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      listarAdministradoresController.obtenerAdministradores();
+    });
+
     super.initState();
   }
 

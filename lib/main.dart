@@ -89,12 +89,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // Tu lista de pantallas/widgets
   final List<Widget> listaDeScreens = [
     const InicioScreen(),
-    const ProductosScreen(),
+    if(SesionActiva().rolUsuario == 'Admin') const ProductosScreen(),
     const VentaScreen(),
     const ClientesScreen(),
-    const PromocionesPage(),
-    const AdministradoresScreen(),
-    const ControlDeGastosScreen(),
+    if(SesionActiva().rolUsuario == 'Admin')const PromocionesPage(),
+    if(SesionActiva().rolUsuario == 'Admin')const AdministradoresScreen(),
+    if(SesionActiva().rolUsuario == 'Admin')const ControlDeGastosScreen(),
   ];
 
   void cambiarIndex(int nuevoIndex) {
@@ -154,12 +154,12 @@ class NavbarNavegacion extends StatelessWidget {
   Widget build(BuildContext context) {
     final icons = [
       Icons.home,
-      Icons.notes,
+      if(SesionActiva().rolUsuario == 'Admin') Icons.inventory,
       Icons.shopping_cart,
       Icons.person,
-      Icons.discount,
-      Icons.badge,
-      Icons.attach_money_outlined,
+      if(SesionActiva().rolUsuario == 'Admin') Icons.discount,
+      if(SesionActiva().rolUsuario == 'Admin') Icons.badge,
+      if(SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
     ];
 
     return Container(
