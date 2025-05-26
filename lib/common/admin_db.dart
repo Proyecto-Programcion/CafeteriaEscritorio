@@ -36,18 +36,19 @@ class Database {
         rol VARCHAR -- Admin o Empleado
       )
       ''',
+
         '''
-        CREATE TABLE categoriaControlGastos (
+        CREATE TABLE IF NOT EXISTS categoriaControlGastos (
           idCategoria SERIAL PRIMARY KEY,
           nombre VARCHAR(50) NOT NULL UNIQUE,
           descripcion VARCHAR(200)
-      )
+        )
       ''',
 
         '''
-        CREATE TABLE controlGastos (
+        CREATE TABLE IF NOT EXISTS controlGastos (
             idGasto SERIAL PRIMARY KEY,
-            idCategoria INTEGER NOT NULL REFERENCES categoriaControlGastos(idCategoria) ON DELETE RESTRICT ON UPDATE CASCADE,
+            idCategoria INTEGER NOT NULL,
             descripcion VARCHAR(255) NOT NULL,
             monto NUMERIC(10,2) NOT NULL,
             fechaGasto DATE NOT NULL,
@@ -73,6 +74,19 @@ class Database {
           nombre VARCHAR,
           telefono VARCHAR UNIQUE,
           cantidad_compras INT DEFAULT 0
+        )
+        ''',
+
+        // TABLA TURNOS_CAJA
+        '''
+        CREATE TABLE IF NOT EXISTS turnos_caja (
+          id SERIAL PRIMARY KEY,
+          id_usuario INT,
+          fecha_inicio TIMESTAMP,
+          fecha_fin TIMESTAMP,
+          monto_inicial NUMERIC(10,2),
+          monto_final NUMERIC(10,2),
+          activo BOOLEAN DEFAULT TRUE
         )
         ''',
 
@@ -132,6 +146,8 @@ class Database {
       CREATE TABLE IF NOT EXISTS ventas (
         id_venta SERIAL PRIMARY KEY,
         id_usuario INT,
+        id_sucursal INT,
+        id_turno_caja INT,
         id_cliente INT,
         id_promocion INT,
         id_promocion_productos_gratis INT,
@@ -142,19 +158,17 @@ class Database {
       )
       ''',
 
-        // TABLA DETALLESVENTA
+        // TABLA detalle_ventas
         '''
-      CREATE TABLE IF NOT EXISTS detallesventa (
-        id_detalle_venta SERIAL PRIMARY KEY,
-        id_venta INT,
-        id_producto INT,
-        id_promocion INT,
-        precio DOUBLE PRECISION,
-        cantidad DOUBLE PRECISION,
-        precio_total DOUBLE PRECISION,
-        precio_descuento DOUBLE PRECISION
-      )
-      ''',
+         CREATE TABLE IF NOT EXISTS detalle_ventas (
+          id_detalle SERIAL PRIMARY KEY,
+          id_venta INT,
+          id_producto INT,
+          cantidad DOUBLE PRECISION,
+          precio_unitario DOUBLE PRECISION,
+          descuento_unitario DOUBLE PRECISION
+        )
+        ''', // ← AGREGUÉ LA COMA QUE FALTABA
 
         // TABLA PROMOCION
         '''
@@ -181,83 +195,106 @@ class Database {
           dinero_necesario DOUBLE PRECISION,
           status BOOLEAN,
           cantidad_producto DOUBLE PRECISION,
-          eliminado BOOLEAN DEFAULT FALSE,
-          FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
+          eliminado BOOLEAN DEFAULT FALSE
         )
         ''',
 
-        // RELACIONES
+        // RELACIONES - Ejecutar por separado después de crear las tablas
+              // RELACIONES - Ejecutar por separado después de crear las tablas
         '''
-      DO \$\$
-      BEGIN
-        -- Relaciones para categorias
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_categorias_usuario') THEN
-          ALTER TABLE categorias ADD CONSTRAINT fk_categorias_usuario
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
-        END IF;
-        
-        -- Relaciones para productos
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_categoria') THEN
-          ALTER TABLE productos ADD CONSTRAINT fk_productos_categoria
-          FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_usuario') THEN
-          ALTER TABLE productos ADD CONSTRAINT fk_productos_usuario
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
-        END IF;
-        
-        -- Relaciones para ingresoproducto
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ingresoproducto_usuario') THEN
-          ALTER TABLE ingresoproducto ADD CONSTRAINT fk_ingresoproducto_usuario
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
-        END IF;
-        
-        -- Relaciones para detallessingresoproducto
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_ingresoproducto') THEN
-          ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_ingresoproducto
-          FOREIGN KEY (id_ingreso_producto) REFERENCES ingresoproducto(id_ingreso_producto) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_producto') THEN
-          ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_producto
-          FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
-        END IF;
-        
-        -- Relaciones para ventas
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_usuario') THEN
-          ALTER TABLE ventas ADD CONSTRAINT fk_ventas_usuario
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_cliente') THEN
-          ALTER TABLE ventas ADD CONSTRAINT fk_ventas_cliente
-          FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_promocion') THEN
-          ALTER TABLE ventas ADD CONSTRAINT fk_ventas_promocion
-          FOREIGN KEY (id_promocion) REFERENCES promocion(id_promocion) ON DELETE SET NULL;
-        END IF;
-        
-        -- Relaciones para detallesventa
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_venta') THEN
-          ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_venta
-          FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_producto') THEN
-          ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_producto
-          FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
-        END IF;
-        
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesventa_promocion') THEN
-          ALTER TABLE detallesventa ADD CONSTRAINT fk_detallesventa_promocion
-          FOREIGN KEY (id_promocion) REFERENCES promocion(id_promocion) ON DELETE SET NULL;
-        END IF;
-      END
-      \$\$;
-      '''
+        DO \$\$
+        BEGIN
+          -- Foreign key para controlGastos
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_controlGastos_categoria') THEN
+            ALTER TABLE controlGastos ADD CONSTRAINT fk_controlGastos_categoria
+            FOREIGN KEY (idCategoria) REFERENCES categoriaControlGastos(idCategoria) ON DELETE RESTRICT ON UPDATE CASCADE;
+          END IF;
+          
+          -- Foreign key para turnos_caja
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_turnos_caja_usuario') THEN
+            ALTER TABLE turnos_caja ADD CONSTRAINT fk_turnos_caja_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para categorias
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_categorias_usuario') THEN
+            ALTER TABLE categorias ADD CONSTRAINT fk_categorias_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para productos
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_categoria') THEN
+            ALTER TABLE productos ADD CONSTRAINT fk_productos_categoria
+            FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_productos_usuario') THEN
+            ALTER TABLE productos ADD CONSTRAINT fk_productos_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relación para promocion_producto_gratis
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_promocion_productos_gratis_producto') THEN
+            ALTER TABLE promocion_producto_gratis ADD CONSTRAINT fk_promocion_productos_gratis_producto
+            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para ingresoproducto
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ingresoproducto_usuario') THEN
+            ALTER TABLE ingresoproducto ADD CONSTRAINT fk_ingresoproducto_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para detallessingresoproducto
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_ingresoproducto') THEN
+            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_ingresoproducto
+            FOREIGN KEY (id_ingreso_producto) REFERENCES ingresoproducto(id_ingreso_producto) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_producto') THEN
+            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_producto
+            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
+          END IF;
+          
+          -- Relaciones para ventas
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_usuario') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_usuario
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_cliente') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_cliente
+            FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE SET NULL;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_promocion') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_promocion
+            FOREIGN KEY (id_promocion) REFERENCES promocion(id_promocion) ON DELETE SET NULL;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_turno_caja') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_turno_caja
+            FOREIGN KEY (id_turno_caja) REFERENCES turnos_caja(id) ON DELETE SET NULL;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_promocion_productos_gratis') THEN
+            ALTER TABLE ventas ADD CONSTRAINT fk_ventas_promocion_productos_gratis
+            FOREIGN KEY (id_promocion_productos_gratis) REFERENCES promocion_producto_gratis(id_promocion_productos_gratis) ON DELETE SET NULL;
+          END IF;
+          
+          -- FOREIGN KEYS PARA DETALLE_VENTAS
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detalle_ventas_venta') THEN
+            ALTER TABLE detalle_ventas ADD CONSTRAINT fk_detalle_ventas_venta
+            FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE;
+          END IF;
+          
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detalle_ventas_producto') THEN
+            ALTER TABLE detalle_ventas ADD CONSTRAINT fk_detalle_ventas_producto
+            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
+          END IF;
+        END
+        \$\$;
+        '''
       ];
 
       // Ejecutar cada sentencia por separado

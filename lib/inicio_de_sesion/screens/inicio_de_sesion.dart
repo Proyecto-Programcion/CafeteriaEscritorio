@@ -1,6 +1,9 @@
+import 'package:cafe/inicio_de_sesion/controllers/evaluar_si_hay_caja_abierta.dart';
 import 'package:cafe/inicio_de_sesion/screens/widgets/boton_iniciar_sesion.dart';
 import 'package:cafe/inicio_de_sesion/screens/widgets/cabezera_acciones_ventana.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:window_manager/window_manager.dart';
 
 class InicioDeSesion01 extends StatefulWidget {
@@ -13,11 +16,20 @@ class InicioDeSesion01 extends StatefulWidget {
 class _InicioDeSesion01State extends State<InicioDeSesion01> {
   bool isMaximized = false;
 
-  void init() async {
-    isMaximized = await windowManager.isMaximized();
-    setState(() {});
-  }
+  final EvaluarSiHayCajaAbiertaController evaluarSiHayCajaAbiertaController =
+      Get.put(EvaluarSiHayCajaAbiertaController());
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
 
+    evaluarSiHayCajaAbiertaController.evaluarSiHayCajaAbierta().then((value) {
+      if (value) {
+        print('Caja abierta, redirigiendo a la pantalla de inicio');
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

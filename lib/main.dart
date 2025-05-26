@@ -2,7 +2,10 @@ import 'package:cafe/administradores/administradores_screen.dart';
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/admin_remote_db.dart';
 import 'package:cafe/common/sesion_activa.dart';
+import 'package:cafe/configuraciones/configuraciones_Screen.dart';
+import 'package:cafe/configuraciones/widgets/modal_cerar_caja.dart';
 import 'package:cafe/controlVenta/controlGastos.dart';
+import 'package:cafe/inicio_de_sesion/controllers/evaluar_si_hay_caja_abierta.dart';
 import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
@@ -89,12 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
   // Tu lista de pantallas/widgets
   final List<Widget> listaDeScreens = [
     const InicioScreen(),
-    if(SesionActiva().rolUsuario == 'Admin') const ProductosScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const ProductosScreen(),
     const VentaScreen(),
     const ClientesScreen(),
-    if(SesionActiva().rolUsuario == 'Admin')const PromocionesPage(),
-    if(SesionActiva().rolUsuario == 'Admin')const AdministradoresScreen(),
-    if(SesionActiva().rolUsuario == 'Admin')const ControlDeGastosScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const PromocionesPage(),
+    if (SesionActiva().rolUsuario == 'Admin') const AdministradoresScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const ControlDeGastosScreen(),
+    const ConfiguracionesScreen(),
   ];
 
   void cambiarIndex(int nuevoIndex) {
@@ -102,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       index = nuevoIndex;
     });
   }
+
 
   void init() async {
     isMaximized = await windowManager.isMaximized();
@@ -154,12 +159,13 @@ class NavbarNavegacion extends StatelessWidget {
   Widget build(BuildContext context) {
     final icons = [
       Icons.home,
-      if(SesionActiva().rolUsuario == 'Admin') Icons.inventory,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.inventory,
       Icons.shopping_cart,
       Icons.person,
-      if(SesionActiva().rolUsuario == 'Admin') Icons.discount,
-      if(SesionActiva().rolUsuario == 'Admin') Icons.badge,
-      if(SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.discount,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.badge,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
+      Icons.settings,
     ];
 
     return Container(
@@ -226,7 +232,30 @@ class CabezeraMain extends StatelessWidget {
           const SizedBox(width: 16),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/');
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ModalCerrarCaja();
+                  }).then((value) {
+                if (value == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Caja cerrada exitosamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  SesionActiva().limpiarSesion();
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/', (route) => false);
+                } else if (value == false) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al cerrar la caja'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              });
             },
             child: Container(
               padding: const EdgeInsets.all(8),

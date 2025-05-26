@@ -13,7 +13,7 @@ class IniciarSesionController extends GetxController {
     try {
       estado.value = Estado.carga;
       final sqlObtenerUsuarioPorUsernameOTelefono = Sql.named('''
-        SELECT * FROM usuarios WHERE (correo = @correo OR telefono = @telefono);
+        SELECT * FROM usuarios WHERE (correo = @correo OR telefono = @telefono) AND statusDespedido = FALSE;
       ''');
       final resp = await Database.conn.execute(
         sqlObtenerUsuarioPorUsernameOTelefono,

@@ -1,4 +1,6 @@
+import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/inicio_de_sesion/controllers/iniciar_sesion_controller.dart';
+import 'package:cafe/inicio_de_sesion/screens/widgets/modal_abrir_caja.dart';
 import 'package:cafe/inicio_de_sesion/screens/widgets/modal_iniciar_sesion.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,15 +27,21 @@ class BottonIniciarSesion extends StatelessWidget {
       final resp = await iniciarSesionController.iniciarSesion(
           correoController.text, contrasenaController.text);
       if (resp == true) {
-        Navigator.of(context).pop();
-        Navigator.pushReplacementNamed(context, '/home');
+        showDialog(
+            context: context,
+            builder: (context) {
+              return ModalAbrirCaja();
+            }).then((value) {
+          if (value == true) {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            SesionActiva().limpiarSesion();
+          }
+        });
       }
     }
   }
 
-  // void _iniciarSesion(BuildContext context) async {
-  //   Navigator.pushReplacementNamed(context, '/home');
-  // }
 
   @override
   Widget build(BuildContext context) {
