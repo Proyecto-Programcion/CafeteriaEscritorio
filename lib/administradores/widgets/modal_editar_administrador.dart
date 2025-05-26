@@ -1,22 +1,29 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cafe/common/enums.dart';
-import 'package:cafe/logica/administradores/controller/agregar_administrador_controller.dart';
+import 'package:cafe/logica/administradores/administrador_modelo.dart';
+import 'package:cafe/logica/administradores/controller/actualizar_administrador_controller.dart';
+
 import 'package:cafe/logica/administradores/controller/listar_sucursales_controller.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Agrega esta importación
 import 'package:get/get.dart';
 
-class ModalAgregarAdministrador extends StatefulWidget {
-  const ModalAgregarAdministrador({super.key});
+class ModalActualizarAdministrador extends StatefulWidget {
+  final AdministradorModelo administradorModelo;
+  const ModalActualizarAdministrador(
+      {super.key, required this.administradorModelo});
 
   @override
-  State<ModalAgregarAdministrador> createState() =>
-      _ModalAgregarAdministradorState();
+  State<ModalActualizarAdministrador> createState() =>
+      _ModalActualizarAdministradorState();
 }
 
-class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
+class _ModalActualizarAdministradorState
+    extends State<ModalActualizarAdministrador> {
   final ListarSucursalesController listarSucursalesController = Get.put(
     ListarSucursalesController(),
   );
@@ -30,10 +37,25 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
   final TextEditingController contrasenaController = TextEditingController();
 
   int? selectedSucursalId;
+  String? imagenbase64;
 
   @override
   void initState() {
     super.initState();
+
+    // Inicializa los controladores con los datos del administrador
+    nombreController.text = widget.administradorModelo.nombre;
+    correoController.text = widget.administradorModelo.correo ?? '';
+    telefonoController.text = widget.administradorModelo.telefono;
+    contrasenaController.text = widget.administradorModelo.contrasena;
+    selectedSucursalId = widget.administradorModelo.idSucursal;
+
+    // Si la imagen es nula, no la asignamos
+    if (widget.administradorModelo.imagen != null) {
+      imagenbase64 = widget.administradorModelo.imagen!;
+    }
+
+    // Cargar sucursales después de establecer los valores iniciales
     listarSucursalesController.obtenerSucursales();
   }
 
@@ -56,34 +78,36 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
     });
   }
 
-  void agregarAdministrador() async {
+  void editarAdministrador() async {
     if (_formKey.currentState!.validate()) {
-      final AgregarAdministradorController agregarAdministradorController =
-          Get.put(AgregarAdministradorController());
-      final resp = await agregarAdministradorController.agregarAdministrador(
-          nombre: nombreController.text,
-          telefono: telefonoController.text,
-          correo: correoController.text,
-          urlImagen: imagenController,
-          idSucursal: selectedSucursalId!,
-          contrasena: contrasenaController.text);
+      final ActualizarAdministradorController agregarAdministradorController =
+          Get.put(ActualizarAdministradorController());
+      final resp = await agregarAdministradorController.actualizarAdministrador(
+        widget.administradorModelo.idUsuario,
+        nombreController.text,
+        correoController.text,
+        telefonoController.text,
+        contrasenaController.text,
+        selectedSucursalId!,
+        imagenController.isNotEmpty ? imagenController : null,
+      );
 
       if (resp) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Administrador agregado con éxito'),
+            content: Text('Administrador actualizado con éxito'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error al agregar el administrador'),
+            content: Text('Error al actualizar el administrador'),
             backgroundColor: Colors.red,
           ),
         );
       }
+      Navigator.of(context).pop();
     }
   }
 
@@ -163,7 +187,8 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                   const SizedBox(width: 10),
                   _buildLabel("Teléfono: "),
                   Expanded(
-                    child: _buildPhoneTextFormField( // Usa el widget especializado
+                    child: _buildPhoneTextFormField(
+                      // Usa el widget especializado
                       labelText: 'Teléfono',
                       controller: telefonoController,
                       validator: (value) {
@@ -180,32 +205,6 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                 ],
               ),
               const SizedBox(height: 20),
-
-              // Campo Contraseña
-              Row(
-                children: [
-                  _buildLabel("Contraseña: "),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildTextFormField(
-                      labelText: 'Contraseña',
-                      controller: contrasenaController,
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingrese la contraseña';
-                        }
-                        if (value.length < 6) {
-                          return 'La contraseña debe tener al menos 6 caracteres';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
               // Campo Sucursal
               Row(
                 children: [
@@ -232,41 +231,55 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                           ),
                         );
                       }
-                      return DropdownButtonFormField<int>(
-                        decoration: InputDecoration(
-                          labelText: 'Seleccionar Sucursal',
-                          labelStyle: const TextStyle(color: Colors.black),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.black),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Colors.black),
-                          ),
-                        ),
-                        dropdownColor: const Color.fromARGB(255, 255, 255, 255),
-                        style: const TextStyle(color: Colors.black),
-                        items: listarSucursalesController.sucursales
-                            .map((sucursal) {
-                          return DropdownMenuItem<int>(
-                            value: sucursal.idSucursal,
+                      if (listarSucursalesController.estado.value ==
+                          Estado.exito) {
+                        if (listarSucursalesController.sucursales.isEmpty) {
+                          return const Center(
                             child: Text(
-                              sucursal.nombre,
-                              style: const TextStyle(color: Colors.black),
+                              'No hay sucursales registradas',
+                              style: TextStyle(color: Colors.black),
                             ),
                           );
-                        }).toList(),
-                        onChanged: (value) {
-                          selectedSucursalId = value;
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Por favor seleccione una sucursal';
-                          }
-                          return null;
-                        },
-                      );
+                        }
+                        return DropdownButtonFormField<int>(
+                          value: (selectedSucursalId! + 1),
+                          decoration: InputDecoration(
+                            labelText: 'Seleccionar Sucursal',
+                            labelStyle: const TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.black),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.black),
+                            ),
+                          ),
+                          dropdownColor:
+                              const Color.fromARGB(255, 255, 255, 255),
+                          style: const TextStyle(color: Colors.black),
+                          items: listarSucursalesController.sucursales
+                              .map((sucursal) {
+                            return DropdownMenuItem<int>(
+                              value: sucursal.idSucursal,
+                              child: Text(
+                                sucursal.nombre,
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            selectedSucursalId = value;
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Por favor seleccione una sucursal';
+                            }
+                            return null;
+                          },
+                        );
+                      }
+                      return const SizedBox.shrink();
                     }),
                   ),
                 ],
@@ -284,10 +297,8 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                       backgroundColor: const Color.fromARGB(255, 153, 103, 8),
                     ),
                     child: Text(
-                      imagenController.isNotEmpty
-                          ? 'Cambiar Imagen'
-                          : 'Seleccionar Imagen',
-                      style: TextStyle(color: Colors.white),
+                      _getButtonText(),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 20),
@@ -307,7 +318,7 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
-                      agregarAdministrador();
+                      editarAdministrador();
                     },
                     child: const Text('Agregar'),
                   ),
@@ -390,6 +401,17 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
     );
   }
 
+  // Método para obtener el texto del botón
+  String _getButtonText() {
+    if (imagenController.isNotEmpty) {
+      return 'Cambiar imagen';
+    } else if (imagenbase64 != null && imagenbase64!.isNotEmpty) {
+      return 'Cambiar imagen';
+    } else {
+      return 'Seleccionar imagen';
+    }
+  }
+
   Widget _buildImagePreview() {
     return Container(
       width: 100,
@@ -399,19 +421,46 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.black),
       ),
-      child: imagenController.isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.file(
-                File(imagenController),
-                fit: BoxFit.cover,
-              ),
-            )
-          : const Icon(
-              Icons.image,
-              size: 40,
-              color: Colors.grey,
-            ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: _getImageWidget(),
+      ),
+    );
+  }
+
+  // Widget para mostrar la imagen según la prioridad
+  Widget _getImageWidget() {
+    // Prioridad 1: Si hay una nueva imagen seleccionada, mostrarla
+    if (imagenController.isNotEmpty) {
+      return Image.file(
+        File(imagenController),
+        fit: BoxFit.cover,
+      );
+    }
+
+    // Prioridad 2: Si hay imagen base64, mostrarla
+    if (imagenbase64 != null && imagenbase64!.isNotEmpty) {
+      try {
+        Uint8List imageBytes = base64Decode(imagenbase64!);
+        return Image.memory(
+          imageBytes,
+          fit: BoxFit.cover,
+        );
+      } catch (e) {
+        print('Error al decodificar imagen base64: $e');
+        return const Icon(
+          Icons.image,
+          size: 40,
+          color: Colors.grey,
+        );
+      }
+    }
+
+    // Si no hay ninguna imagen, mostrar el ícono gris
+    return const Icon(
+      Icons.image,
+      size: 40,
+      color: Colors.grey,
     );
   }
 }

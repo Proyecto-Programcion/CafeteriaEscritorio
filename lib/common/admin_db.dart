@@ -36,15 +36,15 @@ class Database {
         rol VARCHAR -- Admin o Empleado
       )
       ''',
-      ''' 
+        '''
         CREATE TABLE categoriaControlGastos (
           idCategoria SERIAL PRIMARY KEY,
           nombre VARCHAR(50) NOT NULL UNIQUE,
           descripcion VARCHAR(200)
       )
-      ''', 
-      
-      '''
+      ''',
+
+        '''
         CREATE TABLE controlGastos (
             idGasto SERIAL PRIMARY KEY,
             idCategoria INTEGER NOT NULL REFERENCES categoriaControlGastos(idCategoria) ON DELETE RESTRICT ON UPDATE CASCADE,

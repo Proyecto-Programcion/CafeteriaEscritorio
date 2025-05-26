@@ -33,8 +33,8 @@ class SucursalModelo {
 class AdministradorModelo {
   final int idUsuario;
   final String nombre;
-  final String correo;
-  final String? telefono; // Opcional
+  final String? correo;
+  final String telefono; // Opcional
   final String contrasena;
   final String? imagen; // Opcional (base64)
   final int idSucursal;
@@ -46,7 +46,7 @@ class AdministradorModelo {
     required this.idUsuario,
     required this.nombre,
     required this.correo,
-    this.telefono,
+    required this.telefono,
     required this.contrasena,
     this.imagen,
     required this.idSucursal,

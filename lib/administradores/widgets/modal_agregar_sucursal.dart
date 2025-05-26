@@ -1,6 +1,8 @@
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/common/sesion_activa.dart';
+import 'package:cafe/logica/administradores/controller/actualizar_sucursal_controller.dart';
 import 'package:cafe/logica/administradores/controller/agregar_sucursal_controller.dart';
+import 'package:cafe/logica/administradores/controller/eliminar_sucursal_controller.dart';
 import 'package:cafe/logica/administradores/controller/listar_sucursales_controller.dart';
 import 'package:cafe/logica/categorias/controllers/actualizar_categoria_por_id.dart';
 import 'package:cafe/logica/categorias/controllers/agregar_categoria_controller.dart';
@@ -33,8 +35,10 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
       TextEditingController();
   final TextEditingController nombreSucursalControllerActualizar =
       TextEditingController();
+  final TextEditingController direccionSucursalControllerActualizar =
+      TextEditingController();
 
-  void agregarCategoria(BuildContext context) async {
+  void agregarSucursal(BuildContext context) async {
     if (formKey.currentState!.validate()) {
       final AgregarSucursalController agregarSucursalController = Get.put(
         AgregarSucursalController(),
@@ -66,12 +70,62 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
     }
   }
 
-  void eliminarCategoria(BuildContext context, int idCategoria) async {
-   
+  void eliminarSucursal(BuildContext context, int idSucursal) async {
+    final EliminarSucursalController eliminarSucursalController =
+        Get.put(EliminarSucursalController());
+
+    final resp = await eliminarSucursalController.eliminarSucursal(idSucursal);
+
+    if (resp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sucursal eliminada con éxito'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      listarSucursalesController.obtenerSucursales();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(eliminarSucursalController.mensaje.value),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  void actualizarCategoria(BuildContext context, int idCategoria) async {
-   
+  void actualizarSucrsal(BuildContext context, int idCategoria) async {
+    if (formKeyActualizar.currentState!.validate()) {
+      final ActualizarSucursalController actualizarSucursalController =
+          Get.put(ActualizarSucursalController());
+      final categoriaActualizada =
+          await actualizarSucursalController.actualizarSucursal(
+        idCategoria,
+        nombreSucursalControllerActualizar.text,
+        direccionSucursalControllerActualizar.text,
+      );
+
+      if (categoriaActualizada) {
+        nombreSucursalControllerActualizar.clear();
+        direccionSucursalControllerActualizar.clear();
+        listarSucursalesController.obtenerSucursales();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sucursal actualizada con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(actualizarSucursalController.mensaje.value),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -133,7 +187,7 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  agregarCategoria(context);
+                  agregarSucursal(context);
                 },
                 child: const Text('Agregar'),
               ),
@@ -175,12 +229,15 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
                       return ListView.builder(
                         itemCount: listarSucursalesController.sucursales.length,
                         itemBuilder: (context, index) {
-                          final sucursal = listarSucursalesController.sucursales[index];
+                          final sucursal =
+                              listarSucursalesController.sucursales[index];
                           return Container(
                             color: esDivisible(index),
                             width: double.infinity,
-                            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 6, horizontal: 0),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 16),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -212,28 +269,64 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
                                     IconButton(
                                       icon: const Icon(Icons.edit),
                                       onPressed: () {
+                                        // Establecer los valores actuales en los controladores ANTES de mostrar el diálogo
+                                        nombreSucursalControllerActualizar
+                                            .text = sucursal.nombre;
+                                        direccionSucursalControllerActualizar
+                                            .text = sucursal.direccion;
+
                                         showDialog(
                                           context: context,
                                           builder: (context) {
                                             return AlertDialog(
-                                              title: Text('Actualizar sucursal: ${sucursal.nombre}'),
+                                              title: Text(
+                                                  'Actualizar sucursal: ${sucursal.nombre}'),
                                               content: Container(
                                                 width: 700,
-                                                height: 100,
+                                                height: 170,
                                                 child: Form(
                                                   key: formKeyActualizar,
-                                                  child: TextFormField(
-                                                    controller: nombreSucursalControllerActualizar,
-                                                    validator: (value) {
-                                                      if (value == null || value.isEmpty) {
-                                                        return 'Por favor ingrese un nombre';
-                                                      }
-                                                      return null;
-                                                    },
-                                                    decoration: const InputDecoration(
-                                                      border: OutlineInputBorder(),
-                                                      labelText: 'Nombre de la categoría',
-                                                    ),
+                                                  child: Column(
+                                                    children: [
+                                                      TextFormField(
+                                                        controller:
+                                                            nombreSucursalControllerActualizar,
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return 'Por favor ingrese un nombre';
+                                                          }
+                                                          return null;
+                                                        },
+                                                        decoration:
+                                                            const InputDecoration(
+                                                          border:
+                                                              OutlineInputBorder(),
+                                                          labelText:
+                                                              'Nombre de la sucursal',
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 20),
+                                                      TextFormField(
+                                                        controller:
+                                                            direccionSucursalControllerActualizar,
+                                                        validator: (value) {
+                                                          if (value == null ||
+                                                              value.isEmpty) {
+                                                            return 'Por favor ingrese una dirección';
+                                                          }
+                                                          return null;
+                                                        },
+                                                        decoration:
+                                                            const InputDecoration(
+                                                          border:
+                                                              OutlineInputBorder(),
+                                                          labelText:
+                                                              'Dirección de la sucursal',
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
@@ -246,10 +339,11 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
                                                 ),
                                                 ElevatedButton(
                                                   onPressed: () {
-                                                    actualizarCategoria(
-                                                        context, sucursal.idSucursal);
+                                                    actualizarSucrsal(context,
+                                                        sucursal.idSucursal);
                                                   },
-                                                  child: const Text('Actualizar'),
+                                                  child:
+                                                      const Text('Actualizar'),
                                                 ),
                                               ],
                                             );
@@ -260,7 +354,8 @@ class ModalAgregarSucursalWidget extends StatelessWidget {
                                     IconButton(
                                       icon: const Icon(Icons.delete),
                                       onPressed: () {
-                                        eliminarCategoria(context, sucursal.idSucursal);
+                                        eliminarSucursal(
+                                            context, sucursal.idSucursal);
                                       },
                                     ),
                                   ],
