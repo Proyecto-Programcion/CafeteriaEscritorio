@@ -25,7 +25,7 @@ class ListarAdministradoresController extends GetxController {
         s.nombre AS nombre_sucursal
       FROM usuarios u
       LEFT JOIN sucursales s ON u.idSucursal = s.id_sucursal
-      WHERE u.statusDespedido = FALSE AND u.rol = 'Admin';
+      WHERE u.statusDespedido = FALSE ;
     ''');
       final result = await Database.conn.execute(sql);
       administradores.value = result

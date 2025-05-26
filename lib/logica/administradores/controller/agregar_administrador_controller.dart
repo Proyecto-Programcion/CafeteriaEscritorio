@@ -17,7 +17,8 @@ class AgregarAdministradorController extends GetxController {
       required String telefono,
       required String urlImagen,
       required int idSucursal,
-      required String contrasena}) async {
+      required String contrasena,
+      required String rol}) async {
     try {
       estado.value = Estado.carga;
       String imagenBase64 = '';
@@ -42,7 +43,7 @@ class AgregarAdministradorController extends GetxController {
         'contrasena': contrasena,
         'imagen': imagenBase64,
         'idsucursal': idSucursal,
-        'rol': 'Admin',
+        'rol': rol,
       });
 
       estado.value = Estado.exito;

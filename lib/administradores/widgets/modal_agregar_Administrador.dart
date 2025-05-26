@@ -28,6 +28,7 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
   final TextEditingController correoController = TextEditingController();
   final TextEditingController telefonoController = TextEditingController();
   final TextEditingController contrasenaController = TextEditingController();
+  final TextEditingController tipoAdminController = TextEditingController();
 
   int? selectedSucursalId;
 
@@ -66,7 +67,9 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
           correo: correoController.text,
           urlImagen: imagenController,
           idSucursal: selectedSucursalId!,
-          contrasena: contrasenaController.text);
+          contrasena: contrasenaController.text,
+          rol: tipoAdminController.text
+          );
 
       if (resp) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -86,6 +89,17 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
       }
     }
   }
+
+  List<DropdownMenuItem<String>> tipoAdmin = [
+    const DropdownMenuItem(
+      value: "Admin",
+      child: Text("Administrador"),
+    ),
+    const DropdownMenuItem(
+      value: "Empleado",
+      child: Text("Empleado"),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +177,8 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                   const SizedBox(width: 10),
                   _buildLabel("Teléfono: "),
                   Expanded(
-                    child: _buildPhoneTextFormField( // Usa el widget especializado
+                    child: _buildPhoneTextFormField(
+                      // Usa el widget especializado
                       labelText: 'Teléfono',
                       controller: telefonoController,
                       validator: (value) {
@@ -272,6 +287,45 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
                 ],
               ),
               const SizedBox(height: 20),
+
+              // Campo Tipo de Administrador
+              Row(
+                children: [
+                  _buildLabel("Tipo de Administrador: "),
+                  const SizedBox(width: 10),
+                  Expanded( // Agregado Expanded para dar ancho al dropdown
+                    child: DropdownButtonFormField<String>(
+                      value: "Admin",
+                      decoration: InputDecoration(
+                        labelText: 'Seleccionar el tipo de administrador',
+                        labelStyle: const TextStyle(color: Colors.black),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      dropdownColor: const Color.fromARGB(255, 255, 255, 255),
+                      style: const TextStyle(color: Colors.black),
+                      items: tipoAdmin,
+                      onChanged: (value) {
+                        tipoAdminController.text = value!;
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Por favor seleccione un tipo';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
               Row(
                 children: [
                   _buildLabel("Imagen: "),

@@ -23,24 +23,26 @@ class RowTablaAdministradores extends StatelessWidget {
     }
   }
 
-  void eliminarAdministrador() async {
+  void eliminarAdministrador(BuildContext context) async {
     final EliminarAdministradorController eliminarAdministradorController =
         Get.put(EliminarAdministradorController());
     final resp = await eliminarAdministradorController
         .eliminarAdministrador(administradorModelo.idUsuario);
     if (resp) {
-      Get.snackbar(
-        'Administrador Despedido',
-        'El administrador ha sido despedido correctamente',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El administrador ha sido despedido correctamente'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
       );
     } else {
-      Get.snackbar(
-        'Error al despedir',
-        'No se pudo despedir el administrador',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo despedir el administrador'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -162,7 +164,7 @@ class RowTablaAdministradores extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
-                          eliminarAdministrador();
+                          eliminarAdministrador(context);
                         },
                       ),
                     ],
