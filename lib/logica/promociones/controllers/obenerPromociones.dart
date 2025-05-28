@@ -46,8 +46,8 @@ class ObtenerPromocionesController extends GetxController {
         for (var i = 0; i < columns.length; i++) {
           map[columns[i].columnName ?? ''] = row[i];
         }
-        // Puedes quitar el print si ya no necesitas debug
-        print('PROMO FETCH PROMOCIONES : $map');
+       
+       
         return Promocion.fromMap(map);
       }).toList();
 

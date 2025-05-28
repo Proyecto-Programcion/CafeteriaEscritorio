@@ -41,6 +41,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
         ),
       );
     }
+    Navigator.of(context).pop();
   }
 
   @override
@@ -71,7 +72,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               ),
             ),
-             Expanded(
+            Expanded(
               flex: 3,
               child: Text(
                 producto.nombreCategoria,
@@ -185,7 +186,6 @@ class FilaTablaProductoWidget extends StatelessWidget {
                                 TextButton(
                                   onPressed: () {
                                     eliminarProducto(context);
-                                    Navigator.of(context).pop();
                                   },
                                   child: const Text('Eliminar'),
                                 ),

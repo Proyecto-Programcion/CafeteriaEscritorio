@@ -13,10 +13,11 @@ class ObtenerClientesController extends GetxController {
   List<usuariMmodel> get clientesFiltrados {
     final f = filtro.value.trim().toLowerCase();
     if (f.isEmpty) return listaClientes;
-    return listaClientes.where((c) =>
-      c.nombre.toLowerCase().contains(f) ||
-      c.numeroTelefono.toLowerCase().contains(f)
-    ).toList();
+    return listaClientes
+        .where((c) =>
+            c.nombre.toLowerCase().contains(f) ||
+            c.numeroTelefono.toLowerCase().contains(f))
+        .toList();
   }
 
   @override
@@ -27,12 +28,14 @@ class ObtenerClientesController extends GetxController {
 
   Future<void> obtenerClientes() async {
     try {
+      listaClientes.clear();
       estado.value = Estado.carga;
       final sql = Sql.named('''
         SELECT 
           id_cliente,
           nombre,
-          telefono AS numero_telefono
+          telefono AS numero_telefono,
+          cantidad_compras
         FROM clientes
         ORDER BY id_cliente ASC;
       ''');

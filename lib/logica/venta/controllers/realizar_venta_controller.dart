@@ -130,6 +130,7 @@ class RealizarVentaController extends GetxController {
     int? idCliente,
     int? idPromocion,
     int? idPromocionProductosGratis,
+    PromocionProductoGratiConNombreDelProductosModelo? promocionProductoGratis, // Agregar este parámetro
   }) async {
     try {
       estado.value = Estado.carga;
@@ -186,7 +187,7 @@ class RealizarVentaController extends GetxController {
         'status_compra': true,
       });
 
-      // Obtener el ID de la venta creada usando la misma conexión
+      // Obtener el ID de la venta creada
       final sqlGetId = Sql.named('''
         SELECT lastval() as id_venta;
       ''');
@@ -194,7 +195,7 @@ class RealizarVentaController extends GetxController {
       final idResult = await Database.conn.execute(sqlGetId);
       final idVenta = idResult.first[0] as int;
 
-      // 2. Crear una tabla detalle_ventas si no existe
+      // 2. Crear tabla si no existe
       final sqlCrearTabla = '''
         CREATE TABLE IF NOT EXISTS detalle_ventas (
           id_detalle SERIAL PRIMARY KEY,
@@ -251,6 +252,49 @@ class RealizarVentaController extends GetxController {
         });
       }
 
+      // 4. **NUEVO**: Agregar el producto gratis a los detalles si existe
+      if (promocionProductoGratis != null) {
+        print('🎁 Agregando producto gratis: ${promocionProductoGratis.nombreProducto}');
+
+        final sqlProductoGratis = Sql.named('''
+          INSERT INTO detalle_ventas (
+            id_venta,
+            id_producto,
+            cantidad,
+            precio_unitario,
+            descuento_unitario
+          ) VALUES (
+            @id_venta,
+            @id_producto,
+            @cantidad,
+            @precio_unitario,
+            @descuento_unitario
+          );
+        ''');
+
+        await Database.conn.execute(sqlProductoGratis, parameters: {
+          'id_venta': idVenta,
+          'id_producto': promocionProductoGratis.idProducto,
+          'cantidad': promocionProductoGratis.cantidadProducto,
+          'precio_unitario': 0.0, // Precio 0 porque es gratis
+          'descuento_unitario': 0.0, // Sin descuento adicional
+        });
+
+        // También actualizar el inventario del producto gratis
+        final sqlInventarioGratis = Sql.named('''
+          UPDATE productos 
+          SET cantidad = cantidad - @cantidad_vendida 
+          WHERE id_producto = @id_producto;
+        ''');
+
+        await Database.conn.execute(sqlInventarioGratis, parameters: {
+          'cantidad_vendida': promocionProductoGratis.cantidadProducto,
+          'id_producto': promocionProductoGratis.idProducto,
+        });
+
+        print('✅ Producto gratis agregado correctamente a los detalles');
+      }
+
       // Actualizar la lista de productos después de la venta
       final obtenerProductosController =
           Get.find<ObtenerProductosControllers>();
@@ -271,149 +315,3 @@ class RealizarVentaController extends GetxController {
   }
 }
 
-class PromocionesVentaController extends GetxController {
-  // Estado de las promociones seleccionadas
-  Rx<Promocion?> promocionDescuentoSeleccionada = Rx<Promocion?>(null);
-  Rx<PromocionProductoGratiConNombreDelProductosModelo?>
-      promocionProductoGratisSeleccionada =
-      Rx<PromocionProductoGratiConNombreDelProductosModelo?>(null);
-
-  // Lista filtrada de promociones aplicables (basada en productos en carrito)
-  RxList<Promocion> promocionesDescuentoAplicables = <Promocion>[].obs;
-  RxList<PromocionProductoGratiConNombreDelProductosModelo>
-      promocionesProductosGratisAplicables =
-      <PromocionProductoGratiConNombreDelProductosModelo>[].obs;
-
-  // Total de descuentos aplicados
-  RxDouble descuentoAplicado = 0.0.obs;
-  RxBool productosGratisAplicados = false.obs;
-
-  // Valores de la venta para validar promociones
-  RxDouble totalVenta = 0.0.obs;
-  RxInt totalProductos = 0.obs;
-
-  // Método para filtrar promociones según el carrito actual
-  void filtrarPromocionesAplicables(
-      List<ProductoCarrito> carrito,
-      List<Promocion> todasLasPromocionesDescuento,
-      List<PromocionProductoGratiConNombreDelProductosModelo>
-          todasLasPromocionesProductosGratis) {
-    // Resetear selecciones previas
-    promocionDescuentoSeleccionada.value = null;
-    promocionProductoGratisSeleccionada.value = null;
-    descuentoAplicado.value = 0.0;
-    productosGratisAplicados.value = false;
-
-    // Calcular totales para validación de promociones
-    totalVenta.value = carrito.fold<double>(
-      0,
-      (suma, item) =>
-          suma +
-          ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
-              item.cantidad,
-    );
-
-    totalProductos.value = carrito.fold<int>(
-      0,
-      (suma, item) => suma + item.cantidad,
-    );
-
-    // Filtrar promociones de descuento aplicables
-    promocionesDescuentoAplicables.value =
-        todasLasPromocionesDescuento.where((promo) {
-      // Verificar si la promoción está activa
-      if (!promo.status) return false;
-
-      // Verificar requisitos de dinero mínimo
-      if (promo.dineroNecesario > 0 &&
-          totalVenta.value < promo.dineroNecesario) {
-        return false;
-      }
-
-      // Verificar requisitos de compras necesarias
-      if (promo.comprasNecesarias > 0 &&
-          totalProductos.value < promo.comprasNecesarias) {
-        return false;
-      }
-
-      return true;
-    }).toList();
-
-    // Filtrar promociones de productos gratis aplicables
-    promocionesProductosGratisAplicables.value =
-        todasLasPromocionesProductosGratis.where((promo) {
-      // Verificar si la promoción está activa
-      if (!promo.status) return false;
-
-      // Verificar requisitos de dinero mínimo
-      if (promo.dineroNecesario > 0 &&
-          totalVenta.value < promo.dineroNecesario) {
-        return false;
-      }
-
-      // Verificar requisitos de compras necesarias
-      if (promo.comprasNecesarias > 0 &&
-          totalProductos.value < promo.comprasNecesarias) {
-        return false;
-      }
-
-      // Verificar si el producto gratis está en el carrito
-      bool productoEnCarrito =
-          carrito.any((item) => item.producto.idProducto == promo.idProducto);
-
-      // Dependiendo de la lógica de negocio, puedes decidir si el producto debe estar o no en el carrito
-      // Por ahora, asumo que el producto debe estar en el carrito para aplicar la promoción
-      return productoEnCarrito;
-    }).toList();
-  }
-
-  // Seleccionar una promoción de descuento
-  void seleccionarPromocionDescuento(Promocion? promocion) {
-    if (promocion == null) {
-      promocionDescuentoSeleccionada.value = null;
-      descuentoAplicado.value = 0.0;
-      return;
-    }
-
-    promocionDescuentoSeleccionada.value = promocion;
-
-    // Calcular el descuento aplicado
-    double descuento = totalVenta.value * (promocion.porcentaje / 100);
-
-    // Aplicar tope de descuento si existe
-    if (promocion.topeDescuento > 0 && descuento > promocion.topeDescuento) {
-      descuento = promocion.topeDescuento;
-    }
-
-    descuentoAplicado.value = descuento;
-  }
-
-  // Seleccionar una promoción de producto gratis
-  void seleccionarPromocionProductoGratis(
-      PromocionProductoGratiConNombreDelProductosModelo? promocion) {
-    promocionProductoGratisSeleccionada.value = promocion;
-    productosGratisAplicados.value = promocion != null;
-  }
-
-  // Obtener datos para aplicar en la venta
-  Map<String, dynamic> obtenerDatosPromocionesPorAplicar() {
-    return {
-      'promocionDescuento': promocionDescuentoSeleccionada.value?.idPromocion,
-      'descuentoAplicado': descuentoAplicado.value,
-      'promocionProductoGratis':
-          promocionProductoGratisSeleccionada.value?.idPromocionProductoGratis,
-      'productoGratisAplicado': productosGratisAplicados.value,
-      'productoGratisId': promocionProductoGratisSeleccionada.value?.idProducto,
-      'cantidadProductoGratis':
-          promocionProductoGratisSeleccionada.value?.cantidadProducto,
-    };
-  }
-
-  // Limpiar selecciones
-  void limpiarSelecciones() {
-    promocionDescuentoSeleccionada.value = null;
-    promocionProductoGratisSeleccionada.value = null;
-    descuentoAplicado.value = 0.0;
-    productosGratisAplicados.value = false;
-  }
-}
