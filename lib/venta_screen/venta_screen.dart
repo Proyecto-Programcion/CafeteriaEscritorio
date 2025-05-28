@@ -109,21 +109,26 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
-  // Método para realizar la venta usando el controlador
+  // Método para realizar la venta usando el controlador - MODIFICADO
   Future<void> realizarVenta(
-      int? idCliente, 
-      int? idPromocion, 
+      int? idCliente,
+      int? idPromocion,
       int? idPromocionProductoGratis,
-      PromocionProductoGratiConNombreDelProductosModelo? promocionProductoGratis) async {
+      PromocionProductoGratiConNombreDelProductosModelo?
+          promocionProductoGratis,
+      double descuentoPromocion) async {
+    // NUEVO parámetro
+
     // Sincronizar el carrito con el controlador
     realizarVentaController.sincronizarCarrito(carrito);
 
     // Realizar la venta
     final exito = await realizarVentaController.realizarVenta(
-        idCliente: idCliente,
-        idPromocion: idPromocion,
-        idPromocionProductosGratis: idPromocionProductoGratis,
-        promocionProductoGratis: promocionProductoGratis, // Pasar la promoción completa
+      idCliente: idCliente,
+      idPromocion: idPromocion,
+      idPromocionProductosGratis: idPromocionProductoGratis,
+      promocionProductoGratis: promocionProductoGratis,
+      descuentoPromocionAplicado: descuentoPromocion, // NUEVO parámetro
     );
 
     if (exito) {
@@ -351,10 +356,9 @@ class _VentaScreenState extends State<VentaScreen> {
                                       descuento: descuento,
                                       carrito: carrito,
                                       onIrAPagar: (usuario, idPromocion,
-                                          idProductoGratis, promocionProductoGratis) async { // Actualizar la firma
-                                        // Aquí usamos el controlador para realizar la venta
+                                          idProductoGratis, promocionProductoGratis, descuentoPromocion) async { // Actualizar firma
                                         await realizarVenta(usuario?.idCliente,
-                                            idPromocion, idProductoGratis, promocionProductoGratis);
+                                            idPromocion, idProductoGratis, promocionProductoGratis, descuentoPromocion);
                                       },
                                     ),
                                   );

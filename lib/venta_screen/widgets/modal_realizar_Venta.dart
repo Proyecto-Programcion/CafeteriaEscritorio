@@ -10,9 +10,10 @@ import 'package:cafe/usuarios/widgets/registerClientes.dart';
 import 'package:cafe/logica/promociones/promocionModel.dart';
 import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/logica/promociones/promociones_Canjeadas.dart';
 
 class ModalRealizarVenta extends StatefulWidget {
-  final void Function(usuariMmodel?, int?, int?, PromocionProductoGratiConNombreDelProductosModelo?)? onIrAPagar; // Actualizar la firma
+  final void Function(usuariMmodel?, int?, int?, PromocionProductoGratiConNombreDelProductosModelo?, double)? onIrAPagar; // Agregar double para descuento
   final double totalVenta;
   final double descuento;
   final List<ProductoCarrito> carrito;
@@ -93,8 +94,57 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
     }
   }
 
-  List<PromocionProductoGratiConNombreDelProductosModelo>
-      getPromocionesProductosGratisFiltradas() {
+  // Método para promociones de descuento con validación async
+  Future<List<Promocion>> getPromocionesDescuentoFiltradas() async {
+    print('\n=== DEBUGGEO DE FILTRADO DE PROMOCIONES DESCUENTO ===');
+    print('Usuario seleccionado: ${usuarioSeleccionado!.nombre}');
+    print('Cantidad de compras del usuario: ${usuarioSeleccionado!.cantidadCompras}');
+    print('Total de la venta: \$${widget.totalVenta}');
+    print('Total de promociones disponibles: ${obtenerPromocionesController.promocionesFiltradas.length}');
+
+    final promocionesDescuento = <Promocion>[];
+
+    for (final promo in obtenerPromocionesController.promocionesFiltradas) {
+      print('\n--- Evaluando promoción: ${promo.nombrePromocion} ---');
+      
+      // Condición 1: Status activo
+      bool condicion1 = promo.status;
+      print('✓ Condición 1 - Status activo: $condicion1 (${promo.status})');
+      
+      // Condición 2: Dinero necesario
+      bool condicion2 = widget.totalVenta >= promo.dineroNecesario;
+      print('✓ Condición 2 - Dinero suficiente: $condicion2 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
+      
+      // Condición 3: Compras necesarias
+      bool condicion3 = promo.comprasNecesarias <= usuarioSeleccionado!.cantidadCompras;
+      print('✓ Condición 3 - Compras suficientes: $condicion3 (${promo.comprasNecesarias} <= ${usuarioSeleccionado!.cantidadCompras})');
+      
+      // Condición 4: No ha canjeado esta promoción antes
+      bool condicion4 = !(await PromocionesCanjeadasService.clienteYaCanjeoPromocion(
+          usuarioSeleccionado!.idCliente, promo.idPromocion));
+      print('✓ Condición 4 - No canjeada antes: $condicion4');
+      
+      // Resultado final
+      bool resultado = condicion1 && condicion2 && condicion3 && condicion4;
+      print('🎯 RESULTADO FINAL: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
+      
+      if (resultado) {
+        promocionesDescuento.add(promo);
+      }
+    }
+
+    print('\n=== RESUMEN FINAL DESCUENTO ===');
+    print('Promociones que pasaron el filtro: ${promocionesDescuento.length}');
+    for (var promo in promocionesDescuento) {
+      print('- ${promo.nombrePromocion} (${promo.porcentaje}% descuento)');
+    }
+    print('===============================\n');
+
+    return promocionesDescuento;
+  }
+
+  // Método para promociones de productos gratis con validación async
+  Future<List<PromocionProductoGratiConNombreDelProductosModelo>> getPromocionesProductosGratisFiltradas() async {
     print('\n=== DEBUGGEO DE PROMOCIONES PRODUCTOS GRATIS ===');
 
     if (widget.carrito.isEmpty) {
@@ -102,44 +152,46 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
       return [];
     }
 
-    final productosEnCarrito =
-        widget.carrito.map((item) => item.producto.idProducto).toSet();
+    final productosEnCarrito = widget.carrito.map((item) => item.producto.idProducto).toSet();
 
     print('Productos en carrito (IDs): $productosEnCarrito');
     print('Usuario: ${usuarioSeleccionado?.nombre ?? 'Sin usuario'}');
     print('Compras del usuario: ${usuarioSeleccionado?.cantidadCompras ?? 0}');
-    print(
-        'Total promociones productos gratis: ${obtenerPromocionesProductosGratisController.listaPromociones.length}');
+    print('Total promociones productos gratis: ${obtenerPromocionesProductosGratisController.listaPromociones.length}');
 
-    final promociones = obtenerPromocionesProductosGratisController
-        .listaPromociones
-        .where((promo) {
-      print(
-          '\n--- Evaluando promoción producto gratis: ${promo.nombrePromocion} ---');
+    final promociones = <PromocionProductoGratiConNombreDelProductosModelo>[];
+
+    for (final promo in obtenerPromocionesProductosGratisController.listaPromociones) {
+      print('\n--- Evaluando promoción producto gratis: ${promo.nombrePromocion} ---');
 
       // Condición 1: Status
       bool condicion1 = promo.status;
       print('✓ Condición 1 - Status activo: $condicion1');
 
-
+      // Condición 2: Producto en carrito
+      bool condicion2 = productosEnCarrito.contains(promo.idProducto);
+      print('✓ Condición 2 - Producto en carrito: $condicion2 (producto ID: ${promo.idProducto})');
 
       // Condición 3: Dinero suficiente
       bool condicion3 = widget.totalVenta >= promo.dineroNecesario;
-      print(
-          '✓ Condición 3 - Dinero suficiente: $condicion3 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
+      print('✓ Condición 3 - Dinero suficiente: $condicion3 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
 
       // Condición 4: Compras suficientes
-      bool condicion4 = promo.comprasNecesarias <=
-          (usuarioSeleccionado?.cantidadCompras ?? 0);
-      print(
-          '✓ Condición 4 - Compras suficientes: $condicion4 (${promo.comprasNecesarias} <= ${usuarioSeleccionado?.cantidadCompras ?? 0})');
+      bool condicion4 = promo.comprasNecesarias <= (usuarioSeleccionado?.cantidadCompras ?? 0);
+      print('✓ Condición 4 - Compras suficientes: $condicion4 (${promo.comprasNecesarias} <= ${usuarioSeleccionado?.cantidadCompras ?? 0})');
 
-      bool resultado = condicion1 && condicion3 && condicion4;
-      print(
-          '🎁 RESULTADO: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
+      // Condición 5: No ha canjeado esta promoción antes
+      bool condicion5 = !(await PromocionesCanjeadasService.clienteYaCanjeoPromocionGratis(
+          usuarioSeleccionado!.idCliente, promo.idPromocionProductoGratis));
+      print('✓ Condición 5 - No canjeada antes: $condicion5');
 
-      return resultado;
-    }).toList();
+      bool resultado = condicion1 && condicion2 && condicion3 && condicion4 && condicion5;
+      print('🎁 RESULTADO: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
+
+      if (resultado) {
+        promociones.add(promo);
+      }
+    }
 
     print('\n=== RESUMEN PRODUCTOS GRATIS ===');
     print('Promociones de productos gratis que pasaron: ${promociones.length}');
@@ -151,7 +203,21 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
     return promociones;
   }
 
-// Agregar este método en la clase _ModalRealizarVentaState
+  // Método helper para cargar ambas promociones
+  Future<Map<String, List>> cargarPromociones() async {
+    if (usuarioSeleccionado == null) {
+      return {'descuento': <Promocion>[], 'productos_gratis': <PromocionProductoGratiConNombreDelProductosModelo>[]};
+    }
+
+    final promocionesDescuento = await getPromocionesDescuentoFiltradas();
+    final promocionesProductosGratis = await getPromocionesProductosGratisFiltradas();
+
+    return {
+      'descuento': promocionesDescuento,
+      'productos_gratis': promocionesProductosGratis,
+    };
+  }
+
   double calcularDescuento() {
     if (promocionDescuentoSeleccionada == null) {
       return 0.0;
@@ -381,148 +447,80 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
                                     fontSize: 17, color: Colors.black54),
                               ),
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.person,
-                                        size: 30, color: Colors.amber),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      usuarioSeleccionado!.nombre,
-                                      style: const TextStyle(
-                                          fontSize: 19,
-                                          fontWeight: FontWeight.w500),
+                          : FutureBuilder<Map<String, List>>(
+                              future: cargarPromociones(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text('Error: ${snapshot.error}'),
+                                  );
+                                }
+                                
+                                final promocionesDescuento = snapshot.data?['descuento'] as List<Promocion>? ?? [];
+                                final promocionesProductosGratis = snapshot.data?['productos_gratis'] as List<PromocionProductoGratiConNombreDelProductosModelo>? ?? [];
+
+                                if (promocionesDescuento.isEmpty && promocionesProductosGratis.isEmpty) {
+                                  return const Center(
+                                    child: Text(
+                                      "No hay promociones disponibles para esta compra o ya han sido canjeadas",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.grey),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
+                                  );
+                                }
+
+                                // Mostrar un resumen de las promociones seleccionadas
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.phone_android,
-                                        size: 26, color: Colors.amber),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      usuarioSeleccionado!.numeroTelefono,
-                                      style: const TextStyle(fontSize: 17),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 40),
-                                Expanded(
-                                  child: Obx(() {
-                                    // Verificar si alguno de los controladores está cargando
-                                    if (obtenerPromocionesController
-                                                .estado.value ==
-                                            Estado.carga ||
-                                        obtenerPromocionesProductosGratisController
-                                                .estado.value ==
-                                            Estado.carga) {
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-
-                                    // AQUÍ VAN LOS PRINTS DE DEBUGGEO
-                                    print('\n=== DEBUGGEO DE FILTRADO DE PROMOCIONES EN BUILD ===');
-                                    print('Usuario seleccionado: ${usuarioSeleccionado!.nombre}');
-                                    print('Cantidad de compras del usuario: ${usuarioSeleccionado!.cantidadCompras}');
-                                    print('Total de la venta: \$${widget.totalVenta}');
-                                    print('Total de promociones disponibles: ${obtenerPromocionesController.promocionesFiltradas.length}');
-
-                                    // Verificar promociones disponibles
-                                    final promocionesDescuento = obtenerPromocionesController
-                                        .promocionesFiltradas
-                                        .where((promo) {
-                                            print('\n--- Evaluando promoción: ${promo.nombrePromocion} ---');
-                                            
-                                            // Condición 1: Status activo
-                                            bool condicion1 = promo.status;
-                                            print('✓ Condición 1 - Status activo: $condicion1 (${promo.status})');
-                                            
-                                            // Condición 2: Dinero necesario
-                                            bool condicion2 = widget.totalVenta >= promo.dineroNecesario;
-                                            print('✓ Condición 2 - Dinero suficiente: $condicion2 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
-                                            
-                                            // Condición 3: Compras necesarias
-                                            bool condicion3 = promo.comprasNecesarias <= usuarioSeleccionado!.cantidadCompras;
-                                            print('✓ Condición 3 - Compras suficientes: $condicion3 (${promo.comprasNecesarias} <= ${usuarioSeleccionado!.cantidadCompras})');
-                                            
-                                            // Resultado final
-                                            bool resultado = condicion1 && condicion2 && condicion3;
-                                            print('🎯 RESULTADO FINAL: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
-                                            
-                                            return resultado;
-                                        })
-                                        .toList();
-
-                                    print('\n=== RESUMEN FINAL DEL BUILD ===');
-                                    print('Promociones que pasaron el filtro: ${promocionesDescuento.length}');
-                                    for (var promo in promocionesDescuento) {
-                                        print('- ${promo.nombrePromocion} (${promo.porcentaje}% descuento)');
-                                    }
-                                    print('===============================\n');
-
-                                    final promocionesProductosGratis = getPromocionesProductosGratisFiltradas();
-
-                                    // Resto de tu código...
-                                    if (promocionesDescuento.isEmpty && promocionesProductosGratis.isEmpty) {
-                                      return const Center(
-                                        child: Text(
-                                          "No hay promociones disponibles para esta compra",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      );
-                                    }
-
-                                    // Mostrar un resumen de las promociones seleccionadas
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Flexible(
-                                              child: Text(
-                                                "Promociones disponibles",
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                  color: Colors.brown,
-                                                ),
+                                        const Flexible(
+                                          child: Text(
+                                            "Promociones disponibles",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.brown,
+                                            ),
+                                          ),
+                                        ),
+                                        Flexible(
+                                          child: TextButton.icon(
+                                            icon: const Icon(Icons.local_offer, size: 20),
+                                            label: const Text("Ver ofertas"),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.amber,
+                                              textStyle: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14,
                                               ),
                                             ),
-                                            Flexible(
-                                              child: TextButton.icon(
-                                                icon: const Icon(
-                                                    Icons.local_offer,
-                                                    size: 20),
-                                                label:
-                                                    const Text("Ver ofertas"),
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor: Colors.amber,
-                                                  textStyle: const TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                onPressed: () =>
-                                                    _abrirModalPromociones(
-                                                        promocionesDescuento,
-                                                        promocionesProductosGratis),
-                                              ),
-                                            ),
-                                          ],
+                                            onPressed: () => _abrirModalPromociones(
+                                                promocionesDescuento,
+                                                promocionesProductosGratis),
+                                          ),
                                         ),
                                       ],
-                                    );
-                                  }),
-                                ),
-                              ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      'Promociones de descuento: ${promocionesDescuento.length}',
+                                      style: const TextStyle(fontSize: 14, color: Colors.green),
+                                    ),
+                                    Text(
+                                      'Productos gratis: ${promocionesProductosGratis.length}',
+                                      style: const TextStyle(fontSize: 14, color: Colors.amber),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                     ),
                     // --- BLOQUE FIJO: Totales y botones ---
@@ -576,7 +574,7 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
                               ),
                             ],
                           ),
-// Agregar una nueva fila para mostrar el total con descuento
+                          // Agregar una nueva fila para mostrar el total con descuento
                           const SizedBox(height: 3),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -619,24 +617,22 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
                         ),
                         // Modifica el onPressed del botón "Ir a pagar"
                         onPressed: () {
-                          // Obtener todas las promociones de productos gratis filtradas
+                          final descuentoCalculado = calcularDescuento(); // Calcular el descuento
+                          
                           if (widget.onIrAPagar != null) {
                             widget.onIrAPagar!(
                                 usuarioSeleccionado,
                                 promocionDescuentoSeleccionada?.idPromocion,
-                                promocionProductoGratisSeleccionada
-                                    ?.idPromocionProductoGratis,
-                                promocionProductoGratisSeleccionada); // Agregar este parámetro
+                                promocionProductoGratisSeleccionada?.idPromocionProductoGratis,
+                                promocionProductoGratisSeleccionada,
+                                descuentoCalculado); // Pasar el descuento calculado
                           }
 
-                          // Al cerrar el modal, devolver tanto el usuario como las promociones
                           Navigator.of(context).pop({
                             'usuario': usuarioSeleccionado,
-                            'promocionDescuento':
-                                promocionDescuentoSeleccionada,
-                            'promocionProductoGratis':
-                                promocionProductoGratisSeleccionada,
-                            'descuentoCalculado': calcularDescuento(),
+                            'promocionDescuento': promocionDescuentoSeleccionada,
+                            'promocionProductoGratis': promocionProductoGratisSeleccionada,
+                            'descuentoCalculado': descuentoCalculado,
                           });
                         },
                         label: const Text(

@@ -130,7 +130,8 @@ class RealizarVentaController extends GetxController {
     int? idCliente,
     int? idPromocion,
     int? idPromocionProductosGratis,
-    PromocionProductoGratiConNombreDelProductosModelo? promocionProductoGratis, // Agregar este parámetro
+    PromocionProductoGratiConNombreDelProductosModelo? promocionProductoGratis,
+    double? descuentoPromocionAplicado, // ✅ Parámetro agregado correctamente
   }) async {
     try {
       estado.value = Estado.carga;
@@ -145,7 +146,17 @@ class RealizarVentaController extends GetxController {
       final fecha = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
       final precioTotal = totalVenta.value;
-      final precioDescuento = totalDescuento.value;
+      final precioDescuentoProductos = totalDescuento.value; // Descuento de productos individuales
+      final descuentoPromocion = descuentoPromocionAplicado ?? 0.0; // Descuento de promoción
+      final precioDescuentoTotal = totalVenta.value - (precioDescuentoProductos + descuentoPromocion); 
+
+      // ✅ AGREGAR PRINTS PARA DEBUGGING
+      print('💰 DETALLES DE LA VENTA:');
+      print('- Precio total (bruto): \$${precioTotal.toStringAsFixed(2)}');
+      print('- Descuento productos: \$${precioDescuentoProductos.toStringAsFixed(2)}');
+      print('- Descuento promoción: \$${descuentoPromocion.toStringAsFixed(2)}');
+      print('- Descuento total: \$${precioDescuentoTotal.toStringAsFixed(2)}');
+      print('- Precio final: \$${(precioTotal - precioDescuentoTotal).toStringAsFixed(2)}');
 
       // 1. Crear la venta en la base de datos
       final sqlVenta = Sql.named('''
@@ -182,7 +193,7 @@ class RealizarVentaController extends GetxController {
         'id_turno_caja': SesionActiva().idTurnoCaja,
         'id_promocion_productos_gratis': idPromocionProductosGratis,
         'precio_total': precioTotal,
-        'precio_descuento': precioDescuento,
+        'precio_descuento': precioDescuentoTotal, // ✅ CAMBIAR ESTA LÍNEA - usar el descuento total
         'fecha': fecha,
         'status_compra': true,
       });

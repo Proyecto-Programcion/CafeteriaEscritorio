@@ -250,6 +250,53 @@ class Database {
         ''',
 
         '''
+        -- Tabla para promociones de descuento canjeadas
+          CREATE TABLE IF NOT EXISTS clientes_promociones_canjeadas (
+              id SERIAL PRIMARY KEY,
+              id_cliente INT NOT NULL,
+              id_promocion INT NOT NULL,
+              id_venta INT NOT NULL, -- Para trazabilidad
+              fecha_canje TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              CONSTRAINT fk_clientes_promociones_cliente 
+                  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+              CONSTRAINT fk_clientes_promociones_promocion 
+                  FOREIGN KEY (id_promocion) REFERENCES promocion(id_promocion) ON DELETE CASCADE,
+              CONSTRAINT fk_clientes_promociones_venta 
+                  FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE,
+              -- Evitar duplicados
+              CONSTRAINT unique_cliente_promocion UNIQUE (id_cliente, id_promocion)
+          )
+        ''',
+
+        '''
+          -- Tabla para promociones de productos gratis canjeadas
+          CREATE TABLE IF NOT EXISTS clientes_promociones_productos_gratis_canjeadas (
+              id SERIAL PRIMARY KEY,
+              id_cliente INT NOT NULL,
+              id_promocion_productos_gratis INT NOT NULL,
+              id_venta INT NOT NULL, -- Para trazabilidad
+              fecha_canje TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              cantidad_canjeada DOUBLE PRECISION DEFAULT 1, -- Por si puede canjear múltiples veces
+              CONSTRAINT fk_clientes_promo_gratis_cliente 
+                  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+              CONSTRAINT fk_clientes_promo_gratis_promocion 
+                  FOREIGN KEY (id_promocion_productos_gratis) REFERENCES promocion_producto_gratis(id_promocion_productos_gratis) ON DELETE CASCADE,
+              CONSTRAINT fk_clientes_promo_gratis_venta 
+                  FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE,
+              -- Evitar duplicados (o permitir múltiples si es necesario)
+              CONSTRAINT unique_cliente_promo_gratis UNIQUE (id_cliente, id_promocion_productos_gratis)
+          )
+        ''',
+
+        '''
+          CREATE INDEX IF NOT EXISTS idx_clientes_promociones_cliente ON clientes_promociones_canjeadas(id_cliente)
+          ''',
+
+        '''
+          CREATE INDEX IF NOT EXISTS idx_clientes_promociones_gratis_cliente ON clientes_promociones_productos_gratis_canjeadas(id_cliente)
+        ''',
+
+        '''
         -- Función para incrementar compras del cliente
         CREATE OR REPLACE FUNCTION incrementar_compras_cliente()
         RETURNS TRIGGER AS \$\$
@@ -301,6 +348,59 @@ class Database {
                     AFTER INSERT OR UPDATE OR DELETE ON ventas
                     FOR EACH ROW
                     EXECUTE FUNCTION incrementar_compras_cliente();
+            END IF;
+        END
+        \$\$
+        ''',
+
+        '''
+        -- Crear el trigger si no existe
+        DO \$\$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_incrementar_compras_cliente') THEN
+                CREATE TRIGGER trigger_incrementar_compras_cliente
+                    AFTER INSERT OR UPDATE OR DELETE ON ventas
+                    FOR EACH ROW
+                    EXECUTE FUNCTION incrementar_compras_cliente();
+            END IF;
+        END
+        \$\$
+        ''',
+
+        // AGREGAR AQUÍ EL NUEVO TRIGGER
+        '''
+        -- Función para registrar promociones canjeadas automáticamente
+        CREATE OR REPLACE FUNCTION registrar_promociones_canjeadas()
+        RETURNS TRIGGER AS \$\$
+        BEGIN
+            -- Si es INSERT de una venta con cliente y promoción de descuento
+            IF TG_OP = 'INSERT' AND NEW.id_cliente IS NOT NULL AND NEW.id_promocion IS NOT NULL AND NEW.status_compra = TRUE THEN
+                INSERT INTO clientes_promociones_canjeadas (id_cliente, id_promocion, id_venta)
+                VALUES (NEW.id_cliente, NEW.id_promocion, NEW.id_venta)
+                ON CONFLICT (id_cliente, id_promocion) DO NOTHING; -- Evitar duplicados
+            END IF;
+            
+            -- Si es INSERT de una venta con cliente y promoción de producto gratis
+            IF TG_OP = 'INSERT' AND NEW.id_cliente IS NOT NULL AND NEW.id_promocion_productos_gratis IS NOT NULL AND NEW.status_compra = TRUE THEN
+                INSERT INTO clientes_promociones_productos_gratis_canjeadas (id_cliente, id_promocion_productos_gratis, id_venta)
+                VALUES (NEW.id_cliente, NEW.id_promocion_productos_gratis, NEW.id_venta)
+                ON CONFLICT (id_cliente, id_promocion_productos_gratis) DO NOTHING; -- Evitar duplicados
+            END IF;
+            
+            RETURN NEW;
+        END;
+        \$\$ LANGUAGE plpgsql
+        ''',
+
+        '''
+        -- Crear el trigger para registrar promociones canjeadas
+        DO \$\$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_registrar_promociones_canjeadas') THEN
+                CREATE TRIGGER trigger_registrar_promociones_canjeadas
+                    AFTER INSERT ON ventas
+                    FOR EACH ROW
+                    EXECUTE FUNCTION registrar_promociones_canjeadas();
             END IF;
         END
         \$\$
