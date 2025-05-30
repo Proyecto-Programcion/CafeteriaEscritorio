@@ -34,6 +34,10 @@ class RealizarVentaController extends GetxController {
     super.onInit();
   }
 
+  void cambiarEstadoAcarga() {
+    estado.value = Estado.carga;
+  }
+
   // Calcular totales del carrito
   void calcularTotales() {
     double total = 0.0;
@@ -169,6 +173,7 @@ class RealizarVentaController extends GetxController {
           id_promocion_productos_gratis,
           precio_total,
           precio_descuento,
+          descuento_aplicado,
           fecha,
           status_compra
         ) VALUES (
@@ -180,6 +185,7 @@ class RealizarVentaController extends GetxController {
           @id_promocion_productos_gratis,
           @precio_total,
           @precio_descuento,
+          @descuento_aplicado,
           @fecha,
           @status_compra
         ) RETURNING id_venta;
@@ -193,7 +199,8 @@ class RealizarVentaController extends GetxController {
         'id_turno_caja': SesionActiva().idTurnoCaja,
         'id_promocion_productos_gratis': idPromocionProductosGratis,
         'precio_total': precioTotal,
-        'precio_descuento': precioDescuentoTotal, // ✅ CAMBIAR ESTA LÍNEA - usar el descuento total
+        'precio_descuento': precioDescuentoTotal,
+        'descuento_aplicado': descuentoPromocion + precioDescuentoProductos, 
         'fecha': fecha,
         'status_compra': true,
       });

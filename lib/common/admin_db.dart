@@ -211,6 +211,7 @@ class Database {
         id_promocion_productos_gratis INT,
         precio_total DOUBLE PRECISION,
         precio_descuento DOUBLE PRECISION,
+        descuento_aplicado DOUBLE PRECISION,
         fecha VARCHAR,
         status_compra BOOLEAN,
         CONSTRAINT fk_ventas_usuario 
