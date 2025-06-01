@@ -111,7 +111,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                '${producto.cantidad}',
+                '${producto.cantidad} - ${producto.unidadMedida}',
                 textAlign: TextAlign.center,
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
