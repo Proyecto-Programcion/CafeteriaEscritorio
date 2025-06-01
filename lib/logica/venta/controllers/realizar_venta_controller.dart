@@ -17,6 +17,8 @@ import 'package:get/get.dart';
 class RealizarVentaController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
+  RxInt totalVentas = 0.obs;
+  RxDouble ventaTotalMes = 0.0.obs;
 
   // Carrito de compras - Usamos RxList para que sea observable
   final RxList<ProductoCarrito> carrito = <ProductoCarrito>[].obs;
@@ -331,5 +333,52 @@ class RealizarVentaController extends GetxController {
       return false;
     }
   }
+
+  Future<void> obtenerTotalVentas() async {
+    try {
+      final sql = Sql.named('''
+        SELECT COUNT(*) AS total_ventas
+          FROM ventas
+          WHERE status_compra = TRUE;
+      ''');
+      final resp = await Database.conn.execute(sql);
+      if (resp.isNotEmpty) {
+        totalVentas.value = resp.first[0] as int;
+      } else {
+        totalVentas.value = 0;
+      }
+    } catch (e) {
+      print('Error al obtener el total de ventas: $e');
+      totalVentas.value = 0;
+    }
+  }
+
+Future<void> obtenerIngresoTotalDelMes() async {
+  try {
+final sql = Sql.named('''
+  SELECT COALESCE(SUM(precio_total), 0) AS ingreso_total
+  FROM ventas
+  WHERE status_compra = TRUE;
+''');
+
+
+    final resp = await Database.conn.execute(sql);
+
+final ingresoRaw = resp.first[0];
+
+if (ingresoRaw is num) {
+  ventaTotalMes.value = ingresoRaw.toDouble();
+} else if (ingresoRaw is String) {
+  ventaTotalMes.value = double.tryParse(ingresoRaw.replaceAll(',', '')) ?? 0.0;
+} else {
+  ventaTotalMes.value = 0.0;
+}
+
+  } catch (e) {
+    print('❌ Error al obtener ingreso del mes: $e');
+    ventaTotalMes.value = 0.0;
+  }
+}
+
 }
 

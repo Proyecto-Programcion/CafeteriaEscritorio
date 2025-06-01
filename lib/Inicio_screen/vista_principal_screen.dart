@@ -1,6 +1,10 @@
 import 'package:cafe/Inicio_screen/widgets/tarjeta_de_informacion_rapida_widget.dart';
+import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
+import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
+import 'package:cafe/logica/venta/controllers/realizar_venta_controller.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -10,28 +14,44 @@ class InicioScreen extends StatefulWidget {
 }
 
 class _InicioScreenState extends State<InicioScreen> {
-  List<Map<String, String>> listaInformacionRapida = [
+  final productosController = Get.put(ObtenerProductosControllers());
+  final clientesController = Get.put(ObtenerClientesController());
+final ventaController = Get.put(RealizarVentaController());
+
+
+  @override
+  void initState() {
+    super.initState();
+    productosController.obtenerTotalProductos();
+    clientesController.obtenerTotalClientes();
+    ventaController.obtenerTotalVentas();
+    ventaController.obtenerIngresoTotalDelMes();
+  }
+List<Map<String, String>> get listaInformacionRapida {
+  return [
     {
       'titulo': 'Productos',
-      'informacion': '100',
+      'informacion': productosController.totalProductos.value.toString(),
       'urlLocalImage': 'assets/images/productos.png',
     },
     {
-      'titulo': 'Ventas del mes',
-      'informacion': '200',
+      'titulo': 'Total Ventas',
+      'informacion': ventaController.totalVentas.value.toString(),
       'urlLocalImage': 'assets/images/ventas.png',
     },
     {
       'titulo': 'Clientes',
-      'informacion': '300',
+      'informacion': clientesController.totalClientes.value.toString(),
       'urlLocalImage': 'assets/images/clientes.png',
     },
     {
-      'titulo': 'Ingresos del mes',
-      'informacion': '400',
+      'titulo': 'Historico Ingresos',
+      'informacion': ventaController.ventaTotalMes.value.toString(),
       'urlLocalImage': 'assets/images/ingresos.png',
     },
   ];
+}
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -70,26 +90,23 @@ class _InicioScreenState extends State<InicioScreen> {
                 children: [
                   Container(
                     width: double.infinity,
-                    child: Wrap(
-                      runSpacing: 12,
-                      alignment: WrapAlignment.spaceBetween,
-                      children: List.generate(listaInformacionRapida.length,
-                          (index) {
-                        final informacion = listaInformacionRapida[index]
-                                ['informacion'] ??
-                            '';
-                        final titulo =
-                            listaInformacionRapida[index]['titulo'] ?? '';
-                        final urlLocalImage = listaInformacionRapida[index]
-                                ['urlLocalImage'] ??
-                            '';
-                        return TarjetaDeInformacionRapidaWidgets(
-                          informacion: informacion,
-                          titulo: titulo,
-                          imagenUrl: urlLocalImage,
-                        );
-                      }),
-                    ),
+                    child: Obx(() {
+                return Wrap(
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: List.generate(listaInformacionRapida.length, (index) {
+                    final informacion = listaInformacionRapida[index]['informacion'] ?? '';
+                    final titulo = listaInformacionRapida[index]['titulo'] ?? '';
+                    final urlLocalImage = listaInformacionRapida[index]['urlLocalImage'] ?? '';
+                    return TarjetaDeInformacionRapidaWidgets(
+                      informacion: informacion,
+                      titulo: titulo,
+                      imagenUrl: urlLocalImage,
+                    );
+                  }),
+                );
+              }),
+
                   ),
                   const SizedBox(height: 50),
                   Container(

@@ -7,6 +7,7 @@ import 'package:postgres/postgres.dart';
 class ObtenerClientesController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
+  RxInt totalClientes = 0.obs;
   RxList<usuariMmodel> listaClientes = <usuariMmodel>[].obs;
   RxString filtro = ''.obs;
 
@@ -58,4 +59,20 @@ class ObtenerClientesController extends GetxController {
       print('[ERROR] $e');
     }
   }
+  Future<void> obtenerTotalClientes() async {
+    try {
+      final sql = Sql.named('''
+        select count(*) from clientes;
+      ''');
+      final resp = await Database.conn.execute(sql);
+      if (resp.isNotEmpty) {
+        totalClientes.value = resp.first[0] as int;
+      } else {
+        totalClientes.value = 0;
+      }
+    } catch (e) {
+      print('Error al obtener total de clientes: $e');
+    }
+  }
+
 }

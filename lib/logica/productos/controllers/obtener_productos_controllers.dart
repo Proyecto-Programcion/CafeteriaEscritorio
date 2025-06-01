@@ -8,6 +8,8 @@ import 'package:postgres/postgres.dart';
 class ObtenerProductosControllers extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   Rx<String> mensaje = ''.obs;
+  RxInt totalProductos = 0.obs;
+
   RxList<ProductoModelo> listaProductos = <ProductoModelo>[].obs;
 
   @override
@@ -51,4 +53,22 @@ class ObtenerProductosControllers extends GetxController {
       mensaje.value = 'Error al obtener productos: $e';
     }
   }
+Future<void> obtenerTotalProductos() async {
+  try {
+    final sql = Sql.named('''
+      SELECT COUNT(*) AS total FROM productos WHERE eliminado = false;
+    ''');
+
+    final resp = await Database.conn.execute(sql);
+    if (resp.isNotEmpty) {
+      totalProductos.value = resp.first[0] as int;
+    } else {
+      totalProductos.value = 0;
+    }
+  } catch (e) {
+    print('Error al obtener el total de productos: $e');
+    totalProductos.value = 0;
+  }
+}
+
 }
