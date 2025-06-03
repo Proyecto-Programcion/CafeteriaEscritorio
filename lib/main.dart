@@ -5,6 +5,7 @@ import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/configuraciones/configuraciones_Screen.dart';
 import 'package:cafe/configuraciones/widgets/modal_cerar_caja.dart';
 import 'package:cafe/controlVenta/controlGastos.dart';
+import 'package:cafe/control_Stock/control_stock_screen.dart';
 import 'package:cafe/inicio_de_sesion/controllers/evaluar_si_hay_caja_abierta.dart';
 import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
@@ -98,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (SesionActiva().rolUsuario == 'Admin') const PromocionesPage(),
     if (SesionActiva().rolUsuario == 'Admin') const AdministradoresScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ControlDeGastosScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const ControlStockScreen(),
     const ConfiguracionesScreen(),
   ];
 
@@ -165,6 +167,7 @@ class NavbarNavegacion extends StatelessWidget {
       if (SesionActiva().rolUsuario == 'Admin') Icons.discount,
       if (SesionActiva().rolUsuario == 'Admin') Icons.badge,
       if (SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.inventory_sharp,
       Icons.settings,
     ];
 
