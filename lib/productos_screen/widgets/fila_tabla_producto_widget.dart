@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cafe/logica/productos/controllers/eliminar_producto_controller.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/productos_screen/widgets/modal_Agregar_stock_widget.dart';
 import 'package:cafe/productos_screen/widgets/modal_editar_producto_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -143,6 +144,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  //----------------------------------------- BOTON EDITAR ----------------------------------
                   IconButton(
                     onPressed: () {
                       showDialog(
@@ -166,6 +168,7 @@ class FilaTablaProductoWidget extends StatelessWidget {
                     },
                     icon: const Icon(Icons.edit),
                   ),
+                  //----------------------------------------- BOTNON ELIMINAR ----------------------------------
                   IconButton(
                     onPressed: () {
                       showDialog(
@@ -194,6 +197,22 @@ class FilaTablaProductoWidget extends StatelessWidget {
                           });
                     },
                     icon: const Icon(Icons.delete),
+                  ),
+                  //
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return ModalAgregarStockWidget(
+                              idProducto: producto.idProducto,
+                              nombreProducto: producto.nombre,
+                              unidadDeMedida: producto.unidadMedida ?? '',
+                              stockActual: producto.cantidad,
+                            );
+                          });
+                    },
+                    icon: const Icon(Icons.inventory),
                   ),
                 ],
               ),

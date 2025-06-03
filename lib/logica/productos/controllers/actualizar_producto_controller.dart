@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cafe/common/admin_db.dart';
 import 'package:cafe/common/enums.dart';
+import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:get/get.dart';
 import 'package:postgres/postgres.dart';
@@ -20,6 +21,7 @@ class ActualizarProductoController extends GetxController {
     double costo,
     double precio,
     double cantidad,
+    double cantidad_anterior,
     String unidadMedida,
     String urlImagen,
     int idCategoria,
@@ -69,6 +71,32 @@ class ActualizarProductoController extends GetxController {
         'unidad_medida': unidadMedida,
         'descuento': descuento
       });
+
+      if (cantidad != cantidad_anterior) {
+        final cantidadMovimiento = cantidad - cantidad_anterior;
+        final sqlControlStock = Sql.named('''
+        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario) 
+        VALUES (
+          @idProducto, 
+          @cantidad_antes,
+          @cantidad_movimiento, 
+          @cantidad_despues,
+          (SELECT unidad_medida FROM productos WHERE id_producto = @idProducto),
+          @categoria,
+          @idUsuario
+        );
+        ''');
+
+        await Database.conn.execute(sqlControlStock, parameters: {
+          'idProducto': idProducto,
+          'cantidad_antes': cantidad_anterior,
+          'cantidad_movimiento': cantidadMovimiento,
+          'cantidad_despues': cantidad,
+          'categoria': 'actualizado',
+          'idUsuario': SesionActiva().idUsuario,
+        });
+        
+      }
 
       estado.value = Estado.exito;
       final ObtenerProductosControllers obtenerProductosControllers =

@@ -60,6 +60,26 @@ class Database {
               ON DELETE RESTRICT ON UPDATE CASCADE
         )
         ''',
+        // Agregar esta sección al array statements:
+          '''
+          CREATE TABLE IF NOT EXISTS controlStock (
+              id SERIAL PRIMARY KEY,
+              id_producto INT NOT NULL,
+              cantidad_antes DOUBLE PRECISION NOT NULL,
+              cantidad_movimiento DOUBLE PRECISION NOT NULL,
+              cantidad_despues DOUBLE PRECISION NOT NULL,
+              unidad_medida VARCHAR(50),
+              categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('agregado', 'vendido', 'actualizado')),
+              id_usuario INT NOT NULL,
+              fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              CONSTRAINT fk_controlStock_producto 
+                  FOREIGN KEY (id_producto) REFERENCES productos(id_producto) 
+                  ON DELETE CASCADE,
+              CONSTRAINT fk_controlStock_usuario 
+                  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
+                  ON DELETE CASCADE
+          )
+          ''',
 
         // TABLA SUCURSALES
         '''
@@ -135,36 +155,8 @@ class Database {
       )
       ''',
 
-        // TABLA INGRESOPRODUCTO
-        '''
-      CREATE TABLE IF NOT EXISTS ingresoproducto (
-        id_ingreso_producto SERIAL PRIMARY KEY,
-        id_usuario INT,
-        precio_total DOUBLE PRECISION,
-        fecha VARCHAR,
-        CONSTRAINT fk_ingresoproducto_usuario 
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
-          ON DELETE CASCADE
-      )
-      ''',
+      
 
-        // TABLA DETALLESINGRESOPRODUCTO
-        '''
-      CREATE TABLE IF NOT EXISTS detallessingresoproducto (
-        id_ingreso_detalle_producto SERIAL PRIMARY KEY,
-        id_ingreso_producto INT,
-        id_producto INT,
-        cantidad DOUBLE PRECISION,
-        precio DOUBLE PRECISION,
-        fecha VARCHAR,
-        CONSTRAINT fk_detallesingreso_ingresoproducto 
-          FOREIGN KEY (id_ingreso_producto) REFERENCES ingresoproducto(id_ingreso_producto) 
-          ON DELETE CASCADE,
-        CONSTRAINT fk_detallesingreso_producto 
-          FOREIGN KEY (id_producto) REFERENCES productos(id_producto) 
-          ON DELETE CASCADE
-      )
-      ''',
 
         // TABLA PROMOCION
         '''
@@ -295,6 +287,18 @@ class Database {
 
         '''
           CREATE INDEX IF NOT EXISTS idx_clientes_promociones_gratis_cliente ON clientes_promociones_productos_gratis_canjeadas(id_cliente)
+        ''',
+
+        '''
+        CREATE INDEX IF NOT EXISTS idx_controlStock_producto ON controlStock(id_producto)
+        ''',
+
+        '''
+        CREATE INDEX IF NOT EXISTS idx_controlStock_fecha ON controlStock(fecha)
+        ''',
+
+        '''
+        CREATE INDEX IF NOT EXISTS idx_controlStock_categoria ON controlStock(categoria)
         ''',
 
         '''

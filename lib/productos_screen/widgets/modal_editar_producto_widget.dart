@@ -100,8 +100,8 @@ class _ModalEditarProductoState extends State<ModalEditarProducto> {
         double.parse(
             costoController.text.isEmpty ? '0.0' : costoController.text),
         double.parse(precioController.text),
-        double.parse(
-            cantidadController.text.isEmpty ? '0.0' : cantidadController.text),
+        double.parse(cantidadController.text.isEmpty ? '0.0' : cantidadController.text),
+        widget.cantidad,
         unidadMedidaController,
         imagenController,
         int.parse(categoriaController),

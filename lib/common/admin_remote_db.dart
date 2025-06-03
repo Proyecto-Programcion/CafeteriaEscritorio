@@ -120,27 +120,7 @@ class DatabaseRemote {
       )
       ''',
 
-        // TABLA INGRESOPRODUCTO
-        '''
-      CREATE TABLE IF NOT EXISTS ingresoproducto (
-        id_ingreso_producto SERIAL PRIMARY KEY,
-        id_usuario INT,
-        precio_total DOUBLE PRECISION,
-        fecha VARCHAR
-      )
-      ''',
-
-        // TABLA DETALLESINGRESOPRODUCTO
-        '''
-      CREATE TABLE IF NOT EXISTS detallessingresoproducto (
-        id_ingreso_detalle_producto SERIAL PRIMARY KEY,
-        id_ingreso_producto INT,
-        id_producto INT,
-        cantidad DOUBLE PRECISION,
-        precio DOUBLE PRECISION,
-        fecha VARCHAR
-      )
-      ''',
+    
 
         // TABLA VENTAS
         '''
@@ -240,23 +220,7 @@ class DatabaseRemote {
             FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
           END IF;
           
-          -- Relaciones para ingresoproducto
-          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ingresoproducto_usuario') THEN
-            ALTER TABLE ingresoproducto ADD CONSTRAINT fk_ingresoproducto_usuario
-            FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE;
-          END IF;
-          
-          -- Relaciones para detallessingresoproducto
-          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_ingresoproducto') THEN
-            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_ingresoproducto
-            FOREIGN KEY (id_ingreso_producto) REFERENCES ingresoproducto(id_ingreso_producto) ON DELETE CASCADE;
-          END IF;
-          
-          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_detallesingreso_producto') THEN
-            ALTER TABLE detallessingresoproducto ADD CONSTRAINT fk_detallesingreso_producto
-            FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE;
-          END IF;
-          
+        
           -- Relaciones para ventas
           IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ventas_usuario') THEN
             ALTER TABLE ventas ADD CONSTRAINT fk_ventas_usuario

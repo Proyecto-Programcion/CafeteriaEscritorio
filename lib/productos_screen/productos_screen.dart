@@ -1,6 +1,7 @@
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller.dart';
 import 'package:cafe/logica/productos/controllers/actualizar_imagen_producto_controller.dart';
+import 'package:cafe/logica/productos/controllers/aumentar_stock_producto_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/productos_screen/widgets/cabezera_tabla_productos_widgets.dart';
 import 'package:cafe/productos_screen/widgets/fila_tabla_producto_widget.dart';
@@ -57,6 +58,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
       );
     }
   }
+
+  final AumentarStockProductoController aumentarStockProductoController =
+      Get.put(AumentarStockProductoController());
 
   @override
   void initState() {
@@ -237,6 +241,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ],
             ),
           )),
+           //Maneja el estado del controlador para mostrar mensajes sobre si se agrego correctamente el stock o si hubo un error
+            Obx(() {
+              final estado = aumentarStockProductoController.estado.value;
+              if (estado == Estado.exito || estado == Estado.error) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      duration: const Duration(seconds: 1),
+                      content:
+                          Text(aumentarStockProductoController.mensaje.value),
+                      backgroundColor:
+                          estado == Estado.exito ? Colors.green : Colors.red,
+                    ),
+                  );
+                  // Resetear para evitar múltiples SnackBars
+                  aumentarStockProductoController.estado.value = Estado.inicio;
+                });
+              }
+              return const SizedBox.shrink();
+            }),
         ],
       ),
     );
