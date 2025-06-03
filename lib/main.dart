@@ -13,15 +13,13 @@ import 'package:cafe/productos_screen/productos_screen.dart';
 import 'package:cafe/promociones/promocionesScreeen.dart';
 import 'package:cafe/usuarios/clientesScreen.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:get/get.dart';
-
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:window_manager/window_manager.dart'; // Asegúrate de importarlo solo si lo usas
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +69,17 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Cafe Paquito',
       debugShowCheckedModeBanner: false,
+      // Agregar configuración de localización
+      localizationsDelegates: const [
+             GlobalMaterialLocalizations.delegate,   
+        GlobalWidgetsLocalizations.delegate,     
+        GlobalCupertinoLocalizations.delegate, 
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'), // Español
+        Locale('en', 'US'), // Inglés (fallback)
+      ],
+      locale: const Locale('es', 'ES'), // Configurar español como idioma por defecto
       routes: {
         '/': (context) => const InicioDeSesion01(),
         '/home': (context) => const HomeScreen(),
@@ -108,7 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
       index = nuevoIndex;
     });
   }
-
 
   void init() async {
     isMaximized = await windowManager.isMaximized();

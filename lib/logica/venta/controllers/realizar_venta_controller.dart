@@ -5,8 +5,8 @@ import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:get/get.dart';
-import 'package:postgres/postgres.dart';
 import 'package:intl/intl.dart';
+import 'package:postgres/postgres.dart';
 
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
@@ -283,7 +283,7 @@ class RealizarVentaController extends GetxController {
          await Database.conn.execute(sqlControlStock, parameters: {
           'idProducto': producto.idProducto,
           'cantidad_antes': producto.cantidad,
-          'cantidad_movimiento': cantidad,
+          'cantidad_movimiento': -cantidad,
           'cantidad_despues': producto.cantidad - cantidad,
           'categoria': 'vendido',
           'idUsuario': SesionActiva().idUsuario,
