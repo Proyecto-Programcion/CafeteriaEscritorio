@@ -102,128 +102,92 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
 
   // Método para promociones de descuento con validación async
   Future<List<Promocion>> getPromocionesDescuentoFiltradas() async {
-    print('\n=== DEBUGGEO DE FILTRADO DE PROMOCIONES DESCUENTO ===');
-    print('Usuario seleccionado: ${usuarioSeleccionado!.nombre}');
-    print(
-        'Cantidad de compras del usuario: ${usuarioSeleccionado!.cantidadCompras}');
-    print('Total de la venta: \$${widget.totalVenta}');
-    print(
-        'Total de promociones disponibles: ${obtenerPromocionesController.promocionesFiltradas.length}');
-
+  
     final promocionesDescuento = <Promocion>[];
 
     for (final promo in obtenerPromocionesController.promocionesFiltradas) {
-      print('\n--- Evaluando promoción: ${promo.nombrePromocion} ---');
 
       // Condición 1: Status activo
       bool condicion1 = promo.status;
-      print('✓ Condición 1 - Status activo: $condicion1 (${promo.status})');
 
       // Condición 2: Dinero necesario
       bool condicion2 = widget.totalVenta >= promo.dineroNecesario;
-      print(
-          '✓ Condición 2 - Dinero suficiente: $condicion2 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
+  
 
       // Condición 3: Compras necesarias
       bool condicion3 =
           promo.comprasNecesarias <= usuarioSeleccionado!.cantidadCompras;
-      print(
-          '✓ Condición 3 - Compras suficientes: $condicion3 (${promo.comprasNecesarias} <= ${usuarioSeleccionado!.cantidadCompras})');
+
 
       // Condición 4: No ha canjeado esta promoción antes
       bool condicion4 =
           !(await PromocionesCanjeadasService.clienteYaCanjeoPromocion(
               usuarioSeleccionado!.idCliente, promo.idPromocion));
-      print('✓ Condición 4 - No canjeada antes: $condicion4');
+
 
       // Resultado final
       bool resultado = condicion1 && condicion2 && condicion3 && condicion4;
-      print(
-          '🎯 RESULTADO FINAL: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
+      
 
       if (resultado) {
         promocionesDescuento.add(promo);
       }
     }
-
-    print('\n=== RESUMEN FINAL DESCUENTO ===');
-    print('Promociones que pasaron el filtro: ${promocionesDescuento.length}');
-    for (var promo in promocionesDescuento) {
-      print('- ${promo.nombrePromocion} (${promo.porcentaje}% descuento)');
-    }
-    print('===============================\n');
-
     return promocionesDescuento;
   }
 
   // Método para promociones de productos gratis con validación async
   Future<List<PromocionProductoGratiConNombreDelProductosModelo>>
       getPromocionesProductosGratisFiltradas() async {
-    print('\n=== DEBUGGEO DE PROMOCIONES PRODUCTOS GRATIS ===');
+   
 
     if (widget.carrito.isEmpty) {
-      print('❌ Carrito vacío - No hay promociones de productos gratis');
+    
       return [];
     }
 
     final productosEnCarrito =
         widget.carrito.map((item) => item.producto.idProducto).toSet();
 
-    print('Productos en carrito (IDs): $productosEnCarrito');
-    print('Usuario: ${usuarioSeleccionado?.nombre ?? 'Sin usuario'}');
-    print('Compras del usuario: ${usuarioSeleccionado?.cantidadCompras ?? 0}');
-    print(
-        'Total promociones productos gratis: ${obtenerPromocionesProductosGratisController.listaPromociones.length}');
-
+  
     final promociones = <PromocionProductoGratiConNombreDelProductosModelo>[];
 
     for (final promo
         in obtenerPromocionesProductosGratisController.listaPromociones) {
-      print(
-          '\n--- Evaluando promoción producto gratis: ${promo.nombrePromocion} ---');
+     
 
       // Condición 1: Status
       bool condicion1 = promo.status;
-      print('✓ Condición 1 - Status activo: $condicion1');
+      
 
       // Condición 2: Producto en carrito
       bool condicion2 = productosEnCarrito.contains(promo.idProducto);
-      print(
-          '✓ Condición 2 - Producto en carrito: $condicion2 (producto ID: ${promo.idProducto})');
+   
 
       // Condición 3: Dinero suficiente
       bool condicion3 = widget.totalVenta >= promo.dineroNecesario;
-      print(
-          '✓ Condición 3 - Dinero suficiente: $condicion3 (\$${widget.totalVenta} >= \$${promo.dineroNecesario})');
-
+    
       // Condición 4: Compras suficientes
       bool condicion4 = promo.comprasNecesarias <=
           (usuarioSeleccionado?.cantidadCompras ?? 0);
-      print(
-          '✓ Condición 4 - Compras suficientes: $condicion4 (${promo.comprasNecesarias} <= ${usuarioSeleccionado?.cantidadCompras ?? 0})');
+    
 
       // Condición 5: No ha canjeado esta promoción antes
       bool condicion5 =
           !(await PromocionesCanjeadasService.clienteYaCanjeoPromocionGratis(
               usuarioSeleccionado!.idCliente, promo.idPromocionProductoGratis));
-      print('✓ Condición 5 - No canjeada antes: $condicion5');
+     
 
       bool resultado =
           condicion1 && condicion2 && condicion3 && condicion4 && condicion5;
-      print(
-          '🎁 RESULTADO: $resultado ${resultado ? '✅ INCLUIDA' : '❌ EXCLUIDA'}');
+     
 
       if (resultado) {
         promociones.add(promo);
       }
     }
 
-    print('\n=== RESUMEN PRODUCTOS GRATIS ===');
-    print('Promociones de productos gratis que pasaron: ${promociones.length}');
-    for (var promo in promociones) {
-      print('- ${promo.nombrePromocion} (${promo.nombreProducto})');
-    }
-    print('=================================\n');
+  
 
     return promociones;
   }

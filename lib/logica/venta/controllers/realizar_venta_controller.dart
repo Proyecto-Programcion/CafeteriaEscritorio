@@ -137,7 +137,7 @@ class RealizarVentaController extends GetxController {
     int? idPromocion,
     int? idPromocionProductosGratis,
     PromocionProductoGratiConNombreDelProductosModelo? promocionProductoGratis,
-    double? descuentoPromocionAplicado, // ✅ Parámetro agregado correctamente
+    double? descuentoPromocionAplicado, 
   }) async {
     try {
       estado.value = Estado.carga;
@@ -152,17 +152,12 @@ class RealizarVentaController extends GetxController {
       final fecha = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
       final precioTotal = totalVenta.value;
-      final precioDescuentoProductos = totalDescuento.value; // Descuento de productos individuales
-      final descuentoPromocion = descuentoPromocionAplicado ?? 0.0; // Descuento de promoción
-      final precioDescuentoTotal = totalVenta.value - (precioDescuentoProductos + descuentoPromocion); 
-
-      // ✅ AGREGAR PRINTS PARA DEBUGGING
-      print('💰 DETALLES DE LA VENTA:');
-      print('- Precio total (bruto): \$${precioTotal.toStringAsFixed(2)}');
-      print('- Descuento productos: \$${precioDescuentoProductos.toStringAsFixed(2)}');
-      print('- Descuento promoción: \$${descuentoPromocion.toStringAsFixed(2)}');
-      print('- Descuento total: \$${precioDescuentoTotal.toStringAsFixed(2)}');
-      print('- Precio final: \$${(precioTotal - precioDescuentoTotal).toStringAsFixed(2)}');
+      final precioDescuentoProductos =
+          totalDescuento.value; // Descuento de productos individuales
+      final descuentoPromocion =
+          descuentoPromocionAplicado ?? 0.0; // Descuento de promoción
+      final precioDescuentoTotal =
+          totalVenta.value - (precioDescuentoProductos + descuentoPromocion);
 
       // 1. Crear la venta en la base de datos
       final sqlVenta = Sql.named('''
@@ -202,7 +197,7 @@ class RealizarVentaController extends GetxController {
         'id_promocion_productos_gratis': idPromocionProductosGratis,
         'precio_total': precioTotal,
         'precio_descuento': precioDescuentoProductos,
-        'descuento_aplicado': descuentoPromocion, 
+        'descuento_aplicado': descuentoPromocion,
         'fecha': fecha,
         'status_compra': true,
       });
@@ -270,11 +265,35 @@ class RealizarVentaController extends GetxController {
           'cantidad_vendida': cantidad,
           'id_producto': producto.idProducto,
         });
+
+        //Registrar movimientos de stock en controlStock
+        final sqlControlStock = Sql.named('''
+        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario) 
+        VALUES (
+          @idProducto, 
+          @cantidad_antes,
+          @cantidad_movimiento, 
+          @cantidad_despues,
+          (SELECT unidad_medida FROM productos WHERE id_producto = @idProducto),
+          @categoria,
+          @idUsuario
+        );
+        ''');
+
+         await Database.conn.execute(sqlControlStock, parameters: {
+          'idProducto': producto.idProducto,
+          'cantidad_antes': producto.cantidad,
+          'cantidad_movimiento': cantidad,
+          'cantidad_despues': producto.cantidad - cantidad,
+          'categoria': 'vendido',
+          'idUsuario': SesionActiva().idUsuario,
+        });
       }
 
       // 4. **NUEVO**: Agregar el producto gratis a los detalles si existe
       if (promocionProductoGratis != null) {
-        print('🎁 Agregando producto gratis: ${promocionProductoGratis.nombreProducto}');
+        print(
+            '🎁 Agregando producto gratis: ${promocionProductoGratis.nombreProducto}');
 
         final sqlProductoGratis = Sql.named('''
           INSERT INTO detalle_ventas (
@@ -353,32 +372,29 @@ class RealizarVentaController extends GetxController {
     }
   }
 
-Future<void> obtenerIngresoTotalDelMes() async {
-  try {
-final sql = Sql.named('''
+  Future<void> obtenerIngresoTotalDelMes() async {
+    try {
+      final sql = Sql.named('''
   SELECT COALESCE(SUM(precio_total), 0) AS ingreso_total
   FROM ventas
   WHERE status_compra = TRUE;
 ''');
 
+      final resp = await Database.conn.execute(sql);
 
-    final resp = await Database.conn.execute(sql);
+      final ingresoRaw = resp.first[0];
 
-final ingresoRaw = resp.first[0];
-
-if (ingresoRaw is num) {
-  ventaTotalMes.value = ingresoRaw.toDouble();
-} else if (ingresoRaw is String) {
-  ventaTotalMes.value = double.tryParse(ingresoRaw.replaceAll(',', '')) ?? 0.0;
-} else {
-  ventaTotalMes.value = 0.0;
-}
-
-  } catch (e) {
-    print('❌ Error al obtener ingreso del mes: $e');
-    ventaTotalMes.value = 0.0;
+      if (ingresoRaw is num) {
+        ventaTotalMes.value = ingresoRaw.toDouble();
+      } else if (ingresoRaw is String) {
+        ventaTotalMes.value =
+            double.tryParse(ingresoRaw.replaceAll(',', '')) ?? 0.0;
+      } else {
+        ventaTotalMes.value = 0.0;
+      }
+    } catch (e) {
+      print('❌ Error al obtener ingreso del mes: $e');
+      ventaTotalMes.value = 0.0;
+    }
   }
 }
-
-}
-
