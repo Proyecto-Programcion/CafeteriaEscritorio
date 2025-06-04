@@ -45,7 +45,7 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
           ////***********************************************TITULO DE LA PANTALLA */
 
           const Text(
-            'LISTA DE PRODUCTOS',
+            'LISTA DE USUARIOS ADMINISTRADORES',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
