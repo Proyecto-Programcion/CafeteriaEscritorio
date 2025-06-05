@@ -47,6 +47,7 @@ Future<void> main() async {
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
+      await windowManager.maximize(); // Siempre abrir maximizado
     });
   }
 
@@ -118,9 +119,38 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Función para verificar si se debe maximizar la ventana
+  void _verificarYMaximizarSiEsProductos(int selectedIndex) async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Verificar si el índice corresponde a ProductosScreen
+      bool esProductosScreen = false;
+      
+      if (SesionActiva().rolUsuario == 'Admin') {
+        // Si es admin, ProductosScreen está en índice 1
+        if (selectedIndex == 1) {
+          esProductosScreen = true;
+        }
+      }
+      
+      // Si es ProductosScreen y la ventana no está maximizada, maximizarla
+      if (esProductosScreen && !isMaximized) {
+        await windowManager.maximize();
+        setState(() {
+          isMaximized = true;
+        });
+      }
+    }
+  }
+
   void init() async {
-    isMaximized = await windowManager.isMaximized();
+    isMaximized = true; // Siempre está maximizado
     setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    init();
   }
 
   @override
@@ -128,7 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          CabezeraMain(isMaximized: isMaximized),
+          CabezeraMain(
+            isMaximized: isMaximized,
+          ),
           Expanded(
             child: Row(
               children: [
@@ -310,12 +342,8 @@ class CabezeraMain extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 InkWell(
-                  onTap: () async {
-                    if (isMaximized) {
-                      await windowManager.unmaximize();
-                    } else {
-                      await windowManager.maximize();
-                    }
+                  onTap: () {
+                    // Botón deshabilitado - siempre pantalla completa
                   },
                   child: Container(
                     width: 40,
