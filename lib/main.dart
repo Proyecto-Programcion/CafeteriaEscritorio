@@ -11,6 +11,8 @@ import 'package:cafe/inicio_de_sesion/screens/inicio_de_sesion.dart';
 import 'package:cafe/Inicio_screen/vista_principal_screen.dart';
 import 'package:cafe/productos_screen/productos_screen.dart';
 import 'package:cafe/promociones/promocionesScreeen.dart';
+import 'package:cafe/turnoCaja/detalles_turno_caja_screen.dart';
+import 'package:cafe/turnoCaja/turno_caja_screen.dart';
 import 'package:cafe/usuarios/clientesScreen.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -83,7 +85,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const InicioDeSesion01(),
         '/home': (context) => const HomeScreen(),
+        '/turno_caja': (context) => const SizedBox(),
+        '/detalle_turno': (context) =>  DetallesTurnoCajaScreen(),
       },
+      
     );
   }
 }
@@ -109,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (SesionActiva().rolUsuario == 'Admin') const AdministradoresScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ControlDeGastosScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ControlStockScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const TurnoCajaScreen(),
     const ConfiguracionesScreen(),
   ];
 
@@ -176,6 +182,7 @@ class NavbarNavegacion extends StatelessWidget {
       if (SesionActiva().rolUsuario == 'Admin') Icons.badge,
       if (SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
       if (SesionActiva().rolUsuario == 'Admin') Icons.inventory_sharp,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.receipt_long,
       Icons.settings,
     ];
 
