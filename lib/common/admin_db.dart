@@ -60,26 +60,7 @@ class Database {
               ON DELETE RESTRICT ON UPDATE CASCADE
         )
         ''',
-        // Agregar esta sección al array statements:
-          '''
-          CREATE TABLE IF NOT EXISTS controlStock (
-              id SERIAL PRIMARY KEY,
-              id_producto INT NOT NULL,
-              cantidad_antes DOUBLE PRECISION NOT NULL,
-              cantidad_movimiento DOUBLE PRECISION NOT NULL,
-              cantidad_despues DOUBLE PRECISION NOT NULL,
-              unidad_medida VARCHAR(50),
-              categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('agregado', 'vendido', 'actualizado')),
-              id_usuario INT NOT NULL,
-              fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              CONSTRAINT fk_controlStock_producto 
-                  FOREIGN KEY (id_producto) REFERENCES productos(id_producto) 
-                  ON DELETE CASCADE,
-              CONSTRAINT fk_controlStock_usuario 
-                  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
-                  ON DELETE CASCADE
-          )
-          ''',
+       
 
         // TABLA SUCURSALES
         '''
@@ -154,6 +135,27 @@ class Database {
           ON DELETE CASCADE
       )
       ''',
+
+       // Agregar esta sección al array statements:
+          '''
+          CREATE TABLE IF NOT EXISTS controlStock (
+              id SERIAL PRIMARY KEY,
+              id_producto INT NOT NULL,
+              cantidad_antes DOUBLE PRECISION NOT NULL,
+              cantidad_movimiento DOUBLE PRECISION NOT NULL,
+              cantidad_despues DOUBLE PRECISION NOT NULL,
+              unidad_medida VARCHAR(50),
+              categoria VARCHAR(20) NOT NULL CHECK (categoria IN ('agregado', 'vendido', 'actualizado')),
+              id_usuario INT NOT NULL,
+              fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              CONSTRAINT fk_controlStock_producto 
+                  FOREIGN KEY (id_producto) REFERENCES productos(id_producto) 
+                  ON DELETE CASCADE,
+              CONSTRAINT fk_controlStock_usuario 
+                  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
+                  ON DELETE CASCADE
+          )
+          ''',
 
       
 
