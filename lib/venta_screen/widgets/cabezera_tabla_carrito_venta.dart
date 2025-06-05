@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:flutter/material.dart';
 
-
 class CabezeraTablaCarritoVenta extends StatelessWidget {
   const CabezeraTablaCarritoVenta({super.key});
 
@@ -97,7 +96,7 @@ class ProductoCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          height: 150,
+          height: 180,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFF9F1E7),
@@ -124,8 +123,8 @@ class ProductoCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Container(
-                width: 150,
-                height: 150,
+                width: 80, // <--- Cambiado de 150 a 80
+                height: 80, // <--- Cambiado de 150 a 80
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
@@ -145,7 +144,7 @@ class ProductoCard extends StatelessWidget {
                 child: (producto.urlImagen?.isEmpty ?? true)
                     ? const Center(
                         child: Icon(Icons.image_not_supported,
-                            size: 48, color: Colors.grey),
+                            size: 32, color: Colors.grey), // <--- Más pequeño
                       )
                     : null,
               ),
@@ -193,23 +192,25 @@ class ProductoCard extends StatelessWidget {
                               fontSize: 18,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Text(
                             'Descuento: \$${producto.descuento}',
                             style: const TextStyle(
                               fontSize: 18,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        Text(
+                          'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      ])
                     ],
                   ),
                 ),
