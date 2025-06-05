@@ -15,6 +15,7 @@ import 'package:cafe/turnoCaja/detalles_turno_caja_screen.dart';
 import 'package:cafe/turnoCaja/turno_caja_screen.dart';
 import 'package:cafe/usuarios/clientesScreen.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
+import 'package:cafe/venta_screen/ver_ventas_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,9 +89,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const InicioDeSesion01(),
         '/home': (context) => const HomeScreen(),
         '/turno_caja': (context) => const SizedBox(),
-        '/detalle_turno': (context) =>  DetallesTurnoCajaScreen(),
+        '/detalle_turno': (context) => DetallesTurnoCajaScreen(),
       },
-      
     );
   }
 }
@@ -117,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (SesionActiva().rolUsuario == 'Admin') const ControlDeGastosScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ControlStockScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const TurnoCajaScreen(),
+    if (SesionActiva().rolUsuario == 'Admin') const VerVentasScreen(),
     const ConfiguracionesScreen(),
   ];
 
@@ -216,6 +217,7 @@ class NavbarNavegacion extends StatelessWidget {
       if (SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
       if (SesionActiva().rolUsuario == 'Admin') Icons.inventory_sharp,
       if (SesionActiva().rolUsuario == 'Admin') Icons.receipt_long,
+      if (SesionActiva().rolUsuario == 'Admin') Icons.payments,
       Icons.settings,
     ];
 
@@ -280,51 +282,6 @@ class CabezeraMain extends StatelessWidget {
               ),
             ),
           ),
-          // const SizedBox(width: 16),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ModalCerrarCaja();
-          //         }).then((value) {
-          //       if (value == true) {
-          //         ScaffoldMessenger.of(context).showSnackBar(
-          //           const SnackBar(
-          //             content: Text('Caja cerrada exitosamente'),
-          //             backgroundColor: Colors.green,
-          //           ),
-          //         );
-          //         SesionActiva().limpiarSesion();
-          //         Navigator.pushNamedAndRemoveUntil(
-          //             context, '/', (route) => false);
-          //       } else if (value == false) {
-          //         ScaffoldMessenger.of(context).showSnackBar(
-          //           const SnackBar(
-          //             content: Text('Error al cerrar la caja'),
-          //             backgroundColor: Colors.red,
-          //           ),
-          //         );
-          //       }
-          //     });
-          //   },
-          //   child: Container(
-          //     padding: const EdgeInsets.all(8),
-          //     // decoration: BoxDecoration(
-          //     //   color: Colors.transparent,
-          //     //   border: Border.all(color: Colors.white, width: 2),
-          //     //   borderRadius: BorderRadius.circular(18),
-          //     // ),
-          //     // child: const Text(
-          //     //   'Cerrar sesión',
-          //     //   style: TextStyle(
-          //     //     color: Colors.white,
-          //     //     fontSize: 18,
-          //     //     fontWeight: FontWeight.bold,
-          //     //   ),
-          //     // ),
-          //   ),
-          // ),
           const Spacer(),
           SizedBox(
             height: 90,

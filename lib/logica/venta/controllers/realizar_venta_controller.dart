@@ -196,8 +196,8 @@ class RealizarVentaController extends GetxController {
         'id_turno_caja': SesionActiva().idTurnoCaja,
         'id_promocion_productos_gratis': idPromocionProductosGratis,
         'precio_total': precioTotal,
-        'precio_descuento': precioDescuentoProductos,
-        'descuento_aplicado': descuentoPromocion,
+        'precio_descuento': precioDescuentoTotal,
+        'descuento_aplicado': descuentoPromocion + precioDescuentoProductos,
         'fecha': fecha,
         'status_compra': true,
       });
