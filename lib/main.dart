@@ -72,15 +72,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Agregar configuración de localización
       localizationsDelegates: const [
-             GlobalMaterialLocalizations.delegate,   
-        GlobalWidgetsLocalizations.delegate,     
-        GlobalCupertinoLocalizations.delegate, 
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
         Locale('es', 'ES'), // Español
         Locale('en', 'US'), // Inglés (fallback)
       ],
-      locale: const Locale('es', 'ES'), // Configurar español como idioma por defecto
+      locale: const Locale(
+          'es', 'ES'), // Configurar español como idioma por defecto
       routes: {
         '/': (context) => const InicioDeSesion01(),
         '/home': (context) => const HomeScreen(),
@@ -124,14 +125,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       // Verificar si el índice corresponde a ProductosScreen
       bool esProductosScreen = false;
-      
+
       if (SesionActiva().rolUsuario == 'Admin') {
         // Si es admin, ProductosScreen está en índice 1
         if (selectedIndex == 1) {
           esProductosScreen = true;
         }
       }
-      
+
       // Si es ProductosScreen y la ventana no está maximizada, maximizarla
       if (esProductosScreen && !isMaximized) {
         await windowManager.maximize();
@@ -264,7 +265,7 @@ class CabezeraMain extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
             child: Text(
-              '${SesionActiva().nombreUsuario}',
+              '${SesionActiva().nombreUsuario?.toUpperCase()}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -272,51 +273,51 @@ class CabezeraMain extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ModalCerrarCaja();
-                  }).then((value) {
-                if (value == true) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Caja cerrada exitosamente'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  SesionActiva().limpiarSesion();
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, '/', (route) => false);
-                } else if (value == false) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error al cerrar la caja'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Text(
-                'Cerrar sesión',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          // const SizedBox(width: 16),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ModalCerrarCaja();
+          //         }).then((value) {
+          //       if (value == true) {
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(
+          //             content: Text('Caja cerrada exitosamente'),
+          //             backgroundColor: Colors.green,
+          //           ),
+          //         );
+          //         SesionActiva().limpiarSesion();
+          //         Navigator.pushNamedAndRemoveUntil(
+          //             context, '/', (route) => false);
+          //       } else if (value == false) {
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(
+          //             content: Text('Error al cerrar la caja'),
+          //             backgroundColor: Colors.red,
+          //           ),
+          //         );
+          //       }
+          //     });
+          //   },
+          //   child: Container(
+          //     padding: const EdgeInsets.all(8),
+          //     // decoration: BoxDecoration(
+          //     //   color: Colors.transparent,
+          //     //   border: Border.all(color: Colors.white, width: 2),
+          //     //   borderRadius: BorderRadius.circular(18),
+          //     // ),
+          //     // child: const Text(
+          //     //   'Cerrar sesión',
+          //     //   style: TextStyle(
+          //     //     color: Colors.white,
+          //     //     fontSize: 18,
+          //     //     fontWeight: FontWeight.bold,
+          //     //   ),
+          //     // ),
+          //   ),
+          // ),
           const Spacer(),
           SizedBox(
             height: 90,
