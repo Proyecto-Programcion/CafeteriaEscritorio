@@ -280,51 +280,51 @@ class CabezeraMain extends StatelessWidget {
               ),
             ),
           ),
-          // const SizedBox(width: 16),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ModalCerrarCaja();
-          //         }).then((value) {
-          //       if (value == true) {
-          //         ScaffoldMessenger.of(context).showSnackBar(
-          //           const SnackBar(
-          //             content: Text('Caja cerrada exitosamente'),
-          //             backgroundColor: Colors.green,
-          //           ),
-          //         );
-          //         SesionActiva().limpiarSesion();
-          //         Navigator.pushNamedAndRemoveUntil(
-          //             context, '/', (route) => false);
-          //       } else if (value == false) {
-          //         ScaffoldMessenger.of(context).showSnackBar(
-          //           const SnackBar(
-          //             content: Text('Error al cerrar la caja'),
-          //             backgroundColor: Colors.red,
-          //           ),
-          //         );
-          //       }
-          //     });
-          //   },
-          //   child: Container(
-          //     padding: const EdgeInsets.all(8),
-          //     // decoration: BoxDecoration(
-          //     //   color: Colors.transparent,
-          //     //   border: Border.all(color: Colors.white, width: 2),
-          //     //   borderRadius: BorderRadius.circular(18),
-          //     // ),
-          //     // child: const Text(
-          //     //   'Cerrar sesión',
-          //     //   style: TextStyle(
-          //     //     color: Colors.white,
-          //     //     fontSize: 18,
-          //     //     fontWeight: FontWeight.bold,
-          //     //   ),
-          //     // ),
-          //   ),
-          // ),
+          const SizedBox(width: 16),
+          InkWell(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ModalCerrarCaja();
+                  }).then((value) {
+                if (value == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Caja cerrada exitosamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  SesionActiva().limpiarSesion();
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/', (route) => false);
+                } else if (value == false) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al cerrar la caja'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Text(
+                'Cerrar sesión',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           const Spacer(),
           SizedBox(
             height: 90,
