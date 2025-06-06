@@ -413,7 +413,7 @@ class InputMedidaYCantidad extends StatelessWidget {
             items: const [
               DropdownMenuItem(value: 'Gramo', child: Text('Gramo')),
               DropdownMenuItem(value: 'Kilo', child: Text('Kilo')),
-              DropdownMenuItem(value: 'Tonelada', child: Text('Tonelada')),
+              // DropdownMenuItem(value: 'Tonelada', child: Text('Tonelada')),
               DropdownMenuItem(value: 'Pieza', child: Text('Pieza')),
             ],
             onChanged: (value) {
