@@ -1,5 +1,7 @@
 // En venta_screen.dart (actualizado)
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
@@ -10,6 +12,7 @@ import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
 import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,6 +25,10 @@ class VentaScreen extends StatefulWidget {
 
 class _VentaScreenState extends State<VentaScreen> {
   final TextEditingController _searchController = TextEditingController();
+  
+  // Para impresora Serial/USB
+  List<String> _availablePrinters = [];
+  String? _selectedPrinter;
 
   // Controladores GetX
   final RealizarVentaController realizarVentaController =
@@ -43,26 +50,96 @@ class _VentaScreenState extends State<VentaScreen> {
     super.initState();
     cargarProductos();
     _searchController.addListener(_onSearchChanged);
+    _buscarImpresoras();
   }
+
+  // Buscar impresoras disponibles en el sistema
+  Future<void> _buscarImpresoras() async {
+    try {
+      if (Platform.isWindows) {
+        // En Windows, buscar impresoras instaladas
+        final result = await Process.run('wmic', ['printer', 'get', 'name']);
+        final lines = result.stdout.toString().split('\n');
+        
+        setState(() {
+          _availablePrinters = lines
+              .where((line) => line.trim().isNotEmpty && !line.contains('Name'))
+              .map((line) => line.trim())
+              .where((name) => name.isNotEmpty)
+              .toList();
+        });
+      } else {
+        // Para Linux/Mac, diferentes comandos
+        setState(() {
+          _availablePrinters = ['Impresora predeterminada'];
+        });
+      }
+    } catch (e) {
+      print('Error buscando impresoras: $e');
+      setState(() {
+        _availablePrinters = ['Impresora predeterminada'];
+      });
+    }
+  }
+
+  // Mostrar modal para seleccionar impresora
+  Future<void> _mostrarSelectorImpresora() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Seleccionar Impresora'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Selecciona una impresora:'),
+            const SizedBox(height: 16),
+            if (_availablePrinters.isEmpty)
+              const Text('No se encontraron impresoras')
+            else
+              ...(_availablePrinters.map((printer) => ListTile(
+                    title: Text(printer),
+                    leading: Radio<String>(
+                      value: printer,
+                      groupValue: _selectedPrinter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPrinter = value;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ))),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: _buscarImpresoras,
+            child: const Text('Buscar de nuevo'),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged); // Remover listener
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-
-    // Limpiar todos los FocusNode
     for (final focusNode in focusNodesCarrito) {
       focusNode.dispose();
     }
     focusNodesCarrito.clear();
-
     super.dispose();
   }
 
   void cargarProductos() async {
     await obtenerProductosControllers.obtenerProductos();
     if (mounted) {
-      // Verificar si está montado
       setState(() {
         productosFiltrados = List<ProductoModelo>.from(
             obtenerProductosControllers.listaProductos);
@@ -74,7 +151,6 @@ class _VentaScreenState extends State<VentaScreen> {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
       if (mounted) {
-        // Verificar si está montado
         setState(() {
           productosFiltrados = List<ProductoModelo>.from(
               obtenerProductosControllers.listaProductos);
@@ -83,7 +159,6 @@ class _VentaScreenState extends State<VentaScreen> {
     } else {
       await buscadorProductosController.obtenerProductos(query);
       if (mounted) {
-        // Verificar si está montado
         setState(() {
           productosFiltrados = List<ProductoModelo>.from(
               buscadorProductosController.listaProductos);
@@ -109,7 +184,7 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
-  // Método para realizar la venta usando el controlador - MODIFICADO
+  // Método para realizar la venta - MODIFICADO para incluir impresión
   Future<void> realizarVenta(
       int? idCliente,
       int? idPromocion,
@@ -117,28 +192,46 @@ class _VentaScreenState extends State<VentaScreen> {
       PromocionProductoGratiConNombreDelProductosModelo?
           promocionProductoGratis,
       double descuentoPromocion) async {
-    // NUEVO parámetro
 
-    // Sincronizar el carrito con el controlador
     realizarVentaController.sincronizarCarrito(carrito);
 
-    // Realizar la venta
     final exito = await realizarVentaController.realizarVenta(
       idCliente: idCliente,
       idPromocion: idPromocion,
       idPromocionProductosGratis: idPromocionProductoGratis,
       promocionProductoGratis: promocionProductoGratis,
-      descuentoPromocionAplicado: descuentoPromocion, // NUEVO parámetro
+      descuentoPromocionAplicado: descuentoPromocion,
     );
 
     if (exito) {
+      // NUEVO: Preguntar si desea imprimir el ticket
+      final bool? imprimirTicket = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Venta exitosa'),
+          content: const Text('¿Deseas imprimir el ticket?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Sí, imprimir'),
+            ),
+          ],
+        ),
+      );
+
+      if (imprimirTicket == true) {
+        
+      }
+
       // Limpiar el carrito local
       if (mounted) {
-        // Verificar si está montado
         setState(() {
           carrito.clear();
           selectedIndexes.clear();
-          // Limpiar los FocusNode antes de limpiar la lista
           for (final focusNode in focusNodesCarrito) {
             focusNode.dispose();
           }
@@ -148,7 +241,6 @@ class _VentaScreenState extends State<VentaScreen> {
 
       // Mostrar mensaje de éxito
       if (mounted) {
-        // Verificar si está montado
         Get.snackbar(
           '¡Venta exitosa!',
           'La venta se ha completado correctamente',
@@ -159,12 +251,9 @@ class _VentaScreenState extends State<VentaScreen> {
         );
       }
 
-      // Recargar productos para actualizar el inventario en pantalla
       cargarProductos();
     } else {
-      // Mostrar mensaje de error
       if (mounted) {
-        // Verificar si está montado
         Get.snackbar(
           'Error',
           realizarVentaController.mensaje.value,
@@ -205,14 +294,39 @@ class _VentaScreenState extends State<VentaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'LISTA DE PRODUCTOS',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 153, 103, 8),
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        'LISTA DE PRODUCTOS',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 153, 103, 8),
+                        ),
+                      ),
+                      const Spacer(),
+                      // NUEVO: Botón para configurar impresora
+                      IconButton(
+                        onPressed: _mostrarSelectorImpresora,
+                        icon: const Icon(Icons.print),
+                        tooltip: 'Configurar impresora',
+                        iconSize: 30,
+                        color: const Color.fromARGB(255, 153, 103, 8),
+                      ),
+                    ],
                   ),
+                  if (_selectedPrinter != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Impresora: $_selectedPrinter',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -282,7 +396,6 @@ class _VentaScreenState extends State<VentaScreen> {
                                 seleccionado: selectedIndexes.contains(index),
                                 onTap: () {
                                   if (mounted) {
-                                    // Verificar si está montado
                                     setState(() {
                                       final yaEnCarrito = carrito.indexWhere(
                                         (e) =>
@@ -291,7 +404,6 @@ class _VentaScreenState extends State<VentaScreen> {
                                       );
                                       if (yaEnCarrito >= 0) {
                                         carrito.removeAt(yaEnCarrito);
-                                        // Dispose del FocusNode antes de removerlo
                                         focusNodesCarrito[yaEnCarrito]
                                             .dispose();
                                         focusNodesCarrito.removeAt(yaEnCarrito);
@@ -412,7 +524,6 @@ class _VentaScreenState extends State<VentaScreen> {
                             focusNode: focusNodesCarrito[index],
                             onCantidadChanged: (nuevaCantidad) {
                               if (mounted) {
-                                // Verificar si está montado
                                 setState(() {
                                   item.cantidad = nuevaCantidad;
                                 });
@@ -420,7 +531,6 @@ class _VentaScreenState extends State<VentaScreen> {
                             },
                             onRemove: () {
                               if (mounted) {
-                                // Verificar si está montado
                                 setState(() {
                                   final idx = productosFiltrados.indexWhere(
                                       (p) =>
@@ -428,7 +538,6 @@ class _VentaScreenState extends State<VentaScreen> {
                                           item.producto.idProducto);
                                   if (idx >= 0) selectedIndexes.remove(idx);
                                   carrito.removeAt(index);
-                                  // Dispose del FocusNode antes de removerlo
                                   focusNodesCarrito[index].dispose();
                                   focusNodesCarrito.removeAt(index);
                                 });
