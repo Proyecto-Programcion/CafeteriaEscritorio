@@ -14,9 +14,12 @@ class ActualizarSucursalController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         UPDATE sucursales
-        SET nombre = @nombre, direccion = @direccion
+        SET nombre = @nombre,
+            direccion = @direccion,
+            last_modified = NOW()
         WHERE id_sucursal = @idSucursal;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'idSucursal': idSucursal,

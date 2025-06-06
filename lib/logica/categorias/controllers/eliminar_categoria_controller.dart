@@ -13,10 +13,13 @@ class EliminarCategoriaController extends GetxController {
   Future<bool> eliminarCategoria(int idCategoria) async {
     try {
       estado.value = Estado.carga;
-
       final sql = Sql.named('''
-        UPDATE categorias SET eliminado = true WHERE id_categoria = @idCategoria;
+        UPDATE categorias 
+        SET eliminado = TRUE, 
+            last_modified = NOW()
+        WHERE id_categoria = @idCategoria;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'idCategoria': idCategoria,

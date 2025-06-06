@@ -37,9 +37,10 @@ class EliminarSucursalController extends GetxController {
       // Si no hay administradores, marcar la sucursal como eliminada
       final sqlEliminar = Sql.named('''
         UPDATE sucursales 
-        SET eliminado = TRUE 
+        SET eliminado = TRUE, last_modified = NOW()
         WHERE id_sucursal = @idSucursal
       ''');
+
 
       await Database.conn
           .execute(sqlEliminar, parameters: {'idSucursal': idSucursal});

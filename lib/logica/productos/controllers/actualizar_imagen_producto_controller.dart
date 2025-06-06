@@ -28,9 +28,11 @@ class ActualizarImagenProductoController extends GetxController {
 
       final sql = Sql.named('''
         UPDATE productos
-        SET url_imagen = @url_imagen
+        SET url_imagen = @url_imagen,
+            last_modified = NOW()
         WHERE id_producto = @id_producto;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'url_imagen': imagenBase64,

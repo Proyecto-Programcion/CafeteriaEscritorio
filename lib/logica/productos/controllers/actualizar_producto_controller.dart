@@ -39,22 +39,24 @@ class ActualizarProductoController extends GetxController {
       }
 
       final sql = Sql.named('''
-    UPDATE productos
-    SET
-      id_categoria = @id_categoria,
-      id_usuario = @id_usuario,
-      nombre = @nombre,
-      cantidad = @cantidad,
-      precio = @precio,
-      costo = @costo,
-      codigo_de_barras = @codigo_de_barras,
-      url_imagen = CASE WHEN @url_imagen = '' THEN url_imagen ELSE @url_imagen END,
-      eliminado = @eliminado,
-      descripcion = @descripcion,
-      unidad_medida = @unidad_medida,
-      descuento = @descuento
-    WHERE id_producto = @id_producto;
+        UPDATE productos
+        SET
+          id_categoria = @id_categoria,
+          id_usuario = @id_usuario,
+          nombre = @nombre,
+          cantidad = @cantidad,
+          precio = @precio,
+          costo = @costo,
+          codigo_de_barras = @codigo_de_barras,
+          url_imagen = CASE WHEN @url_imagen = '' THEN url_imagen ELSE @url_imagen END,
+          eliminado = @eliminado,
+          descripcion = @descripcion,
+          unidad_medida = @unidad_medida,
+          descuento = @descuento,
+          last_modified = NOW()
+        WHERE id_producto = @id_producto;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'id_producto': idProducto,

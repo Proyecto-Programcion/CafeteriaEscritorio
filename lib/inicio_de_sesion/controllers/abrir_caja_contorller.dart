@@ -16,19 +16,20 @@ class AgregarTurnoCajaController extends GetxController {
     try {
       estado.value = Estado.carga;
 
-      final sql = Sql.named('''
-        INSERT INTO turnos_caja (
-          id_usuario,
-          fecha_inicio,
-          monto_inicial,
-          activo
-        ) VALUES (
-          @id_usuario,
-          @fecha_inicio,
-          @monto_inicial,
-          @activo
-        ) RETURNING id
-      ''');
+  final sql = Sql.named('''
+    INSERT INTO turnos_caja (
+      id_usuario,
+      fecha_inicio,
+      monto_inicial,
+      activo
+    ) VALUES (
+      @id_usuario,
+      @fecha_inicio,
+      @monto_inicial,
+      @activo
+    ) RETURNING id
+  ''');
+
 
       final resp = await Database.conn.execute(sql, parameters: {
         'id_usuario': idUsuario,
@@ -60,9 +61,11 @@ class AgregarTurnoCajaController extends GetxController {
         UPDATE turnos_caja 
         SET monto_final = @monto_final,
             fecha_fin = @fecha_fin,
-            activo = FALSE
+            activo = FALSE,
+            last_modified = NOW()
         WHERE id = @id_turno
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'monto_final': montoFinal,

@@ -35,10 +35,18 @@ class ActualizarAdministradorController extends GetxController {
       // Si hay imagen nueva se actualiza la imagen
       if (imagenBase64.isNotEmpty) {
         final sql = Sql.named('''
-        UPDATE usuarios
-        SET nombre = @nombre, correo = @correo, telefono = @telefono, contrasena = @contrasena, imagen = @imagen, idSucursal = @idSucursal
-        WHERE id_usuario = @idusuario;
-      ''');
+          UPDATE usuarios
+          SET nombre = @nombre,
+              correo = @correo,
+              telefono = @telefono,
+              contrasena = @contrasena,
+              imagen = @imagen,
+              idSucursal = @idSucursal,
+              last_modified = NOW()
+          WHERE id_usuario = @idusuario;
+        ''');
+
+
 
         await Database.conn.execute(sql, parameters: {
           'nombre': nombre,
@@ -51,10 +59,16 @@ class ActualizarAdministradorController extends GetxController {
         });
       } else {
         final sql = Sql.named('''
-        UPDATE usuarios
-        SET nombre = @nombre, correo = @correo, telefono = @telefono, contrasena = @contrasena, idSucursal = @idSucursal
-        WHERE id_usuario = @idusuario;
-      ''');
+          UPDATE usuarios
+          SET nombre = @nombre,
+              correo = @correo,
+              telefono = @telefono,
+              contrasena = @contrasena,
+              idSucursal = @idSucursal,
+              last_modified = NOW()
+          WHERE id_usuario = @idusuario;
+        ''');
+
 
         await Database.conn.execute(sql, parameters: {
           'nombre': nombre,
