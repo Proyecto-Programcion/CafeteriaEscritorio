@@ -54,12 +54,11 @@ Future<void> main() async {
     });
   }
 
-  // Conexión a la base de datos
   try {
-    await Database.connect();
-    //await DatabaseRemote.connect();
+    await Database
+        .crearTablasEnAmbas(); // << Aquí llamas tu método para ambas DBs
   } catch (e) {
-    print('Error al conectar a la base de datos: $e');
+    print('Error al crear tablas en ambas bases de datos: $e');
   }
 
   runApp(const MyApp());
