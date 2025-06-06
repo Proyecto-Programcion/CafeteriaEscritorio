@@ -16,7 +16,6 @@ import 'package:cafe/turnoCaja/turno_caja_screen.dart';
 import 'package:cafe/usuarios/clientesScreen.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
 import 'package:cafe/venta_screen/ver_ventas_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
@@ -45,21 +44,22 @@ Future<void> main() async {
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
       windowButtonVisibility: false,
+      size: Size(1200, 800),
+      minimumSize: Size(900, 600),
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
-      await windowManager.focus();
       await windowManager.maximize(); // Siempre abrir maximizado
     });
   }
 
-try {
-  await Database.inicializarConexionLocal();   // Inicializa la conexión local y la deja abierta para toda la app
-  await Database.crearTablasEnAmbas();         // Opcional: crea tablas en local y nube, cierra ambas conexiones temporales
-} catch (e) {
-  print('Error al conectar o crear tablas en las bases de datos: $e');
-}
+  try {
+    await Database.inicializarConexionLocal();
+    await Database.crearTablasEnAmbas();
+  } catch (e) {
+    print('Error al conectar o crear tablas en las bases de datos: $e');
+  }
 
   runApp(const MyApp());
 }
@@ -72,18 +72,16 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Cafe Paquito',
       debugShowCheckedModeBanner: false,
-      // Agregar configuración de localización
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('es', 'ES'), // Español
-        Locale('en', 'US'), // Inglés (fallback)
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
       ],
-      locale: const Locale(
-          'es', 'ES'), // Configurar español como idioma por defecto
+      locale: const Locale('es', 'ES'),
       routes: {
         '/': (context) => const InicioDeSesion01(),
         '/home': (context) => const HomeScreen(),
@@ -94,6 +92,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ----- INICIO DEL CÓDIGO DE BLOQUEO DE VENTANA -----
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -101,11 +101,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool isMaximized = false;
+class _HomeScreenState extends State<HomeScreen> with WindowListener {
+  bool isMaximized = true;
   int index = 0;
 
-  // Tu lista de pantallas/widgets
   final List<Widget> listaDeScreens = [
     const InicioScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ProductosScreen(),
@@ -126,38 +125,35 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Función para verificar si se debe maximizar la ventana
-  void _verificarYMaximizarSiEsProductos(int selectedIndex) async {
+  @override
+  void initState() {
+    super.initState();
+    _setupMaximizeListener();
+  }
+
+  void _setupMaximizeListener() async {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      // Verificar si el índice corresponde a ProductosScreen
-      bool esProductosScreen = false;
-
-      if (SesionActiva().rolUsuario == 'Admin') {
-        // Si es admin, ProductosScreen está en índice 1
-        if (selectedIndex == 1) {
-          esProductosScreen = true;
-        }
-      }
-
-      // Si es ProductosScreen y la ventana no está maximizada, maximizarla
-      if (esProductosScreen && !isMaximized) {
+      windowManager.addListener(this);
+      // Al abrir, forzar maximizado por cualquier cosa
+      if (!await windowManager.isMaximized()) {
         await windowManager.maximize();
-        setState(() {
-          isMaximized = true;
-        });
       }
     }
   }
 
-  void init() async {
-    isMaximized = true; // Siempre está maximizado
-    setState(() {});
+  // Si la ventana es restaurada o redimensionada, la volvemos a maximizar
+  @override
+  void onWindowResize() async {
+    if (!await windowManager.isMaximized()) {
+      await windowManager.maximize();
+    }
   }
 
   @override
-  void initState() {
-    super.initState();
-    init();
+  void onWindowUnmaximize() async {
+    if (!await windowManager.isMaximized()) {
+      await windowManager.maximize();
+    }
   }
 
   @override
@@ -171,17 +167,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Row(
               children: [
-                // Navbar vertical, pásale la función y el index actual si quieres resaltar el seleccionado
                 NavbarNavegacion(
                   onTap: cambiarIndex,
                   selectedIndex: index,
                 ),
-                // Contenido principal
                 Expanded(
                   child: Container(
                     color: const Color.fromARGB(255, 250, 240, 230),
-                    child: listaDeScreens[
-                        index], // Aquí se muestra la pantalla seleccionada
+                    child: listaDeScreens[index],
                   ),
                 ),
               ],
@@ -191,9 +184,18 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      windowManager.removeListener(this);
+    }
+    super.dispose();
+  }
 }
 
-// Modifica tu NavbarNavegacion para aceptar onTap y selectedIndex:
+// ----- FIN DEL CÓDIGO DE BLOQUEO DE VENTANA -----
+
 class NavbarNavegacion extends StatelessWidget {
   final void Function(int)? onTap;
   final int? selectedIndex;
@@ -286,41 +288,19 @@ class CabezeraMain extends StatelessWidget {
             height: 90,
             child: Row(
               children: [
-                InkWell(
-                  onTap: () {
-                    windowManager.minimize();
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.minimize,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                // Botón minimizar REMOVIDO para evitar minimizar
+                // Botón fullscreen/exit solo informativo (no funcional, puedes ocultar)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () {
-                    // Botón deshabilitado - siempre pantalla completa
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      isMaximized ? Icons.fullscreen_exit : Icons.fullscreen,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                  child: Icon(
+                    isMaximized ? Icons.fullscreen_exit : Icons.fullscreen,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 8),
