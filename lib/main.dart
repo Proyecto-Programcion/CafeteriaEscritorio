@@ -54,12 +54,12 @@ Future<void> main() async {
     });
   }
 
-  try {
-    await Database
-        .crearTablasEnAmbas(); // << Aquí llamas tu método para ambas DBs
-  } catch (e) {
-    print('Error al crear tablas en ambas bases de datos: $e');
-  }
+try {
+  await Database.inicializarConexionLocal();   // Inicializa la conexión local y la deja abierta para toda la app
+  await Database.crearTablasEnAmbas();         // Opcional: crea tablas en local y nube, cierra ambas conexiones temporales
+} catch (e) {
+  print('Error al conectar o crear tablas en las bases de datos: $e');
+}
 
   runApp(const MyApp());
 }
