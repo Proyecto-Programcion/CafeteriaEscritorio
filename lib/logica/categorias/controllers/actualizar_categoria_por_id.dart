@@ -18,11 +18,13 @@ class ActualizarCategoriaPorId extends GetxController {
     try {
       estado.value = Estado.carga;
 
-      final sql = Sql.named('''
-        UPDATE categorias
-        SET nombre = @nombre
-        WHERE id_categoria = @id_categoria;
-      ''');
+    final sql = Sql.named('''
+      UPDATE categorias
+      SET nombre = @nombre,
+          last_modified = NOW()
+      WHERE id_categoria = @id_categoria;
+    ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'id_categoria': idCategoria,

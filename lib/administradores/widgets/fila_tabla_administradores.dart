@@ -13,13 +13,39 @@ class RowTablaAdministradores extends StatelessWidget {
     required this.administradorModelo,
   });
 
-  // Método para convertir base64 a Uint8List
-  Uint8List _base64ToUint8List(String base64String) {
-    try {
-      return base64Decode(base64String);
-    } catch (e) {
-      print('Error al decodificar base64: $e');
-      return Uint8List(0); // Retorna array vacío si hay error
+  // Método para construir avatar según tipo de imagen (base64 o URL)
+  Widget _buildAvatar(String? imagen) {
+    if (imagen == null || imagen.isEmpty) {
+      return const Icon(Icons.person, color: Colors.white, size: 32);
+    } else if (imagen.startsWith('http') || imagen.startsWith('https')) {
+      // Es URL
+      return ClipOval(
+        child: Image.network(
+          imagen,
+          width: 64,
+          height: 64,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.person, color: Colors.white, size: 32);
+          },
+        ),
+      );
+    } else {
+      // Intenta decodificar Base64
+      try {
+        final bytes = base64Decode(imagen);
+        return ClipOval(
+          child: Image.memory(
+            bytes,
+            width: 64,
+            height: 64,
+            fit: BoxFit.cover,
+          ),
+        );
+      } catch (e) {
+        print('Error al decodificar base64: $e');
+        return const Icon(Icons.person, color: Colors.white, size: 32);
+      }
     }
   }
 
@@ -50,129 +76,125 @@ class RowTablaAdministradores extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: double.infinity,
-        height: 82,
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(28), topRight: Radius.circular(28)),
+      width: double.infinity,
+      height: 82,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Text(
-                    "${administradorModelo.idUsuario}",
-                    style: const TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.idUsuario}",
+                  style: const TextStyle(
+                    fontSize: 16, // Más pequeño y sin bold
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Center(
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Colors.grey[300],
+                  child: _buildAvatar(administradorModelo.imagen),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.nombre}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.telefono}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.correo ?? 'No tiene'}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.nombreSucursal}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: Text(
+                  "${administradorModelo.rol}",
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return ModalActualizarAdministrador(
+                                administradorModelo: administradorModelo);
+                          },
+                        );
+                      },
                     ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage: (administradorModelo.imagen != null &&
-                            administradorModelo.imagen!.isNotEmpty)
-                        ? MemoryImage(
-                            _base64ToUint8List(administradorModelo.imagen!))
-                        : null,
-                    child: (administradorModelo.imagen == null ||
-                            administradorModelo.imagen!.isEmpty)
-                        ? const Icon(Icons.person,
-                            color: Colors.white, size: 32)
-                        : null,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Text(
-                    "${administradorModelo.nombre}",
-                    style: const TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        eliminarAdministrador(context);
+                      },
                     ),
-                  ),
+                  ],
                 ),
               ),
-              Expanded(
-                  flex: 3,
-                  child: Center(
-                    child: Text(
-                      "${administradorModelo.telefono}",
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  )),
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Text(
-                    "${administradorModelo.correo ?? 'No tiene'}",
-                    style: const TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Text(
-                    "${administradorModelo.nombreSucursal}",
-                    style: const TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Text(
-                    "${administradorModelo.rol}",
-                    style: const TextStyle(
-                      fontSize: 16, // Más pequeño y sin bold
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return ModalActualizarAdministrador(
-                                    administradorModelo: administradorModelo);
-                              });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          eliminarAdministrador(context);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -14,9 +14,12 @@ class EliminarAdministradorController extends GetxController {
     try {
       estado.value = Estado.carga;
 
-      final sql = Sql.named('''
-        UPDATE usuarios SET statusDespedido = TRUE WHERE id_usuario = @idUsuario;
-      ''');
+    final sql = Sql.named('''
+      UPDATE usuarios 
+      SET statusDespedido = TRUE, last_modified = NOW()
+      WHERE id_usuario = @idUsuario;
+    ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'idUsuario': idUsuario,

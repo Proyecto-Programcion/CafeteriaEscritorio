@@ -30,9 +30,11 @@ class ActualizarGastoController extends GetxController {
           fechagasto = @fechaGasto,
           metodopago = @metodoPago,
           notas = @notas,
-          ubicacion = @ubicacion
+          ubicacion = @ubicacion,
+          last_modified = NOW()
         WHERE idgasto = @idGasto;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'idGasto': idGasto,

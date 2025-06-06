@@ -257,9 +257,11 @@ class RealizarVentaController extends GetxController {
         // Actualizar inventario
         final sqlInventario = Sql.named('''
           UPDATE productos 
-          SET cantidad = cantidad - @cantidad_vendida 
+          SET cantidad = cantidad - @cantidad_vendida,
+              last_modified = NOW()
           WHERE id_producto = @id_producto;
         ''');
+
 
         await Database.conn.execute(sqlInventario, parameters: {
           'cantidad_vendida': cantidad,
@@ -320,11 +322,13 @@ class RealizarVentaController extends GetxController {
         });
 
         // También actualizar el inventario del producto gratis
-        final sqlInventarioGratis = Sql.named('''
-          UPDATE productos 
-          SET cantidad = cantidad - @cantidad_vendida 
-          WHERE id_producto = @id_producto;
-        ''');
+      final sqlInventarioGratis = Sql.named('''
+        UPDATE productos 
+        SET cantidad = cantidad - @cantidad_vendida,
+            last_modified = NOW()
+        WHERE id_producto = @id_producto;
+      ''');
+
 
         await Database.conn.execute(sqlInventarioGratis, parameters: {
           'cantidad_vendida': promocionProductoGratis.cantidadProducto,

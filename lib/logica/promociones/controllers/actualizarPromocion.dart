@@ -27,9 +27,11 @@ class ActualizarPromocion extends GetxController {
             comprasNecesarias = @comprasNecesarias,
             dineroNecesario = @dineroNecesario,
             topeDescuento = @topeDescuento,
-            status = @status
+            status = @status,
+            last_modified = NOW()
         WHERE id_promocion = @idPromocion
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'nombre': nombre,

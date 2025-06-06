@@ -15,10 +15,13 @@ class AumentarStockProductoController extends GetxController {
       mensaje.value = '';
 
       final sql = Sql.named('''
-      UPDATE productos SET 
-        cantidad = cantidad + @cantidad
-      WHERE id_producto = @idProducto RETURNING cantidad;
+        UPDATE productos SET 
+          cantidad = cantidad + @cantidad,
+          last_modified = NOW()
+        WHERE id_producto = @idProducto
+        RETURNING cantidad;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'cantidad': cantidad,

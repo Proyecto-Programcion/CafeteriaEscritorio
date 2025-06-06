@@ -16,12 +16,14 @@ class ActualizarCategoriaGastoController extends GetxController {
     try {
       estado.value = Estado.carga;
 
-      final sql = Sql.named('''
-        UPDATE categoriaControlGastos
-        SET nombre = @nombre,
-            descripcion = @descripcion
-        WHERE idcategoria = @idcategoria;
-      ''');
+    final sql = Sql.named('''
+      UPDATE categoriaControlGastos
+      SET nombre = @nombre,
+          descripcion = @descripcion,
+          last_modified = NOW()
+      WHERE idcategoria = @idcategoria;
+    ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'idcategoria': idCategoria,

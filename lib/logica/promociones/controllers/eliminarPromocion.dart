@@ -16,9 +16,11 @@ class EliminarPromocionController extends GetxController {
       // Usa Sql.named para soportar parámetros nombrados
       final sql = Sql.named('''
         UPDATE promocion
-        SET eliminado = TRUE
+        SET eliminado = TRUE,
+            last_modified = NOW()
         WHERE id_promocion = @idPromocion
       ''');
+
 
       await Database.conn.execute(
         sql,

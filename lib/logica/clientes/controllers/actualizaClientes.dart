@@ -15,9 +15,11 @@ class EditarClienteController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         UPDATE clientes
-        SET nombre = @nombre
-        WHERE id_cliente = @id_cliente
+        SET nombre = @nombre,
+            last_modified = NOW()
+        WHERE id_cliente = @id_cliente;
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'nombre': nuevoNombre,

@@ -27,9 +27,11 @@ class ActualizarPromocionProductoGratisController extends GetxController {
             compras_necesarias = @comprasNecesarias,
             dinero_necesario = @dineroNecesario,
             status = @status,
-            cantidad_producto = @cantidadProducto
+            cantidad_producto = @cantidadProducto,
+            last_modified = NOW()
         WHERE id_promocion_productos_gratis = @idPromocion
       ''');
+
 
       await Database.conn.execute(sql, parameters: {
         'nombre': nombre,

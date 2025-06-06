@@ -18,7 +18,8 @@ class EliminarProductoController extends GetxController {
       final sql = Sql.named('''
         UPDATE productos
         SET eliminado = true,
-            codigo_de_barras = NULL
+            codigo_de_barras = NULL,
+            last_modified = NOW()
         WHERE id_producto = @id_producto;
       ''');
 
