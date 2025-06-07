@@ -2,43 +2,9 @@ import 'package:postgres/postgres.dart';
 
 class Database {
   static late final Connection conn;
-  static late final Connection connLocal;
-  static late final Connection connNube;
 
-
-
-    static Future<void> inicializarConexionLocal() async {
+  static Future<void> connect() async {
     conn = await Connection.open(
-      Endpoint(
-        host: 'localhost',
-        port: 5432,
-        database: 'cafe',
-        username: 'luis',
-        password: '13960',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    print('✅ Conexión principal establecida con PostgreSQL LOCAL.');
-  }
-
-  static Future<void> crearTablasEnAmbas() async {
-    // LOCAL
-    final connLocal = await Connection.open(
-      Endpoint(
-        host: 'localhost',
-        port: 5432,
-        database: 'cafe',
-        username: 'luis',
-        password: '13960',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    print('✅ Conexión (temporal) establecida con PostgreSQL LOCAL para creación de tablas.');
-    await _crearTablasSiNoExisten(connLocal);
-    await connLocal.close();
-
-    // NUBE
-    final connNube = await Connection.open(
       Endpoint(
         host: '168.231.69.196',
         port: 5432,
@@ -48,13 +14,12 @@ class Database {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-    print('✅ Conexión (temporal) establecida con PostgreSQL NUBE para creación de tablas.');
-    await _crearTablasSiNoExisten(connNube);
-    await connNube.close();
+    print('✅ Conexión establecida con PostgreSQL.');
+    await _crearTablasSiNoExisten();
   }
   
 
-  static Future<void> _crearTablasSiNoExisten(Connection conn) async {
+  static Future<void> _crearTablasSiNoExisten() async {
     try {
       // Ejecutar cada sentencia SQL por separado
       final statements = [

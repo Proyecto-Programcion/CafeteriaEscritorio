@@ -55,11 +55,11 @@ Future<void> main() async {
     });
   }
 
+  // Conexión a la base de datos
   try {
-    await Database.inicializarConexionLocal();
-    await Database.crearTablasEnAmbas();
+    await Database.connect();
   } catch (e) {
-    print('Error al conectar o crear tablas en las bases de datos: $e');
+    print('Error al conectar a la base de datos: $e');
   }
 
   runApp(const MyApp());
