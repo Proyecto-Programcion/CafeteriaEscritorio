@@ -28,7 +28,6 @@ class AgregarAdministradorController extends GetxController {
         File imageFile = File(urlImagen);
         List<int> imageBytes = await imageFile.readAsBytes();
         imagenBase64 = base64Encode(imageBytes);
-        print('Imagen convertida a Base64');
       }
 
       final sql = Sql.named('''

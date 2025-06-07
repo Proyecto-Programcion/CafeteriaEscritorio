@@ -45,7 +45,6 @@ class ObtenerPromocionesProductosGratisController extends GetxController {
           map[columns[i].columnName ?? ''] = row[i];
         }
         // Puedes quitar el print si ya no necesitas debug
-        print('PROMO FETCH PROMOCIONES PRODUCTOS GRATIS: $map');
         return PromocionProductoGratiConNombreDelProductosModelo.fromMap(map);
       }).toList();
 

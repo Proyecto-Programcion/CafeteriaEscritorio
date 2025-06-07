@@ -26,7 +26,11 @@ class AdminImpresora {
     double? promocionDescuento,
   }) async {
     String nombreArchivo = 'ticket_temp.txt';
-
+    print('Imprimiendo ticket en $puerto');
+    print('Total venta: \$${totalVenta.toStringAsFixed(2)}');
+    print('Descuento: \$${descuento?.toStringAsFixed(2) ?? '0.00'}');
+    print('Promocion descuento: \$${promocionDescuento?.toStringAsFixed(2) ?? '0.00'}');
+    print('Carrito: ${carrito.length} productos');
     try {
       final tempDir = Directory.systemTemp;
       final file = await File('${tempDir.path}/$nombreArchivo').create();
@@ -99,19 +103,14 @@ TOTAL A PAGAR:         \$${totalFinal.toStringAsFixed(2)}
 
       await file.writeAsString(textoLimpio, encoding: utf8);
 
-      print('Ruta del archivo: ${file.path}');
-      print('Productos en carrito: ${carrito.length}');
+
       
-      // Debug: Mostrar productos
-      for (var item in carrito) {
-        print('Producto: ${item.producto.nombre}, Cantidad: ${item.cantidad}');
-      }
+
 
       final rutaArchivo = file.path.replaceAll('/', '\\');
       final nombreCompartido = r'\\localhost\printtest';
 
-      print('Ruta formateada: $rutaArchivo');
-      print('Destino: $nombreCompartido');
+
 
       final result = await Process.run(
         'cmd',
@@ -119,13 +118,9 @@ TOTAL A PAGAR:         \$${totalFinal.toStringAsFixed(2)}
         runInShell: true,
       );
 
-      print('Exit code: ${result.exitCode}');
-      print('Stdout: ${result.stdout}');
       if (result.stderr.isNotEmpty) {
-        print('Stderr: ${result.stderr}');
       }
 
-      await Future.delayed(Duration(seconds: 5)); // Reducido a 5 segundos para debug
       await file.delete();
       print('Archivo eliminado');
     } catch (e) {

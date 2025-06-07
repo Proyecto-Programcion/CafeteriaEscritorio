@@ -10,7 +10,6 @@ class EliminarClienteController extends GetxController {
   Future<void> eliminarCliente({
     required int idCliente,
   }) async {
-    print('[EliminarClienteController] Eliminando id: $idCliente');
     try {
       estado.value = Estado.carga;
       final sql = Sql.named('''
@@ -21,7 +20,6 @@ class EliminarClienteController extends GetxController {
       final result = await Database.conn.execute(sql, parameters: {
         'id_cliente': idCliente,
       });
-      print('[EliminarClienteController] Resultado: $result');
 
       estado.value = Estado.exito;
       mensaje.value = 'Cliente eliminado correctamente.';

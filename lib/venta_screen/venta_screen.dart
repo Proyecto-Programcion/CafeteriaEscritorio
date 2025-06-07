@@ -117,6 +117,12 @@ class _VentaScreenState extends State<VentaScreen> {
       double descuentoPromocion) async {
     realizarVentaController.sincronizarCarrito(carrito);
     print('el descuento promocion es: $descuentoPromocion');
+    
+    // GUARDAR LOS DATOS ANTES DE LA VENTA (por si se limpian después)
+    final carritoParaImprimir = List<ProductoCarrito>.from(carrito);
+    final totalVentaParaImprimir = totalVenta;
+    final totalDescuentoParaImprimir = totalDescuento;
+    
     final exito = await realizarVentaController.realizarVenta(
       idCliente: idCliente,
       idPromocion: idPromocion,
@@ -126,75 +132,7 @@ class _VentaScreenState extends State<VentaScreen> {
     );
 
     if (exito) {
-      // MOSTRAR MODAL DE CONFIRMACIÓN PARA IMPRIMIR
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false, // No se puede cerrar tocando fuera
-          builder: (BuildContext context) {
-            return ModalConfirmarImpresion(
-              totalVenta: totalVenta,
-              descuento: totalDescuento,
-              onConfirmar: () async {
-                Navigator.of(context).pop(); // Cerrar modal
-                
-                // QUITAR INDICADOR DE CARGA - Imprimir directamente
-                try {
-                  // IMPRIMIR TICKET SIN INDICADOR DE CARGA
-                  await AdminImpresora.imprimirTicket(
-                    carrito: carrito,
-                    totalVenta: totalVenta,
-                    descuento: totalDescuento,
-                    promocionDescuento: descuentoPromocion,
-                  );
-                  
-                  // Mostrar mensaje de éxito de impresión
-                  if (mounted) {
-                    Get.snackbar(
-                      '¡Ticket impreso!',
-                      'El ticket se ha enviado a la impresora',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.blue.withOpacity(0.8),
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(8),
-                      duration: const Duration(seconds: 2),
-                    );
-                  }
-                } catch (e) {
-                  // Mostrar error de impresión
-                  if (mounted) {
-                    Get.snackbar(
-                      'Error de impresión',
-                      'No se pudo imprimir el ticket: $e',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.orange.withOpacity(0.8),
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(8),
-                    );
-                  }
-                }
-              },
-              onCancelar: () {
-                Navigator.of(context).pop(); // Solo cerrar modal
-                
-                // Mostrar mensaje de que no se imprimió
-                if (mounted) {
-                  Get.snackbar(
-                    'Venta completada',
-                    'La venta se guardó sin imprimir ticket',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.orange.withOpacity(0.8),
-                    colorText: Colors.white,
-                    margin: const EdgeInsets.all(8),
-                  );
-                }
-              },
-            );
-          },
-        );
-      }
-
-      // LIMPIAR CARRITO (esto se hace independientemente de si se imprime o no)
+      // LIMPIAR CARRITO PRIMERO (para que la UI se actualice)
       if (mounted) {
         setState(() {
           carrito.clear();
@@ -206,7 +144,7 @@ class _VentaScreenState extends State<VentaScreen> {
         });
       }
 
-      // Mostrar mensaje de éxito de venta
+      // MOSTRAR MENSAJE DE ÉXITO
       if (mounted) {
         Get.snackbar(
           '¡Venta exitosa!',
@@ -215,6 +153,83 @@ class _VentaScreenState extends State<VentaScreen> {
           backgroundColor: Colors.green.withOpacity(0.8),
           colorText: Colors.white,
           margin: const EdgeInsets.all(8),
+        );
+      }
+
+      // AHORA MOSTRAR MODAL DE IMPRESIÓN CON LOS DATOS GUARDADOS
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.print, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text('Imprimir Ticket'),
+                ],
+              ),
+              content: const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('¿Deseas imprimir el ticket de la venta?'),
+                  SizedBox(height: 16),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('No Imprimir'),
+                ),
+                TextButton(
+                   child: Text('Imprimir'),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    
+                    try {
+                      // USAR LOS DATOS GUARDADOS PARA IMPRIMIR
+                      await AdminImpresora.imprimirTicket(
+                        carrito: carritoParaImprimir, // Usar la copia guardada
+                        totalVenta: totalVentaParaImprimir, // Usar el total guardado
+                        descuento: totalDescuentoParaImprimir, // Usar el descuento guardado
+                        promocionDescuento: descuentoPromocion,
+                      );
+                      
+                      if (mounted) {
+                        Get.snackbar(
+                          'Impresión enviada',
+                          'El ticket se ha enviado a la impresora',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.blue.withOpacity(0.8),
+                          colorText: Colors.white,
+                          margin: const EdgeInsets.all(8),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        Get.snackbar(
+                          'Error de impresión',
+                          'No se pudo imprimir: $e',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.orange.withOpacity(0.8),
+                          colorText: Colors.white,
+                          margin: const EdgeInsets.all(8),
+                        );
+                      }
+                    }
+                  },
+                 
+                ),
+              ],
+            );
+          },
         );
       }
 
@@ -274,11 +289,8 @@ class _VentaScreenState extends State<VentaScreen> {
                       const Spacer(),
                       // SIMPLIFICADO: Solo un botón para opciones de impresión
                       IconButton(
-                        onPressed: () {
-                        
-                        },
+                        onPressed: () {},
                         icon: Icon(Icons.print),
-                      
                         iconSize: 30,
                         color: const Color.fromARGB(255, 153, 103, 8),
                       ),
@@ -287,7 +299,8 @@ class _VentaScreenState extends State<VentaScreen> {
                   // SIMPLIFICADO: Mostrar estado de la impresora
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text( '',
+                    child: Text(
+                      '',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -447,6 +460,7 @@ class _VentaScreenState extends State<VentaScreen> {
                                             promocionProductoGratis,
                                             descuentoPromocion) async {
                                           // Actualizar firma
+
                                           await realizarVenta(
                                               usuario?.idCliente,
                                               idPromocion,
