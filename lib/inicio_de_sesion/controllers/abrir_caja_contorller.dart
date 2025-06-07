@@ -62,7 +62,6 @@ class AgregarTurnoCajaController extends GetxController {
         SET monto_final = @monto_final,
             fecha_fin = @fecha_fin,
             activo = FALSE,
-            last_modified = NOW()
         WHERE id = @id_turno
       ''');
 

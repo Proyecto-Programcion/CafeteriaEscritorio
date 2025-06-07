@@ -15,8 +15,7 @@ class EliminarCategoriaController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         UPDATE categorias 
-        SET eliminado = TRUE, 
-            last_modified = NOW()
+        SET eliminado = TRUE
         WHERE id_categoria = @idCategoria;
       ''');
 

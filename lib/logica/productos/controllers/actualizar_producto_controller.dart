@@ -52,8 +52,7 @@ class ActualizarProductoController extends GetxController {
           eliminado = @eliminado,
           descripcion = @descripcion,
           unidad_medida = @unidad_medida,
-          descuento = @descuento,
-          last_modified = NOW()
+          descuento = @descuento
         WHERE id_producto = @id_producto;
       ''');
 

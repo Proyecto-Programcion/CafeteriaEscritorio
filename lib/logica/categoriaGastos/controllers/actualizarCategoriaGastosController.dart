@@ -19,8 +19,7 @@ class ActualizarCategoriaGastoController extends GetxController {
     final sql = Sql.named('''
       UPDATE categoriaControlGastos
       SET nombre = @nombre,
-          descripcion = @descripcion,
-          last_modified = NOW()
+          descripcion = @descripcion
       WHERE idcategoria = @idcategoria;
     ''');
 
