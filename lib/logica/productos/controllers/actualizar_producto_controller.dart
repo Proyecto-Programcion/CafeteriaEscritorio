@@ -76,7 +76,7 @@ class ActualizarProductoController extends GetxController {
       if (cantidad != cantidad_anterior) {
         final cantidadMovimiento = cantidad - cantidad_anterior;
         final sqlControlStock = Sql.named('''
-        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario) 
+        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario, fecha) 
         VALUES (
           @idProducto, 
           @cantidad_antes,
@@ -84,7 +84,8 @@ class ActualizarProductoController extends GetxController {
           @cantidad_despues,
           (SELECT unidad_medida FROM productos WHERE id_producto = @idProducto),
           @categoria,
-          @idUsuario
+          @idUsuario,
+          @fecha
         );
         ''');
 
@@ -95,6 +96,7 @@ class ActualizarProductoController extends GetxController {
           'cantidad_despues': cantidad,
           'categoria': 'actualizado',
           'idUsuario': SesionActiva().idUsuario,
+          'fecha': DateTime.now().toIso8601String(),
         });
         
       }

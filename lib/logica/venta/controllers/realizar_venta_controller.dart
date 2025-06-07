@@ -269,7 +269,7 @@ class RealizarVentaController extends GetxController {
 
         //Registrar movimientos de stock en controlStock
         final sqlControlStock = Sql.named('''
-        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario) 
+        INSERT INTO controlStock (id_producto, cantidad_antes, cantidad_movimiento, cantidad_despues, unidad_medida, categoria, id_usuario, fecha) 
         VALUES (
           @idProducto, 
           @cantidad_antes,
@@ -277,7 +277,8 @@ class RealizarVentaController extends GetxController {
           @cantidad_despues,
           (SELECT unidad_medida FROM productos WHERE id_producto = @idProducto),
           @categoria,
-          @idUsuario
+          @idUsuario,
+          @fecha
         );
         ''');
 
@@ -288,6 +289,7 @@ class RealizarVentaController extends GetxController {
           'cantidad_despues': producto.cantidad - cantidad,
           'categoria': 'vendido',
           'idUsuario': SesionActiva().idUsuario,
+          'fecha': DateTime.now().toIso8601String(),
         });
       }
 

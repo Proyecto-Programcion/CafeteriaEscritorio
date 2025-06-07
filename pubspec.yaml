@@ -38,7 +38,7 @@ dependencies:
   fl_chart: ^0.68.0
   cupertino_icons: ^1.0.8
   file_selector: ^1.0.3
-  intl: ^0.19.0  # Cambiar de ^0.20.2 a ^0.19.0
+  intl: ^0.20.2  # Cambiar de ^0.20.2 a ^0.19.0
   win32: ^5.0.0  # Para Windows
   charset_converter: ^2.1.1
 
