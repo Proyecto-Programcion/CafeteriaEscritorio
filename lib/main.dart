@@ -14,6 +14,7 @@ import 'package:cafe/promociones/promocionesScreeen.dart';
 import 'package:cafe/turnoCaja/detalles_turno_caja_screen.dart';
 import 'package:cafe/turnoCaja/turno_caja_screen.dart';
 import 'package:cafe/usuarios/clientesScreen.dart';
+import 'package:cafe/venta_screen/metodos_impresora.dart';
 import 'package:cafe/venta_screen/venta_screen.dart';
 import 'package:cafe/venta_screen/ver_ventas_screen.dart';
 import 'package:flutter/material.dart';

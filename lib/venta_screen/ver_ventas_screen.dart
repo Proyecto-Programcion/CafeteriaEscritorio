@@ -75,6 +75,7 @@ class _VerVentasScreenState extends State<VerVentasScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          
 
           // Barra de búsqueda
           Row(

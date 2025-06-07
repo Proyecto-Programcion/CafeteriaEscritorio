@@ -40,7 +40,7 @@ dependencies:
   file_selector: ^1.0.3
   intl: ^0.19.0  # Cambiar de ^0.20.2 a ^0.19.0
   win32: ^5.0.0  # Para Windows
-  intl: ^0.20.2  # Cambiar de ^0.20.2 a ^0.19.0
+  charset_converter: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +72,7 @@ flutter:
     - assets/images/ingresos.png
     - assets/images/productos.png
     - assets/images/ventas.png
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -1,7 +1,6 @@
 // En venta_screen.dart (actualizado)
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
@@ -12,8 +11,9 @@ import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
 import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
-
+import 'package:cafe/venta_screen/metodos_impresora.dart'; // NUEVO IMPORT
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class VentaScreen extends StatefulWidget {
@@ -25,10 +25,6 @@ class VentaScreen extends StatefulWidget {
 
 class _VentaScreenState extends State<VentaScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
-  // Para impresora Serial/USB
-  List<String> _availablePrinters = [];
-  String? _selectedPrinter;
 
   // Controladores GetX
   final RealizarVentaController realizarVentaController =
@@ -50,81 +46,8 @@ class _VentaScreenState extends State<VentaScreen> {
     super.initState();
     cargarProductos();
     _searchController.addListener(_onSearchChanged);
-    _buscarImpresoras();
+    // YA NO NECESITAMOS _verificarImpresoraWindows() aquí porque se hace en el singleton
   }
-
-  // Buscar impresoras disponibles en el sistema
-  Future<void> _buscarImpresoras() async {
-    try {
-      if (Platform.isWindows) {
-        // En Windows, buscar impresoras instaladas
-        final result = await Process.run('wmic', ['printer', 'get', 'name']);
-        final lines = result.stdout.toString().split('\n');
-        
-        setState(() {
-          _availablePrinters = lines
-              .where((line) => line.trim().isNotEmpty && !line.contains('Name'))
-              .map((line) => line.trim())
-              .where((name) => name.isNotEmpty)
-              .toList();
-        });
-      } else {
-        // Para Linux/Mac, diferentes comandos
-        setState(() {
-          _availablePrinters = ['Impresora predeterminada'];
-        });
-      }
-    } catch (e) {
-      print('Error buscando impresoras: $e');
-      setState(() {
-        _availablePrinters = ['Impresora predeterminada'];
-      });
-    }
-  }
-
-  // Mostrar modal para seleccionar impresora
-  Future<void> _mostrarSelectorImpresora() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Seleccionar Impresora'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Selecciona una impresora:'),
-            const SizedBox(height: 16),
-            if (_availablePrinters.isEmpty)
-              const Text('No se encontraron impresoras')
-            else
-              ...(_availablePrinters.map((printer) => ListTile(
-                    title: Text(printer),
-                    leading: Radio<String>(
-                      value: printer,
-                      groupValue: _selectedPrinter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedPrinter = value;
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ))),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: _buscarImpresoras,
-            child: const Text('Buscar de nuevo'),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   @override
   void dispose() {
@@ -184,7 +107,6 @@ class _VentaScreenState extends State<VentaScreen> {
     );
   }
 
-  // Método para realizar la venta - MODIFICADO para incluir impresión
   Future<void> realizarVenta(
       int? idCliente,
       int? idPromocion,
@@ -192,9 +114,8 @@ class _VentaScreenState extends State<VentaScreen> {
       PromocionProductoGratiConNombreDelProductosModelo?
           promocionProductoGratis,
       double descuentoPromocion) async {
-
     realizarVentaController.sincronizarCarrito(carrito);
-
+    print('el descuento promocion es: $descuentoPromocion');
     final exito = await realizarVentaController.realizarVenta(
       idCliente: idCliente,
       idPromocion: idPromocion,
@@ -204,30 +125,16 @@ class _VentaScreenState extends State<VentaScreen> {
     );
 
     if (exito) {
-      // NUEVO: Preguntar si desea imprimir el ticket
-      final bool? imprimirTicket = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Venta exitosa'),
-          content: const Text('¿Deseas imprimir el ticket?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Sí, imprimir'),
-            ),
-          ],
-        ),
+      // ESPERAR a que termine la impresión ANTES de limpiar el carrito
+      await AdminImpresora.imprimirTicket(
+        carrito: carrito,
+        totalVenta: totalVenta,
+        descuento: totalDescuento,
+        promocionDescuento: descuentoPromocion,
       );
+     
 
-      if (imprimirTicket == true) {
-        
-      }
-
-      // Limpiar el carrito local
+      // AHORA sí limpiar el carrito
       if (mounted) {
         setState(() {
           carrito.clear();
@@ -305,33 +212,33 @@ class _VentaScreenState extends State<VentaScreen> {
                         ),
                       ),
                       const Spacer(),
-                      // NUEVO: Botón para configurar impresora
+                      // SIMPLIFICADO: Solo un botón para opciones de impresión
                       IconButton(
-                        onPressed: _mostrarSelectorImpresora,
-                        icon: const Icon(Icons.print),
-                        tooltip: 'Configurar impresora',
+                        onPressed: () {
+                        
+                        },
+                        icon: Icon(Icons.print),
+                      
                         iconSize: 30,
                         color: const Color.fromARGB(255, 153, 103, 8),
                       ),
                     ],
                   ),
-                  if (_selectedPrinter != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Impresora: $_selectedPrinter',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.green,
-                          fontWeight: FontWeight.w500,
-                        ),
+                  // SIMPLIFICADO: Mostrar estado de la impresora
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text( '',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
+                  ),
                   const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: const Text(
-                      'Buscar articulo por nombre nombre o codigo de barras:',
+                  const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      'Buscar articulo por nombre o codigo de barras:',
                       style: TextStyle(
                         fontSize: 19,
                         color: Color.fromARGB(255, 153, 103, 8),
@@ -371,7 +278,7 @@ class _VentaScreenState extends State<VentaScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  /// PARTE DE lISTAR PRODUCTOS SELECCIONADOS
+                  /// PARTE DE LISTAR PRODUCTOS SELECCIONADOS
                   Expanded(
                     child: Builder(
                       builder: (context) {

@@ -14,7 +14,7 @@ class Database {
         port: 5432,
         database: 'cafe',
         username: 'postgres',
-        password: '13960',
+        password: '211099',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -29,37 +29,7 @@ class Database {
         port: 5432,
         database: 'cafe',
         username: 'postgres',
-        password: '13960',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    print('✅ Conexión (temporal) establecida con PostgreSQL LOCAL para creación de tablas.');
-    await _crearTablasSiNoExisten(connLocal);
-    await connLocal.close();
-
-    // NUBE
-    final connNube = await Connection.open(
-      Endpoint(
-        host: 'localhost',
-        port: 5432,
-        database: 'cafe',
-        username: 'postgres',
-        password: '13960',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    print('✅ Conexión principal establecida con PostgreSQL LOCAL.');
-  }
-
-  static Future<void> crearTablasEnAmbas() async {
-    // LOCAL
-    final connLocal = await Connection.open(
-      Endpoint(
-        host: 'localhost',
-        port: 5432,
-        database: 'cafe',
-        username: 'postgres',
-        password: '13960',
+        password: '211099',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -74,7 +44,7 @@ class Database {
         port: 5432,
         database: 'cafe',
         username: 'postgres',
-        password: '211099',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
