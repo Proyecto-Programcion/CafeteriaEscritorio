@@ -27,8 +27,8 @@ class ObtenerTurnosCajaController extends GetxController {
         tc.activo,
         COALESCE(COUNT(v.id_venta), 0) AS total_ventas,
         COALESCE(SUM(v.precio_total), 0) AS total_ingresos,
-        COALESCE(SUM(v.precio_descuento + v.descuento_aplicado), 0) AS total_descuentos_completos,
-        COALESCE(SUM(v.precio_total) - SUM(v.precio_descuento + v.descuento_aplicado), 0) AS total_con_descuento
+        COALESCE(SUM(v.descuento_aplicado), 0) AS total_descuentos_completos,
+        COALESCE(SUM(v.precio_descuento),0) AS total_con_descuento
         FROM turnos_caja tc
         INNER JOIN usuarios u ON tc.id_usuario = u.id_usuario
         LEFT JOIN ventas v ON tc.id = v.id_turno_caja AND v.status_compra = TRUE
@@ -48,8 +48,7 @@ class ObtenerTurnosCajaController extends GetxController {
       final resp = await Database.conn.execute(sql);
       resp
           .map((item) => {
-
-            print(item),
+                print(item),
                 turnosCaja.add(TurnoCajaModelo(
                   idTurnoCaja: item[0] as int,
                   idUsuario: item[1] as int,
@@ -57,9 +56,10 @@ class ObtenerTurnosCajaController extends GetxController {
                   fechaInicio: item[3].toString(),
                   fechaFin: item[4]?.toString(),
                   montoApertura: double.parse(item[5].toString()),
-                   montoCierre: item[6] != null ? double.parse(item[6].toString()) : 0.0,
+                  montoCierre:
+                      item[6] != null ? double.parse(item[6].toString()) : 0.0,
                   estado: item[7] as bool ? 'Activo' : 'Inactivo',
-                  numeroVentas: int.parse(item[8].toString()) ,
+                  numeroVentas: int.parse(item[8].toString()),
                   totalVentas: double.parse(item[9].toString()),
                   descuentoAplicado: double.parse(item[10].toString()),
                   totalVentasConDescuento: double.parse(item[11].toString()),
