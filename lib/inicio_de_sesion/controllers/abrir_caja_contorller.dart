@@ -39,11 +39,9 @@ class AgregarTurnoCajaController extends GetxController {
       });
 
       estado.value = Estado.exito;
-      print('Turno de caja agregado exitosamente: $resp');
       SesionActiva().idTurnoCaja = int.parse(resp.first[0].toString());
       return true;
     } catch (e) {
-      print('Error al agregar turno de caja: $e');
       estado.value = Estado.error;
       mensajeError.value = 'Error al agregar turno de caja: $e';
       return false;

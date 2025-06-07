@@ -27,11 +27,7 @@ class ObtenerCategoriasGastosController extends GetxController {
       ''');
 
       final resp = await Database.conn.execute(sql);
-      print("RESP: $resp");
-      print("COLUMNS: ${resp.schema?.columns.map((c) => c.columnName)}");
-      for (var row in resp) {
-        print("ROW: $row");
-      }
+    
 
       final columns = resp.schema?.columns.map((c) => c).toList() ?? [];
       listaCategorias.value = resp.map((row) {
@@ -39,14 +35,11 @@ class ObtenerCategoriasGastosController extends GetxController {
         for (var i = 0; i < columns.length; i++) {
           map[columns[i].columnName ?? ''] = row[i];
         }
-        print("MAP: $map");
         return CategoriaControlGastosModelo.fromMap(map);
       }).toList();
 
-      print('CATEGORIAS OBTENIDAS: ${listaCategorias.length}');
       estado.value = Estado.exito;
     } catch (e) {
-      print('Error al obtener categorías: $e');
       estado.value = Estado.error;
       mensaje.value = 'Error al obtener categorías: $e';
     }

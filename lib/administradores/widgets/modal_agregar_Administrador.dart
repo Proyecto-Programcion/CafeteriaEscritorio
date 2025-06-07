@@ -71,22 +71,6 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
           rol: tipoAdminController.text
           );
 
-      if (resp) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Administrador agregado con éxito'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al agregar el administrador'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -107,8 +91,8 @@ class _ModalAgregarAdministradorState extends State<ModalAgregarAdministrador> {
       backgroundColor: Colors.transparent,
       content: Container(
         padding: const EdgeInsets.all(20),
-        width: 800,
-        height: 580,
+        width: 840,
+        height: 650,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 255, 255, 255),
           borderRadius: BorderRadius.circular(20),
