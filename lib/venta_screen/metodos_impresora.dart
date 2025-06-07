@@ -26,19 +26,25 @@ class AdminImpresora {
     double? promocionDescuento,
   }) async {
     String nombreArchivo = 'ticket_temp.txt';
-    print('Imprimiendo ticket en $puerto');
-    print('Total venta: \$${totalVenta.toStringAsFixed(2)}');
-    print('Descuento: \$${descuento?.toStringAsFixed(2) ?? '0.00'}');
-    print('Promocion descuento: \$${promocionDescuento?.toStringAsFixed(2) ?? '0.00'}');
-    print('Carrito: ${carrito.length} productos');
+    
     try {
       final tempDir = Directory.systemTemp;
       final file = await File('${tempDir.path}/$nombreArchivo').create();
 
       // Calcular totales
       double subtotal = carrito.fold(0.0, (suma, item) => suma + (item.producto.precio * item.cantidad));
-      double descuentoTotal = carrito.fold(0.0, (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad)) - (promocionDescuento ?? 0);
-      double totalFinal = (subtotal - descuentoTotal);
+      
+      // Descuentos individuales por producto (ya vienen como positivos)
+      double descuentosProductos = carrito.fold(0.0, (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad));
+      
+      // Promoción (viene positiva, la convertimos a negativa para el cálculo)
+      double promocionAplicada = promocionDescuento ?? 0;
+      
+      // Total de descuentos (ambos como positivos para mostrar)
+      double totalDescuentos = descuentosProductos + promocionAplicada;
+      
+      // Cálculo final: subtotal menos todos los descuentos
+      double totalFinal = subtotal - totalDescuentos;
 
       // Ticket usando los productos REALES del carrito
       String ticketPrueba = '''
@@ -71,8 +77,8 @@ ${carrito.map((producto) {
 
 ================================
 Subtotal:              \$${subtotal.toStringAsFixed(2)}
-Descuento total:       \$${descuentoTotal.toStringAsFixed(2)}
-Promocion:          \$${promocionDescuento?.toStringAsFixed(2) ?? '0.00'}
+Descuento productos:   -\$${descuentosProductos.toStringAsFixed(2)}
+Promocion aplicada:    -\$${promocionAplicada.toStringAsFixed(2)}
 ================================
 TOTAL A PAGAR:         \$${totalFinal.toStringAsFixed(2)}
 ================================
