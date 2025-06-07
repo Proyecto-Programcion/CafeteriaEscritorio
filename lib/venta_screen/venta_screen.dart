@@ -12,6 +12,7 @@ import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
 import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
 import 'package:cafe/venta_screen/metodos_impresora.dart'; // NUEVO IMPORT
+import 'package:cafe/venta_screen/widgets/modal_confirmar_impresion.dart'; // AGREGAR ESTE IMPORT
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -125,16 +126,75 @@ class _VentaScreenState extends State<VentaScreen> {
     );
 
     if (exito) {
-      // ESPERAR a que termine la impresión ANTES de limpiar el carrito
-      await AdminImpresora.imprimirTicket(
-        carrito: carrito,
-        totalVenta: totalVenta,
-        descuento: totalDescuento,
-        promocionDescuento: descuentoPromocion,
-      );
-     
+      // MOSTRAR MODAL DE CONFIRMACIÓN PARA IMPRIMIR
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false, // No se puede cerrar tocando fuera
+          builder: (BuildContext context) {
+            return ModalConfirmarImpresion(
+              totalVenta: totalVenta,
+              descuento: totalDescuento,
+              onConfirmar: () async {
+                Navigator.of(context).pop(); // Cerrar modal
+                
+                // QUITAR INDICADOR DE CARGA - Imprimir directamente
+                try {
+                  // IMPRIMIR TICKET SIN INDICADOR DE CARGA
+                  await AdminImpresora.imprimirTicket(
+                    carrito: carrito,
+                    totalVenta: totalVenta,
+                    descuento: totalDescuento,
+                    promocionDescuento: descuentoPromocion,
+                  );
+                  
+                  // Mostrar mensaje de éxito de impresión
+                  if (mounted) {
+                    Get.snackbar(
+                      '¡Ticket impreso!',
+                      'El ticket se ha enviado a la impresora',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.blue.withOpacity(0.8),
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(8),
+                      duration: const Duration(seconds: 2),
+                    );
+                  }
+                } catch (e) {
+                  // Mostrar error de impresión
+                  if (mounted) {
+                    Get.snackbar(
+                      'Error de impresión',
+                      'No se pudo imprimir el ticket: $e',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange.withOpacity(0.8),
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(8),
+                    );
+                  }
+                }
+              },
+              onCancelar: () {
+                Navigator.of(context).pop(); // Solo cerrar modal
+                
+                // Mostrar mensaje de que no se imprimió
+                if (mounted) {
+                  Get.snackbar(
+                    'Venta completada',
+                    'La venta se guardó sin imprimir ticket',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.orange.withOpacity(0.8),
+                    colorText: Colors.white,
+                    margin: const EdgeInsets.all(8),
+                  );
+                }
+              },
+            );
+          },
+        );
+      }
 
-      // AHORA sí limpiar el carrito
+      // LIMPIAR CARRITO (esto se hace independientemente de si se imprime o no)
       if (mounted) {
         setState(() {
           carrito.clear();
@@ -146,7 +206,7 @@ class _VentaScreenState extends State<VentaScreen> {
         });
       }
 
-      // Mostrar mensaje de éxito
+      // Mostrar mensaje de éxito de venta
       if (mounted) {
         Get.snackbar(
           '¡Venta exitosa!',

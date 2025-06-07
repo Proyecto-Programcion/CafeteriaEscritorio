@@ -289,8 +289,6 @@ class CabezeraMain extends StatelessWidget {
             height: 90,
             child: Row(
               children: [
-                // Botón minimizar REMOVIDO para evitar minimizar
-                // Botón fullscreen/exit solo informativo (no funcional, puedes ocultar)
                 Container(
                   width: 40,
                   height: 40,

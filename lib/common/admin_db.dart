@@ -9,11 +9,11 @@ class Database {
 
     static Future<void> inicializarConexionLocal() async {
     conn = await Connection.open(
-      Endpoint(
-        host: 'localhost',
+        Endpoint(
+        host: '168.231.69.196',
         port: 5432,
         database: 'cafe',
-        username: 'luis',
+        username: 'postgres',
         password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
@@ -24,11 +24,11 @@ class Database {
   static Future<void> crearTablasEnAmbas() async {
     // LOCAL
     final connLocal = await Connection.open(
-      Endpoint(
-        host: 'localhost',
+       Endpoint(
+        host: '168.231.69.196',
         port: 5432,
         database: 'cafe',
-        username: 'luis',
+        username: 'postgres',
         password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
