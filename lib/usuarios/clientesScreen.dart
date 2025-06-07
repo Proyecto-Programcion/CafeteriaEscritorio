@@ -1,11 +1,12 @@
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/clientes/controllers/elimnarClientes.dart';
 import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
-
 import 'package:cafe/usuarios/widgets/editarNombreCliente.dart';
 import 'package:cafe/usuarios/widgets/registerClientes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+// Enum para el orden
 
 class ClientesScreen extends StatelessWidget {
   const ClientesScreen({super.key});
@@ -102,25 +103,44 @@ class ClientesScreen extends StatelessWidget {
                         horizontal: 17, vertical: 12),
                     child: Row(
                       children: [
-                        const Text('Mostrar:', style: TextStyle(fontSize: 13)),
+                        const Text('Ordenar:', style: TextStyle(fontSize: 13)),
                         const SizedBox(width: 5),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Row(
-                            children: const [
-                              Text('45', style: TextStyle(fontSize: 13)),
-                              Icon(Icons.arrow_drop_down, size: 20),
+                        Obx(
+                          () => DropdownButton<OrdenClientes>(
+                            value: clientesController.orden.value,
+                            items: [
+                              DropdownMenuItem(
+                                value: OrdenClientes.recientes,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.arrow_upward, size: 16),
+                                    SizedBox(width: 4),
+                                    Text('Más recientes'),
+                                  ],
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: OrdenClientes.antiguos,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.arrow_downward, size: 16),
+                                    SizedBox(width: 4),
+                                    Text('Más antiguos'),
+                                  ],
+                                ),
+                              ),
                             ],
+                            onChanged: (OrdenClientes? value) async {
+                              if (value != null) {
+                                clientesController.orden.value = value;
+                                await clientesController.obtenerClientes();
+                              }
+                            },
+                            style: const TextStyle(
+                                fontSize: 13, color: Colors.black),
+                            underline: SizedBox(),
                           ),
                         ),
-                        const SizedBox(width: 5),
-                        const Text('Registros', style: TextStyle(fontSize: 13)),
                         const Spacer(),
                         const Text('Buscar:', style: TextStyle(fontSize: 13)),
                         const SizedBox(width: 5),

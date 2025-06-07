@@ -13,8 +13,8 @@ class Database {
         host: 'localhost',
         port: 5432,
         database: 'cafe',
-        username: 'postgres',
-        password: '211099',
+        username: 'luis',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
@@ -28,8 +28,8 @@ class Database {
         host: 'localhost',
         port: 5432,
         database: 'cafe',
-        username: 'postgres',
-        password: '211099',
+        username: 'luis',
+        password: '13960',
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
