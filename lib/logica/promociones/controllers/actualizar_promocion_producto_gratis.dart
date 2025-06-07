@@ -27,8 +27,7 @@ class ActualizarPromocionProductoGratisController extends GetxController {
             compras_necesarias = @comprasNecesarias,
             dinero_necesario = @dineroNecesario,
             status = @status,
-            cantidad_producto = @cantidadProducto,
-            last_modified = NOW()
+            cantidad_producto = @cantidadProducto
         WHERE id_promocion_productos_gratis = @idPromocion
       ''');
 

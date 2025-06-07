@@ -13,8 +13,7 @@ class EliminarPromocionProductosGratisController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         UPDATE promocion_producto_gratis 
-        SET eliminado = TRUE,
-            last_modified = NOW()
+        SET eliminado = TRUE
         WHERE id_promocion_productos_gratis = @idPromocion
       ''');
 

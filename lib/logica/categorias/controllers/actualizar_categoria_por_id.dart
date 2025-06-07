@@ -20,8 +20,7 @@ class ActualizarCategoriaPorId extends GetxController {
 
     final sql = Sql.named('''
       UPDATE categorias
-      SET nombre = @nombre,
-          last_modified = NOW()
+      SET nombre = @nombre
       WHERE id_categoria = @id_categoria;
     ''');
 

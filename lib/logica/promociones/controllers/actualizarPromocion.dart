@@ -27,8 +27,7 @@ class ActualizarPromocion extends GetxController {
             comprasNecesarias = @comprasNecesarias,
             dineroNecesario = @dineroNecesario,
             topeDescuento = @topeDescuento,
-            status = @status,
-            last_modified = NOW()
+            status = @status
         WHERE id_promocion = @idPromocion
       ''');
 

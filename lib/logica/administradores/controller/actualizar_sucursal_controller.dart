@@ -15,8 +15,7 @@ class ActualizarSucursalController extends GetxController {
       final sql = Sql.named('''
         UPDATE sucursales
         SET nombre = @nombre,
-            direccion = @direccion,
-            last_modified = NOW()
+            direccion = @direccion
         WHERE id_sucursal = @idSucursal;
       ''');
 

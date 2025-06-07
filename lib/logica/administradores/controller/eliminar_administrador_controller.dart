@@ -16,7 +16,7 @@ class EliminarAdministradorController extends GetxController {
 
     final sql = Sql.named('''
       UPDATE usuarios 
-      SET statusDespedido = TRUE, last_modified = NOW()
+      SET statusDespedido = TRUE
       WHERE id_usuario = @idUsuario;
     ''');
 

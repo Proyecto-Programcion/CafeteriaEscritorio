@@ -15,8 +15,7 @@ class EditarClienteController extends GetxController {
       estado.value = Estado.carga;
       final sql = Sql.named('''
         UPDATE clientes
-        SET nombre = @nombre,
-            last_modified = NOW()
+        SET nombre = @nombre
         WHERE id_cliente = @id_cliente;
       ''');
 

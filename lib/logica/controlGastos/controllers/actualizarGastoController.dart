@@ -30,8 +30,7 @@ class ActualizarGastoController extends GetxController {
           fechagasto = @fechaGasto,
           metodopago = @metodoPago,
           notas = @notas,
-          ubicacion = @ubicacion,
-          last_modified = NOW()
+          ubicacion = @ubicacion
         WHERE idgasto = @idGasto;
       ''');
 

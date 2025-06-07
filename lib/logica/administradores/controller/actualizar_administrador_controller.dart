@@ -41,8 +41,7 @@ class ActualizarAdministradorController extends GetxController {
               telefono = @telefono,
               contrasena = @contrasena,
               imagen = @imagen,
-              idSucursal = @idSucursal,
-              last_modified = NOW()
+              idSucursal = @idSucursal
           WHERE id_usuario = @idusuario;
         ''');
 
@@ -64,8 +63,7 @@ class ActualizarAdministradorController extends GetxController {
               correo = @correo,
               telefono = @telefono,
               contrasena = @contrasena,
-              idSucursal = @idSucursal,
-              last_modified = NOW()
+              idSucursal = @idSucursal
           WHERE id_usuario = @idusuario;
         ''');
 

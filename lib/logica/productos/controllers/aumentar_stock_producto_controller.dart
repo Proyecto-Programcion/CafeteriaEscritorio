@@ -16,8 +16,7 @@ class AumentarStockProductoController extends GetxController {
 
       final sql = Sql.named('''
         UPDATE productos SET 
-          cantidad = cantidad + @cantidad,
-          last_modified = NOW()
+          cantidad = cantidad + @cantidad
         WHERE id_producto = @idProducto
         RETURNING cantidad;
       ''');

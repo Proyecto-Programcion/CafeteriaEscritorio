@@ -28,8 +28,7 @@ class ActualizarImagenProductoController extends GetxController {
 
       final sql = Sql.named('''
         UPDATE productos
-        SET url_imagen = @url_imagen,
-            last_modified = NOW()
+        SET url_imagen = @url_imagen
         WHERE id_producto = @id_producto;
       ''');
 

@@ -257,8 +257,7 @@ class RealizarVentaController extends GetxController {
         // Actualizar inventario
         final sqlInventario = Sql.named('''
           UPDATE productos 
-          SET cantidad = cantidad - @cantidad_vendida,
-              last_modified = NOW()
+          SET cantidad = cantidad - @cantidad_vendida
           WHERE id_producto = @id_producto;
         ''');
 
@@ -324,8 +323,7 @@ class RealizarVentaController extends GetxController {
         // También actualizar el inventario del producto gratis
       final sqlInventarioGratis = Sql.named('''
         UPDATE productos 
-        SET cantidad = cantidad - @cantidad_vendida,
-            last_modified = NOW()
+        SET cantidad = cantidad - @cantidad_vendida
         WHERE id_producto = @id_producto;
       ''');
 
