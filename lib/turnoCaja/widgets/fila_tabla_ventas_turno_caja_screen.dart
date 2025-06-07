@@ -481,7 +481,7 @@ class FilaTablaVentasTurnoCajaScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                '\$ee${ventaTurnoModel.descuentoAplicado}',
+                '\$${ventaTurnoModel.descuentoAplicado}',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Color.fromARGB(255, 153, 103, 8),
@@ -491,7 +491,7 @@ class FilaTablaVentasTurnoCajaScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                '\$aa${ventaTurnoModel.precioDescuento}',
+                '\$${ventaTurnoModel.precioDescuento}',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Color.fromARGB(255, 153, 103, 8),

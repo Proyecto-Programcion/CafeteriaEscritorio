@@ -371,34 +371,49 @@ class _VentaScreenState extends State<VentaScreen> {
                             itemCount: productosFiltrados.length,
                             itemBuilder: (context, index) {
                               final producto = productosFiltrados[index];
+                              final bool sinStock = producto.cantidad <= 0; // Verificar si hay stock
+                              
                               return ProductoCard(
                                 producto: producto,
                                 seleccionado: selectedIndexes.contains(index),
+                                sinStock: sinStock, // Pasar la información de stock al widget
                                 onTap: () {
+                                  // VALIDAR STOCK ANTES DE AGREGAR AL CARRITO
+                                  if (sinStock) {
+                                    // Mostrar mensaje de error si no hay stock
+                                    Get.snackbar(
+                                      'Sin stock',
+                                      'El producto "${producto.nombre}" no tiene stock disponible',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: Colors.orange.withOpacity(0.8),
+                                      colorText: Colors.white,
+                                      margin: const EdgeInsets.all(8),
+                                      duration: const Duration(seconds: 2),
+                                      icon: const Icon(Icons.warning, color: Colors.white),
+                                    );
+                                    return; // No hacer nada más
+                                  }
+
                                   if (mounted) {
                                     setState(() {
                                       final yaEnCarrito = carrito.indexWhere(
-                                        (e) =>
-                                            e.producto.idProducto ==
-                                            producto.idProducto,
+                                        (e) => e.producto.idProducto == producto.idProducto,
                                       );
+                                      
                                       if (yaEnCarrito >= 0) {
+                                        // Remover del carrito
                                         carrito.removeAt(yaEnCarrito);
-                                        focusNodesCarrito[yaEnCarrito]
-                                            .dispose();
+                                        focusNodesCarrito[yaEnCarrito].dispose();
                                         focusNodesCarrito.removeAt(yaEnCarrito);
                                         selectedIndexes.remove(index);
                                       } else {
-                                        carrito.add(ProductoCarrito(
-                                            producto: producto));
+                                        // Agregar al carrito solo si hay stock
+                                        carrito.add(ProductoCarrito(producto: producto));
                                         focusNodesCarrito.add(FocusNode());
                                         selectedIndexes.add(index);
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                          if (mounted &&
-                                              focusNodesCarrito.isNotEmpty) {
-                                            focusNodesCarrito.last
-                                                .requestFocus();
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          if (mounted && focusNodesCarrito.isNotEmpty) {
+                                            focusNodesCarrito.last.requestFocus();
                                           }
                                         });
                                       }

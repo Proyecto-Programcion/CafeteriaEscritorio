@@ -84,7 +84,7 @@ class ProductoCard extends StatelessWidget {
     super.key,
     required this.producto,
     this.onTap,
-    required this.seleccionado,
+    required this.seleccionado, required bool sinStock,
   });
 
   @override

@@ -1,153 +1,168 @@
-
 import 'dart:convert';
 
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:flutter/material.dart';
 
-
 class ProductoCard extends StatelessWidget {
   final ProductoModelo producto;
   final bool seleccionado;
-
-  final VoidCallback? onTap;
+  final bool sinStock; // NUEVO PARÁMETRO
+  final VoidCallback onTap;
 
   const ProductoCard({
-    super.key,
+    Key? key,
     required this.producto,
-    this.onTap,
     required this.seleccionado,
-  });
+    required this.sinStock, // NUEVO PARÁMETRO REQUERIDO
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Container(
-            width: double.infinity,
-            height: 150,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9F1E7),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        color: sinStock
+            ? Colors.grey.shade300 // Color gris si no hay stock
+            : seleccionado
+                ? Colors.blue.withOpacity(0.1)
+                : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: sinStock
+              ? Colors.grey.shade400 // Borde gris si no hay stock
+              : seleccionado
+                  ? Colors.blue
+                  : Colors.grey.shade300,
+          width: seleccionado ? 2 : 1,
+        ),
+        boxShadow: sinStock
+            ? [] // Sin sombra si no hay stock
+            : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 12,
-                  offset: const Offset(6, 6),
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
-            ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: sinStock ? null : onTap, // Deshabilitar tap si no hay stock
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 12.0),
-                  child: Icon(
-                    seleccionado
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    color: seleccionado ? Colors.black54 : Colors.grey,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 10),
+                // Imagen del producto
                 Container(
-                  width: 150,
-                  height: 150,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      bottomLeft: Radius.circular(20),
-                    ),
-                    color: (producto.urlImagen?.isEmpty ?? true)
-                        ? Colors.grey[300]
-                        : null,
-                    image: (producto.urlImagen?.isNotEmpty ?? false)
-                        ? DecorationImage(
-                            image:
-                                Image.memory(base64Decode(producto.urlImagen!))
-                                    .image,
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: producto.urlImagen != null && producto.urlImagen!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            producto.urlImagen!,
                             fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: (producto.urlImagen?.isEmpty ?? true)
-                      ? const Center(
-                          child: Icon(Icons.image_not_supported,
-                              size: 48, color: Colors.grey),
-                        )
-                      : null,
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          producto.nombre,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.image_not_supported, color: Colors.grey),
                           ),
+                        )
+                      : Icon(Icons.inventory_2, color: Colors.grey),
+                ),
+                const SizedBox(width: 16),
+
+                // Información del producto
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        producto.nombre,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: sinStock ? Colors.grey.shade600 : Colors.black,
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              '1 ${producto.unidadMedida}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Cantidad disponible: ${producto.cantidad} ${producto.unidadMedida}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ],
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        producto.descripcion ?? 'Sin descripción',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: sinStock ? Colors.grey.shade500 : Colors.grey.shade600,
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              'Precio sin descuento: \$${producto.precio}',
-                              style: const TextStyle(
-                                fontSize: 18,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            '\$${producto.precio.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: sinStock ? Colors.grey.shade600 : const Color.fromARGB(255, 153, 103, 8),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: sinStock
+                                  ? Colors.red.withOpacity(0.2)
+                                  : producto.cantidad < 10
+                                      ? Colors.orange.withOpacity(0.2)
+                                      : Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              sinStock
+                                  ? 'Sin stock'
+                                  : 'Stock: ${producto.cantidad.toInt()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: sinStock
+                                    ? Colors.red.shade700
+                                    : producto.cantidad < 10
+                                        ? Colors.orange.shade700
+                                        : Colors.green.shade700,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Descuento: \$${producto.descuento}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Total: \$${(producto.precio ?? 0) - (producto.descuento ?? 0)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+
+                // Indicador de selección o sin stock
+                if (sinStock)
+                  Icon(
+                    Icons.block,
+                    color: Colors.red.shade400,
+                    size: 24,
+                  )
+                else if (seleccionado)
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.blue,
+                    size: 24,
+                  ),
               ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
