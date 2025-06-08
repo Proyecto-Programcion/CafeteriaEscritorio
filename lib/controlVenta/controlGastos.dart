@@ -1,5 +1,6 @@
 import 'package:cafe/common/enums.dart';
 import 'package:cafe/controlVenta/agregarCategoria.dart';
+import 'package:cafe/controlVenta/gananciasPorCategoria.dart';
 import 'package:cafe/logica/categoriaGastos/controllers/obtenerCategoriaGastosController.dart';
 import 'package:cafe/logica/controlGastos/controlGastosModel.dart';
 import 'package:cafe/logica/controlGastos/controllers/agregarControlGastos.dart';
@@ -220,6 +221,22 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
                           Text("Agregar categoría"),
                         ],
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.bar_chart),
+                      label: const Text('Ver Ganancias por Categoría'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ControlDeGastosScreen.primaryTextColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GananciasPorCategoriaScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -636,9 +653,10 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
                                                                 .primaryTextColor,
                                                         foregroundColor:
                                                             Colors.white,
-                                                        padding: const EdgeInsets
-                                                            .symmetric(
-                                                            vertical: 12),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 12),
                                                         shape:
                                                             RoundedRectangleBorder(
                                                           borderRadius:
@@ -673,7 +691,8 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
                                                   Expanded(
                                                     child: SizedBox(
                                                       height: 48,
-                                                      child: OutlinedButton.icon(
+                                                      child:
+                                                          OutlinedButton.icon(
                                                         onPressed:
                                                             _limpiarFormulario,
                                                         icon: const Icon(

@@ -22,8 +22,10 @@ class GastoModelo {
   });
 
   factory GastoModelo.fromMap(Map<String, dynamic> map) {
+    // Debug opcional para ver el contenido y tipo de 'monto'
     print("DEBUG map gasto: $map");
     print("DEBUG monto runtimeType: ${map['monto']?.runtimeType}");
+
     return GastoModelo(
       idGasto: map['idGasto'] is int
           ? map['idGasto'] as int
@@ -31,7 +33,7 @@ class GastoModelo {
       idCategoria: map['idCategoria'] is int
           ? map['idCategoria'] as int
           : int.parse(map['idCategoria'].toString()),
-      descripcion: map['descripcion'] as String,
+      descripcion: map['descripcion'] ?? '',
       monto: (map['monto'] == null)
           ? 0.0
           : (map['monto'] is num
@@ -40,10 +42,10 @@ class GastoModelo {
       fechaGasto: map['fechaGasto'] is DateTime
           ? map['fechaGasto'] as DateTime
           : DateTime.parse(map['fechaGasto'].toString()),
-      metodoPago: map['metodoPago'] as String,
+      metodoPago: map['metodoPago'] ?? '',
       notas: map['notas'] as String?,
       ubicacion: map['ubicacion'] as String?,
-      nombreCategoria: map['nombreCategoria'] as String,
+      nombreCategoria: map['nombreCategoria'] ?? '',
     );
   }
 }
