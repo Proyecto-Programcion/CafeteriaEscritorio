@@ -1,9 +1,10 @@
 import 'package:cafe/logica/productos/producto_modelos.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Agregar esta importación
 
 class ProductoSeleccionadoFilaWidget extends StatefulWidget {
   final ProductoCarrito productoCarrito;
-  final ValueChanged<int> onCantidadChanged;
+  final ValueChanged<double> onCantidadChanged;
   final VoidCallback onRemove;
   final FocusNode? focusNode; // <-- Agrega esto
 
@@ -94,9 +95,11 @@ class _ProductoSeleccionadoFilaWidgetState
                 children: [
                   InkWell(
                     onTap: () {
-                      if (cantidad > 1) {
-                        widget.onCantidadChanged(cantidad - 1);
-                        _cantidadController.text = (cantidad - 1).toString();
+                      // Cambiar el decremento para valores decimales
+                      if (cantidad > 0.1) { // Mínimo de 0.1 en lugar de 1
+                        final nuevaCantidad = cantidad - 0.1;
+                        widget.onCantidadChanged(nuevaCantidad);
+                        _cantidadController.text = nuevaCantidad.toStringAsFixed(1);
                       }
                     },
                     child: Container(
@@ -115,16 +118,19 @@ class _ProductoSeleccionadoFilaWidgetState
                       height: 22,
                       child: TextFormField(
                         controller: _cantidadController,
-                        focusNode: widget.focusNode, // <-- Aquí
+                        focusNode: widget.focusNode,
                         textAlign: TextAlign.center,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           contentPadding: EdgeInsets.symmetric(vertical: 2),
                         ),
                         style: const TextStyle(fontSize: 14),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true), // Permitir decimales
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')), // Permitir hasta 3 decimales
+                        ],
                         onChanged: (value) {
-                          final nuevaCantidad = int.tryParse(value) ?? 1;
+                          final nuevaCantidad = double.tryParse(value) ?? 0.1;
                           if (nuevaCantidad > 0 &&
                               nuevaCantidad <= (producto.cantidad ?? 0)) {
                             widget.onCantidadChanged(nuevaCantidad);
@@ -133,7 +139,11 @@ class _ProductoSeleccionadoFilaWidgetState
                             _cantidadController.text =
                                 (producto.cantidad ?? 0).toString();
                             widget.onCantidadChanged(
-                                (producto.cantidad ?? 0).toInt());
+                                (producto.cantidad ?? 0).toDouble());
+                          } else if (nuevaCantidad <= 0) {
+                            // Si el valor es 0 o negativo, establecer mínimo
+                            _cantidadController.text = "0.1";
+                            widget.onCantidadChanged(0.1);
                           }
                         },
                       ),
@@ -141,9 +151,11 @@ class _ProductoSeleccionadoFilaWidgetState
                   ),
                   InkWell(
                     onTap: () {
-                      if (cantidad < (producto.cantidad ?? 0)) {
-                        widget.onCantidadChanged(cantidad + 1);
-                        _cantidadController.text = (cantidad + 1).toString();
+                      // Cambiar el incremento para valores decimales
+                      if (cantidad + 0.1 <= (producto.cantidad ?? 0)) {
+                        final nuevaCantidad = cantidad + 0.1;
+                        widget.onCantidadChanged(nuevaCantidad);
+                        _cantidadController.text = nuevaCantidad.toStringAsFixed(1);
                       }
                     },
                     child: Container(

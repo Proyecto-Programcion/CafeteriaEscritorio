@@ -52,7 +52,7 @@ class ProductoModelo {
 
 class ProductoCarrito {
   final ProductoModelo producto;
-  int cantidad;
+  double cantidad;
 
   ProductoCarrito({required this.producto, this.cantidad = 1});
 

@@ -6,7 +6,7 @@ class DatabaseRemote {
   static Future<void> connect() async {
     conn = await Connection.open(
       Endpoint(
-        host: '',
+        host: '168.231.69.196',
         port: 5432,
         database: 'cafe',
         username: 'postgres',

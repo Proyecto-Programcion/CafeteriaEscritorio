@@ -58,7 +58,7 @@ class RealizarVentaController extends GetxController {
   }
 
   // Añadir producto al carrito
-  void agregarProducto(ProductoModelo producto, [int cantidad = 1]) {
+  void agregarProducto(ProductoModelo producto, [double cantidad = 1.0]) {
     // Verificar si hay suficiente stock
     if (producto.cantidad < cantidad) {
       mensaje.value = 'No hay suficiente stock disponible';
@@ -95,7 +95,7 @@ class RealizarVentaController extends GetxController {
   }
 
   // Actualizar cantidad de un producto en el carrito
-  void actualizarCantidad(int idProducto, int nuevaCantidad) {
+  void actualizarCantidad(int idProducto, double nuevaCantidad) {
     if (nuevaCantidad <= 0) {
       removerProducto(idProducto);
       return;
