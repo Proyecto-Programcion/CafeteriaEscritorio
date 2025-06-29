@@ -87,6 +87,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/turno_caja': (context) => const SizedBox(),
         '/detalle_turno': (context) => DetallesTurnoCajaScreen(),
+        'productoScreen': (context) => const ProductosScreen(),
       },
     );
   }
