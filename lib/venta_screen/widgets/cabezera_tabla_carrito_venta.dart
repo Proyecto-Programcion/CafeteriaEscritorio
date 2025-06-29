@@ -14,7 +14,7 @@ class CabezeraTablaCarritoVenta extends StatelessWidget {
       color: Colors.amber,
       child: const Row(children: [
         Expanded(
-          flex: 4,
+          flex: 3,
           child: Text(
             'Nombre del producto',
             textAlign: TextAlign.center,
@@ -84,7 +84,8 @@ class ProductoCard extends StatelessWidget {
     super.key,
     required this.producto,
     this.onTap,
-    required this.seleccionado, required bool sinStock,
+    required this.seleccionado,
+    required bool sinStock,
   });
 
   @override
