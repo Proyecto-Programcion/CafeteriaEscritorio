@@ -210,15 +210,15 @@ class NavbarNavegacion extends StatelessWidget {
   Widget build(BuildContext context) {
     final icons = [
       Icons.home,
-      if (SesionActiva().rolUsuario == 'Admin') Icons.inventory,
+      Icons.inventory,
       Icons.shopping_cart,
       Icons.person,
       if (SesionActiva().rolUsuario == 'Admin') Icons.discount,
       if (SesionActiva().rolUsuario == 'Admin') Icons.badge,
-      if (SesionActiva().rolUsuario == 'Admin') Icons.attach_money_outlined,
+      Icons.attach_money_outlined,
       if (SesionActiva().rolUsuario == 'Admin') Icons.inventory_sharp,
       if (SesionActiva().rolUsuario == 'Admin') Icons.receipt_long,
-      if (SesionActiva().rolUsuario == 'Admin') Icons.payments,
+      Icons.payments,
       Icons.settings,
     ];
 
