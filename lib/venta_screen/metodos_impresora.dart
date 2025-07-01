@@ -49,7 +49,7 @@ class AdminImpresora {
       // Ticket usando los productos REALES del carrito
       String ticketPrueba = '''
 ================================
-        CAFE BENITO
+        CAFE PAQUITO
          Cafeteria
 ================================
 
