@@ -4,6 +4,7 @@ import 'package:cafe/logica/promociones/controllers/obtener_promociones_producto
 import 'package:cafe/logica/venta/controllers/realizar_venta_controller.dart';
 import 'package:cafe/venta_screen/widgets/modal_promociones_disponibles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:cafe/logica/clientes/controllers/obtenerClientes.dart';
 import 'package:cafe/logica/clientes/clientesModel.dart';
@@ -37,6 +38,7 @@ class ModalRealizarVenta extends StatefulWidget {
 }
 
 class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
+  final FocusNode _focusNodeModal = FocusNode();
   usuariMmodel? usuarioSeleccionado;
   Promocion? promocionDescuentoSeleccionada;
   PromocionProductoGratiConNombreDelProductosModelo?
@@ -60,6 +62,7 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
 
   @override
   void dispose() {
+    _focusNodeModal.dispose();
     _buscadorController.dispose();
     _scrollController.dispose();
     clientesController.filtro.value = '';
@@ -102,32 +105,26 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
 
   // Método para promociones de descuento con validación async
   Future<List<Promocion>> getPromocionesDescuentoFiltradas() async {
-  
     final promocionesDescuento = <Promocion>[];
 
     for (final promo in obtenerPromocionesController.promocionesFiltradas) {
-
       // Condición 1: Status activo
       bool condicion1 = promo.status;
 
       // Condición 2: Dinero necesario
       bool condicion2 = widget.totalVenta >= promo.dineroNecesario;
-  
 
       // Condición 3: Compras necesarias
       bool condicion3 =
           promo.comprasNecesarias <= usuarioSeleccionado!.cantidadCompras;
-
 
       // Condición 4: No ha canjeado esta promoción antes
       bool condicion4 =
           !(await PromocionesCanjeadasService.clienteYaCanjeoPromocion(
               usuarioSeleccionado!.idCliente, promo.idPromocion));
 
-
       // Resultado final
       bool resultado = condicion1 && condicion2 && condicion3 && condicion4;
-      
 
       if (resultado) {
         promocionesDescuento.add(promo);
@@ -139,55 +136,42 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
   // Método para promociones de productos gratis con validación async
   Future<List<PromocionProductoGratiConNombreDelProductosModelo>>
       getPromocionesProductosGratisFiltradas() async {
-   
-
     if (widget.carrito.isEmpty) {
-    
       return [];
     }
 
     final productosEnCarrito =
         widget.carrito.map((item) => item.producto.idProducto).toSet();
 
-  
     final promociones = <PromocionProductoGratiConNombreDelProductosModelo>[];
 
     for (final promo
         in obtenerPromocionesProductosGratisController.listaPromociones) {
-     
-
       // Condición 1: Status
       bool condicion1 = promo.status;
-      
 
       // Condición 2: Producto en carrito
       bool condicion2 = productosEnCarrito.contains(promo.idProducto);
-   
 
       // Condición 3: Dinero suficiente
       bool condicion3 = widget.totalVenta >= promo.dineroNecesario;
-    
+
       // Condición 4: Compras suficientes
       bool condicion4 = promo.comprasNecesarias <=
           (usuarioSeleccionado?.cantidadCompras ?? 0);
-    
 
       // Condición 5: No ha canjeado esta promoción antes
       bool condicion5 =
           !(await PromocionesCanjeadasService.clienteYaCanjeoPromocionGratis(
               usuarioSeleccionado!.idCliente, promo.idPromocionProductoGratis));
-     
 
       bool resultado =
           condicion1 && condicion2 && condicion3 && condicion4 && condicion5;
-     
 
       if (resultado) {
         promociones.add(promo);
       }
     }
-
-  
 
     return promociones;
   }
@@ -235,448 +219,461 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
     final double ancho = MediaQuery.of(context).size.width * 0.7;
     final double alto = MediaQuery.of(context).size.height * 0.7;
 
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: SizedBox(
-        width: ancho,
-        height: alto,
-        child: Row(
-          children: [
-            // Columna izquierda: listado de usuarios + buscador + boton registrar
-            Expanded(
-              flex: 13,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF9F1E7),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    bottomLeft: Radius.circular(18),
+    // El FocusNode debe estar declarado a nivel de clase:
+    // final FocusNode _focusNodeModal = FocusNode();
+
+    void _handleIrAPagar() {
+      RealizarVentaController realizarVentaController =
+          Get.put(RealizarVentaController());
+      realizarVentaController.cambiarEstadoAcarga();
+
+      final descuentoCalculado = calcularDescuento();
+
+      if (widget.onIrAPagar != null) {
+        widget.onIrAPagar!(
+          usuarioSeleccionado,
+          promocionDescuentoSeleccionada?.idPromocion,
+          promocionProductoGratisSeleccionada?.idPromocionProductoGratis,
+          promocionProductoGratisSeleccionada,
+          descuentoCalculado,
+        );
+      }
+
+      Navigator.of(context).pop({
+        'usuario': usuarioSeleccionado,
+        'promocionDescuento': promocionDescuentoSeleccionada,
+        'promocionProductoGratis': promocionProductoGratisSeleccionada,
+        'descuentoCalculado': descuentoCalculado,
+      });
+    }
+
+    return RawKeyboardListener(
+      focusNode: _focusNodeModal,
+      autofocus: true,
+      onKey: (RawKeyEvent event) {
+        if (event is RawKeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.enter ||
+              event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+            _handleIrAPagar();
+          }
+        }
+      },
+      child: Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: SizedBox(
+          width: ancho,
+          height: alto,
+          child: Row(
+            children: [
+              // Columna izquierda: listado de usuarios + buscador + boton registrar
+              Expanded(
+                flex: 13,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF9F1E7),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(18),
+                      bottomLeft: Radius.circular(18),
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            "Usuarios registrados (opcional)",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                              color: Color.fromARGB(255, 153, 103, 8),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "Usuarios registrados (opcional)",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22,
+                                color: Color.fromARGB(255, 153, 103, 8),
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: "Registrar nuevo cliente",
-                          icon: const Icon(Icons.person_add,
-                              color: Colors.amber, size: 30),
-                          onPressed: _abrirModalRegistrarCliente,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _buscadorController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: "Buscar por número de celular...",
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 10),
+                          IconButton(
+                            tooltip: "Registrar nuevo cliente",
+                            icon: const Icon(Icons.person_add,
+                                color: Colors.amber, size: 30),
+                            onPressed: _abrirModalRegistrarCliente,
+                          ),
+                        ],
                       ),
-                      onChanged: (value) {
-                        clientesController.filtro.value = value;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Obx(() {
-                        if (clientesController.estado.value == Estado.carga) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        if (clientesController.estado.value == Estado.error) {
-                          return Center(
-                              child: Text(clientesController.mensaje.value));
-                        }
-                        final lista = clientesController.clientesFiltrados;
-                        if (lista.isEmpty) {
-                          return const Center(
-                              child: Text('No hay usuarios registrados.'));
-                        }
-                        return ListView.separated(
-                          itemCount: lista.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final usuario = lista[index];
-                            final seleccionado =
-                                usuarioSeleccionado?.idCliente ==
-                                    usuario.idCliente;
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                setState(() {
-                                  usuarioSeleccionado =
-                                      seleccionado ? null : usuario;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: seleccionado
-                                      ? Colors.amber[200]
-                                      : Colors.white,
-                                  border: Border.all(
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _buscadorController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: "Buscar por número de celular...",
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 10),
+                        ),
+                        onChanged: (value) {
+                          clientesController.filtro.value = value;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: Obx(() {
+                          if (clientesController.estado.value == Estado.carga) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (clientesController.estado.value == Estado.error) {
+                            return Center(
+                                child: Text(clientesController.mensaje.value));
+                          }
+                          final lista = clientesController.clientesFiltrados;
+                          if (lista.isEmpty) {
+                            return const Center(
+                                child: Text('No hay usuarios registrados.'));
+                          }
+                          return ListView.separated(
+                            itemCount: lista.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final usuario = lista[index];
+                              final seleccionado =
+                                  usuarioSeleccionado?.idCliente ==
+                                      usuario.idCliente;
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  setState(() {
+                                    usuarioSeleccionado =
+                                        seleccionado ? null : usuario;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
                                     color: seleccionado
-                                        ? Colors.amber
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.07),
-                                      blurRadius: 8,
-                                      offset: const Offset(2, 2),
-                                    ),
-                                  ],
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 10),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      seleccionado
-                                          ? Icons.check_circle
-                                          : Icons.radio_button_unchecked,
+                                        ? Colors.amber[200]
+                                        : Colors.white,
+                                    border: Border.all(
                                       color: seleccionado
-                                          ? Colors.amber[800]
-                                          : Colors.grey,
+                                          ? Colors.amber
+                                          : Colors.transparent,
+                                      width: 2,
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.07),
+                                        blurRadius: 8,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        seleccionado
+                                            ? Icons.check_circle
+                                            : Icons.radio_button_unchecked,
+                                        color: seleccionado
+                                            ? Colors.amber[800]
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              usuario.nombre,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              usuario.numeroTelefono,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Columna derecha: detalles o controles
+              Expanded(
+                flex: 12,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(18),
+                      bottomRight: Radius.circular(18),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromARGB(30, 80, 80, 80),
+                        blurRadius: 10,
+                        offset: Offset(-2, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Ir a pagar",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Color.fromARGB(255, 153, 103, 8),
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      // --- SCROLLABLE AREA for usuario info and promociones ---
+                      Expanded(
+                        child: usuarioSeleccionado == null
+                            ? const Center(
+                                child: Text(
+                                  "Puedes asociar la venta a un usuario seleccionándolo de la lista, o proceder sin usuario.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 17, color: Colors.black54),
+                                ),
+                              )
+                            : FutureBuilder<Map<String, List>>(
+                                future: cargarPromociones(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (snapshot.hasError) {
+                                    return Center(
+                                      child: Text('Error: ${snapshot.error}'),
+                                    );
+                                  }
+
+                                  final promocionesDescuento =
+                                      snapshot.data?['descuento']
+                                              as List<Promocion>? ??
+                                          [];
+                                  final promocionesProductosGratis = snapshot
+                                              .data?['productos_gratis']
+                                          as List<
+                                              PromocionProductoGratiConNombreDelProductosModelo>? ??
+                                      [];
+
+                                  if (promocionesDescuento.isEmpty &&
+                                      promocionesProductosGratis.isEmpty) {
+                                    return const Center(
+                                      child: Text(
+                                        "No hay promociones disponibles para esta compra o ya han sido canjeadas",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    );
+                                  }
+
+                                  // Mostrar un resumen de las promociones seleccionadas
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            usuario.nombre,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
+                                          const Flexible(
+                                            child: Text(
+                                              "Promociones disponibles",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.brown,
+                                              ),
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            usuario.numeroTelefono,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.black54,
+                                          Flexible(
+                                            child: TextButton.icon(
+                                              icon: const Icon(
+                                                  Icons.local_offer,
+                                                  size: 20),
+                                              label: const Text("Ver ofertas"),
+                                              style: TextButton.styleFrom(
+                                                foregroundColor: Colors.amber,
+                                                textStyle: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              onPressed: () =>
+                                                  _abrirModalPromociones(
+                                                      promocionesDescuento,
+                                                      promocionesProductosGratis),
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        'Promociones de descuento: ${promocionesDescuento.length}',
+                                        style: const TextStyle(
+                                            fontSize: 14, color: Colors.green),
+                                      ),
+                                      Text(
+                                        'Productos gratis: ${promocionesProductosGratis.length}',
+                                        style: const TextStyle(
+                                            fontSize: 14, color: Colors.amber),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Columna derecha: detalles o controles
-            Expanded(
-              flex: 12,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(18),
-                    bottomRight: Radius.circular(18),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color.fromARGB(30, 80, 80, 80),
-                      blurRadius: 10,
-                      offset: Offset(-2, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Ir a pagar",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Color.fromARGB(255, 153, 103, 8),
                       ),
-                    ),
-                    const SizedBox(height: 26),
-                    // --- SCROLLABLE AREA for usuario info and promociones ---
-                    Expanded(
-                      child: usuarioSeleccionado == null
-                          ? const Center(
-                              child: Text(
-                                "Puedes asociar la venta a un usuario seleccionándolo de la lista, o proceder sin usuario.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 17, color: Colors.black54),
-                              ),
-                            )
-                          : FutureBuilder<Map<String, List>>(
-                              future: cargarPromociones(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator());
-                                }
-
-                                if (snapshot.hasError) {
-                                  return Center(
-                                    child: Text('Error: ${snapshot.error}'),
-                                  );
-                                }
-
-                                final promocionesDescuento =
-                                    snapshot.data?['descuento']
-                                            as List<Promocion>? ??
-                                        [];
-                                final promocionesProductosGratis =
-                                    snapshot.data?['productos_gratis'] as List<
-                                            PromocionProductoGratiConNombreDelProductosModelo>? ??
-                                        [];
-
-                                if (promocionesDescuento.isEmpty &&
-                                    promocionesProductosGratis.isEmpty) {
-                                  return const Center(
-                                    child: Text(
-                                      "No hay promociones disponibles para esta compra o ya han sido canjeadas",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  );
-                                }
-
-                                // Mostrar un resumen de las promociones seleccionadas
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Flexible(
-                                          child: Text(
-                                            "Promociones disponibles",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.brown,
-                                            ),
-                                          ),
-                                        ),
-                                        Flexible(
-                                          child: TextButton.icon(
-                                            icon: const Icon(Icons.local_offer,
-                                                size: 20),
-                                            label: const Text("Ver ofertas"),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: Colors.amber,
-                                              textStyle: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            onPressed: () =>
-                                                _abrirModalPromociones(
-                                                    promocionesDescuento,
-                                                    promocionesProductosGratis),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Promociones de descuento: ${promocionesDescuento.length}',
-                                      style: const TextStyle(
-                                          fontSize: 14, color: Colors.green),
-                                    ),
-                                    Text(
-                                      'Productos gratis: ${promocionesProductosGratis.length}',
-                                      style: const TextStyle(
-                                          fontSize: 14, color: Colors.amber),
-                                    ),
-                                  ],
-                                );
-                              },
+                      // --- BLOQUE FIJO: Totales y botones ---
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 3, horizontal: 3),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  '\$${widget.totalVenta.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
-                    ),
-                    // --- BLOQUE FIJO: Totales y botones ---
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 3, horizontal: 3),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Total:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black87,
+                            const SizedBox(height: 3),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Descuento:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 16,
+                                    color: Colors.green,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '\$${widget.totalVenta.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black87,
+                                Text(
+                                  '-\$${calcularDescuento().toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 16,
+                                    color: Colors.green,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          // Reemplaza el widget Row que muestra el descuento con este
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Descuento:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 16,
-                                  color: Colors.green,
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total con descuento:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.green,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '-\$${calcularDescuento().toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 16,
-                                  color: Colors.green,
+                                Text(
+                                  '\$${(widget.totalVenta - calcularDescuento()).toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.green,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          // Agregar una nueva fila para mostrar el total con descuento
-                          const SizedBox(height: 3),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Total con descuento:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.green,
-                                ),
-                              ),
-                              Text(
-                                '\$${(widget.totalVenta - calcularDescuento()).toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.shopping_cart_checkout),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          textStyle: const TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.bold),
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(22)),
-                          elevation: 0,
-                        ),
-                        // Modifica el onPressed del botón "Ir a pagar"
-                        onPressed: () {
-
-                          RealizarVentaController realizarVentaController =
-                              Get.put(RealizarVentaController());
-                          realizarVentaController.cambiarEstadoAcarga();
-
-                          final descuentoCalculado =
-                              calcularDescuento(); // Calcular el descuento
-
-                          if (widget.onIrAPagar != null) {
-                            widget.onIrAPagar!(
-                                usuarioSeleccionado,
-                                promocionDescuentoSeleccionada?.idPromocion,
-                                promocionProductoGratisSeleccionada
-                                    ?.idPromocionProductoGratis,
-                                promocionProductoGratisSeleccionada,
-                                descuentoCalculado); // Pasar el descuento calculado
-                          }
-
-                          Navigator.of(context).pop({
-                            'usuario': usuarioSeleccionado,
-                            'promocionDescuento':
-                                promocionDescuentoSeleccionada,
-                            'promocionProductoGratis':
-                                promocionProductoGratisSeleccionada,
-                            'descuentoCalculado': descuentoCalculado,
-                          });
-                        },
-                        label: const Text(
-                          'Ir a pagar',
-                          style: TextStyle(color: Colors.white),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey[700],
-                          alignment: Alignment.centerLeft,
-                          textStyle: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.normal),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.shopping_cart_checkout),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            textStyle: const TextStyle(
+                                fontSize: 17, fontWeight: FontWeight.bold),
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22)),
+                            elevation: 0,
+                          ),
+                          onPressed: _handleIrAPagar,
+                          label: const Text(
+                            'Ir a pagar',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancelar'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey[700],
+                            alignment: Alignment.centerLeft,
+                            textStyle: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.normal),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancelar'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
