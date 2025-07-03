@@ -5,7 +5,7 @@ class Database {
 
   static Future<void> connect() async {
     conn = await Connection.open(
-          Endpoint(
+      Endpoint(
         host: '168.231.69.196',
         port: 5432,
         database: 'cafe',

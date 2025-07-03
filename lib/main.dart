@@ -108,15 +108,15 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
 
   final List<Widget> listaDeScreens = [
     const InicioScreen(),
-    if (SesionActiva().rolUsuario == 'Admin') const ProductosScreen(),
+    const ProductosScreen(),
     const VentaScreen(),
     const ClientesScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const PromocionesPage(),
     if (SesionActiva().rolUsuario == 'Admin') const AdministradoresScreen(),
-    if (SesionActiva().rolUsuario == 'Admin') const ControlDeGastosScreen(),
+    const ControlDeGastosScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const ControlStockScreen(),
     if (SesionActiva().rolUsuario == 'Admin') const TurnoCajaScreen(),
-    if (SesionActiva().rolUsuario == 'Admin') const VerVentasScreen(),
+    const VerVentasScreen(),
     const ConfiguracionesScreen(),
   ];
 
