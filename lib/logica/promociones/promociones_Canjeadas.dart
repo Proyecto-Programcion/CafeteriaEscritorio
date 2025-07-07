@@ -8,21 +8,16 @@ class PromocionesCanjeadasService {
     try {
       final sql = Sql.named('''
         SELECT EXISTS(
-          SELECT 1 
-          FROM clientes_promociones_canjeadas cpc
-          JOIN promocion p ON cpc.id_promocion = p.id_promocion
-          WHERE cpc.id_cliente = @id_cliente 
-            AND cpc.id_promocion = @id_promocion
-            AND p.status = TRUE
-            AND p.eliminado = FALSE
+          SELECT 1 FROM clientes_promociones_canjeadas 
+          WHERE id_cliente = @id_cliente AND id_promocion = @id_promocion
         ) as ya_canjeo
       ''');
-
+      
       final result = await Database.conn.execute(sql, parameters: {
         'id_cliente': idCliente,
         'id_promocion': idPromocion,
       });
-
+      print('Resultado de la verificación de canjeo: $result');
       return result.first[0] as bool;
     } catch (e) {
       print('Error verificando promoción canjeada: $e');
@@ -35,21 +30,16 @@ class PromocionesCanjeadasService {
     try {
       final sql = Sql.named('''
         SELECT EXISTS(
-          SELECT 1 
-          FROM clientes_promociones_productos_gratis_canjeadas cpgc
-          JOIN promocion_producto_gratis ppg ON cpgc.id_promocion_productos_gratis = ppg.id_promocion_productos_gratis
-          WHERE cpgc.id_cliente = @id_cliente 
-            AND cpgc.id_promocion_productos_gratis = @id_promocion_gratis
-            AND ppg.status = TRUE
-            AND ppg.eliminado = FALSE
+          SELECT 1 FROM clientes_promociones_productos_gratis_canjeadas 
+          WHERE id_cliente = @id_cliente AND id_promocion_productos_gratis = @id_promocion_gratis
         ) as ya_canjeo
       ''');
-
+      
       final result = await Database.conn.execute(sql, parameters: {
         'id_cliente': idCliente,
         'id_promocion_gratis': idPromocionGratis,
       });
-
+      print('Resultado de la verificación de canjeo de producto gratis: $result');
       return result.first[0] as bool;
     } catch (e) {
       print('Error verificando promoción de producto gratis canjeada: $e');

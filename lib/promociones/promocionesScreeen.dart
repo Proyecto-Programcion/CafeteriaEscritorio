@@ -98,7 +98,6 @@ Widget build(BuildContext context) {
               itemCount: listaPromociones.length,
               itemBuilder: (context, i) {
                 final promo = listaPromociones[i];
-                // You may want to check the type of promo here and render accordingly
                 if (promo is Promocion) {
                   return ContenedorPromocionDescuento(
                     promocion: promo,
