@@ -130,6 +130,10 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
   void initState() {
     super.initState();
     _setupMaximizeListener();
+     // Solicitar foco al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   void _setupMaximizeListener() async {
@@ -157,31 +161,50 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
     }
   }
 
+  //FocusNode para manejar el teclado
+  // Esto es necesario para que el KeyboardListener funcione correctamente
+  final FocusNode _focusNode = FocusNode(); 
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          CabezeraMain(
-            isMaximized: isMaximized,
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                NavbarNavegacion(
-                  onTap: cambiarIndex,
-                  selectedIndex: index,
-                ),
-                Expanded(
-                  child: Container(
-                    color: const Color.fromARGB(255, 250, 240, 230),
-                    child: listaDeScreens[index],
-                  ),
-                ),
-              ],
+    return KeyboardListener(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: (event) {
+        if (event is KeyDownEvent) {
+          // Aquí puedes manejar eventos de teclado si es necesario
+          // Por ejemplo, cambiar de pantalla con teclas específicas
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            if (index > 0) cambiarIndex(index - 1);
+          } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            if (index < listaDeScreens.length - 1) cambiarIndex(index + 1);
+          }
+        }
+      },
+      child: Scaffold(
+        body: Column(
+          children: [
+            CabezeraMain(
+              isMaximized: isMaximized,
             ),
-          )
-        ],
+            Expanded(
+              child: Row(
+                children: [
+                  NavbarNavegacion(
+                    onTap: cambiarIndex,
+                    selectedIndex: index,
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: const Color.fromARGB(255, 250, 240, 230),
+                      child: listaDeScreens[index],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

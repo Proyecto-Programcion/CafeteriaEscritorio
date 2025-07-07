@@ -7,9 +7,16 @@ import 'package:cafe/logica/categorias/controllers/obtener_categorias_controller
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ModalAgregarCategoriasWidget extends StatelessWidget {
-  ModalAgregarCategoriasWidget({super.key});
+class ModalAgregarCategoriasWidget extends StatefulWidget {
+  const ModalAgregarCategoriasWidget({super.key});
 
+  @override
+  State<ModalAgregarCategoriasWidget> createState() =>
+      _ModalAgregarCategoriasWidgetState();
+}
+
+class _ModalAgregarCategoriasWidgetState
+    extends State<ModalAgregarCategoriasWidget> {
   Color esDivisible(int index) {
     if (index % 2 == 0) {
       return const Color.fromARGB(255, 255, 255, 255); // blanco
@@ -100,6 +107,22 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
     }
   }
 
+  final FocusNode nombreFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      nombreFocus.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    nombreFocus.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -126,6 +149,7 @@ class ModalAgregarCategoriasWidget extends StatelessWidget {
               Form(
                 key: formKey,
                 child: TextFormField(
+                  focusNode: nombreFocus,
                   controller: nombreCategoriaController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {

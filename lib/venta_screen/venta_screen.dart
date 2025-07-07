@@ -118,12 +118,12 @@ class _VentaScreenState extends State<VentaScreen> {
       double descuentoPromocion) async {
     realizarVentaController.sincronizarCarrito(carrito);
     print('el descuento promocion es: $descuentoPromocion');
-    
+
     // GUARDAR LOS DATOS ANTES DE LA VENTA (por si se limpian después)
     final carritoParaImprimir = List<ProductoCarrito>.from(carrito);
     final totalVentaParaImprimir = totalVenta;
     final totalDescuentoParaImprimir = totalDescuento;
-    
+
     final exito = await realizarVentaController.realizarVenta(
       idCliente: idCliente,
       idPromocion: idPromocion,
@@ -227,7 +227,8 @@ class _VentaScreenState extends State<VentaScreen> {
                   totalVenta: totalVenta,
                   descuento: descuento,
                   carrito: carrito,
-                  onIrAPagar: (usuario, idPromocion, idProductoGratis, promocionProductoGratis, descuentoPromocion) async {
+                  onIrAPagar: (usuario, idPromocion, idProductoGratis,
+                      promocionProductoGratis, descuentoPromocion) async {
                     await realizarVenta(
                       usuario?.idCliente,
                       idPromocion,
@@ -358,31 +359,41 @@ class _VentaScreenState extends State<VentaScreen> {
                                         'Sin stock',
                                         'El producto "${producto.nombre}" no tiene stock disponible',
                                         snackPosition: SnackPosition.BOTTOM,
-                                        backgroundColor: Colors.orange.withOpacity(0.8),
+                                        backgroundColor:
+                                            Colors.orange.withOpacity(0.8),
                                         colorText: Colors.white,
                                         margin: const EdgeInsets.all(8),
                                         duration: const Duration(seconds: 2),
-                                        icon: const Icon(Icons.warning, color: Colors.white),
+                                        icon: const Icon(Icons.warning,
+                                            color: Colors.white),
                                       );
                                       return;
                                     }
                                     if (mounted) {
                                       setState(() {
                                         final yaEnCarrito = carrito.indexWhere(
-                                          (e) => e.producto.idProducto == producto.idProducto,
+                                          (e) =>
+                                              e.producto.idProducto ==
+                                              producto.idProducto,
                                         );
                                         if (yaEnCarrito >= 0) {
                                           carrito.removeAt(yaEnCarrito);
-                                          focusNodesCarrito[yaEnCarrito].dispose();
-                                          focusNodesCarrito.removeAt(yaEnCarrito);
+                                          focusNodesCarrito[yaEnCarrito]
+                                              .dispose();
+                                          focusNodesCarrito
+                                              .removeAt(yaEnCarrito);
                                           selectedIndexes.remove(index);
                                         } else {
-                                          carrito.add(ProductoCarrito(producto: producto));
+                                          carrito.add(ProductoCarrito(
+                                              producto: producto));
                                           focusNodesCarrito.add(FocusNode());
                                           selectedIndexes.add(index);
-                                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                                            if (mounted && focusNodesCarrito.isNotEmpty) {
-                                              focusNodesCarrito.last.requestFocus();
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            if (mounted &&
+                                                focusNodesCarrito.isNotEmpty) {
+                                              focusNodesCarrito.last
+                                                  .requestFocus();
                                             }
                                           });
                                         }
@@ -433,7 +444,8 @@ class _VentaScreenState extends State<VentaScreen> {
                                   : () async {
                                       await showDialog(
                                         context: context,
-                                        builder: (context) => ModalRealizarVenta(
+                                        builder: (context) =>
+                                            ModalRealizarVenta(
                                           totalVenta: totalVenta,
                                           descuento: descuento,
                                           carrito: carrito,
