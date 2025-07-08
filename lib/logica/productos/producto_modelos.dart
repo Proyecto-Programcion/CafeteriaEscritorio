@@ -14,6 +14,9 @@ class ProductoModelo {
   final String? descripcion;
   final String? unidadMedida;
   final String nombreCategoria;
+  final bool esMayoreo; // Nuevo campo
+  final double? precioMayoreo; // Nuevo campo
+  final double? cantidadMinimaMayoreo; // Nuevo campo
 
   ProductoModelo({
     required this.idProducto,
@@ -30,6 +33,9 @@ class ProductoModelo {
     this.descripcion,
     this.unidadMedida,
     required this.nombreCategoria,
+    required this.esMayoreo, // Nuevo campo
+    this.precioMayoreo, // Nuevo campo
+    this.cantidadMinimaMayoreo, // Nuevo campo
   });
 
   factory ProductoModelo.fromMap(Map<String, dynamic> map) => ProductoModelo(
@@ -47,6 +53,9 @@ class ProductoModelo {
         descripcion: map['descripcion'] as String?,
         unidadMedida: map['unidad_medida'] as String?,
         nombreCategoria: map['nombre_categoria'] as String,
+        esMayoreo: map['es_mayoreo'] as bool? ?? false, // Nuevo campo con default
+        precioMayoreo: map['precio_mayoreo'] as double?, // Nuevo campo
+        cantidadMinimaMayoreo: map['cantidad_minima_mayoreo'] as double?, // Nuevo campo
       );
 }
 
@@ -58,6 +67,25 @@ class ProductoCarrito {
 
   double get total {
     final precio = producto.precio ?? 0;
+    final descuento = producto.descuento ?? 0;
+    return (precio - descuento) * cantidad;
+  }
+
+  // Método para obtener el precio según si aplica mayoreo o no
+  double get precioFinal {
+    // Si el producto tiene mayoreo y la cantidad es suficiente
+    if (producto.esMayoreo && 
+        producto.cantidadMinimaMayoreo != null && 
+        producto.precioMayoreo != null &&
+        cantidad >= producto.cantidadMinimaMayoreo!) {
+      return producto.precioMayoreo!;
+    }
+    return producto.precio;
+  }
+
+  // Total calculado con precio de mayoreo si aplica
+  double get totalConMayoreo {
+    final precio = precioFinal;
     final descuento = producto.descuento ?? 0;
     return (precio - descuento) * cantidad;
   }

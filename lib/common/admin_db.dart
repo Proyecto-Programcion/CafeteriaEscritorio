@@ -112,27 +112,30 @@ class Database {
 
         // TABLA PRODUCTOS
         '''
-      CREATE TABLE IF NOT EXISTS productos (
-        id_producto SERIAL PRIMARY KEY,
-        id_categoria INT,
-        id_usuario INT,
-        nombre VARCHAR NOT NULL,
-        cantidad DOUBLE PRECISION,
-        precio DOUBLE PRECISION NOT NULL,
-        costo DOUBLE PRECISION,
-        descuento DOUBLE PRECISION,
-        codigo_de_barras VARCHAR UNIQUE,
-        url_imagen VARCHAR,
-        eliminado BOOLEAN DEFAULT FALSE,
-        descripcion VARCHAR,
-        unidad_medida VARCHAR, -- kilo, tonelada, gramo, pieza
-        CONSTRAINT fk_productos_categoria 
-          FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) 
-          ON DELETE CASCADE,
-        CONSTRAINT fk_productos_usuario 
-          FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
-          ON DELETE CASCADE
-      )
+          CREATE TABLE IF NOT EXISTS productos (
+            id_producto SERIAL PRIMARY KEY,
+            id_categoria INT,
+            id_usuario INT,
+            nombre VARCHAR NOT NULL,
+            cantidad DOUBLE PRECISION,
+            precio DOUBLE PRECISION NOT NULL,
+            costo DOUBLE PRECISION,
+            descuento DOUBLE PRECISION,
+            codigo_de_barras VARCHAR UNIQUE,
+            url_imagen VARCHAR,
+            eliminado BOOLEAN DEFAULT FALSE,
+            descripcion VARCHAR,
+            unidad_medida VARCHAR, -- kilo, tonelada, gramo, pieza
+            es_mayoreo BOOLEAN DEFAULT FALSE, -- Indica si tiene precio de mayoreo
+            cantidad_minima_mayoreo DOUBLE PRECISION, -- Puede ser NULL
+            precio_mayoreo DOUBLE PRECISION, -- Puede ser NULL
+            CONSTRAINT fk_productos_categoria 
+              FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) 
+              ON DELETE CASCADE,
+            CONSTRAINT fk_productos_usuario 
+              FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) 
+              ON DELETE CASCADE
+          )
       ''',
 
         // Agregar esta sección al array statements:

@@ -41,6 +41,11 @@ class _ModalAgregarNuevoProductoWidgetState
 
   String imagenController = '';
 
+  bool esMayoreo = false;
+  final TextEditingController precioMayoreoController = TextEditingController();
+  final TextEditingController cantidadMinimaMayoreoController =
+      TextEditingController();
+
   //controlador del form
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -76,7 +81,56 @@ class _ModalAgregarNuevoProductoWidgetState
 
   void agregarNuevoProducto() async {
     if (formKey.currentState!.validate()) {
-      print('codigo de barras: ${codigoDeBarraController.text}');
+      // Validación adicional para mayoreo
+      if (esMayoreo) {
+        // Validar que el precio de mayoreo sea mayor a 0
+        if (precioMayoreoController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'El precio de mayoreo es obligatorio cuando se activa la venta a granel'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        final precioMayoreo = double.tryParse(precioMayoreoController.text);
+        if (precioMayoreo == null || precioMayoreo <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('El precio de mayoreo debe ser mayor a 0'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        // Validar que la cantidad mínima sea mayor a 0
+        if (cantidadMinimaMayoreoController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'La cantidad mínima es obligatoria cuando se activa la venta a granel'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        final cantidadMinima =
+            double.tryParse(cantidadMinimaMayoreoController.text);
+        if (cantidadMinima == null || cantidadMinima <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('La cantidad mínima debe ser mayor a 0'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+
       final AgregarProductoController agregarProductoController =
           Get.put(AgregarProductoController());
       final resp = await agregarProductoController.agregarProducto(
@@ -95,7 +149,15 @@ class _ModalAgregarNuevoProductoWidgetState
         double.parse(descuentoController.text.isEmpty
             ? '0.0'
             : descuentoController.text),
+        esMayoreo,
+        esMayoreo && precioMayoreoController.text.isNotEmpty
+            ? double.parse(precioMayoreoController.text)
+            : null,
+        esMayoreo && cantidadMinimaMayoreoController.text.isNotEmpty
+            ? double.parse(cantidadMinimaMayoreoController.text)
+            : null,
       );
+
       if (resp) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -128,6 +190,9 @@ class _ModalAgregarNuevoProductoWidgetState
   final ObtenerCategoriasController obtenerCategoriasController =
       Get.put(ObtenerCategoriasController());
 
+  bool _dropdownUnidadAbierto = false;
+  bool _dropdownCategoriaAbierto = false;
+
   @override
   void initState() {
     super.initState();
@@ -135,7 +200,8 @@ class _ModalAgregarNuevoProductoWidgetState
 
     // Para desplegar automáticamente el dropdown de categoría
     categoriaFocus.addListener(() {
-      if (categoriaFocus.hasFocus) {
+      if (categoriaFocus.hasFocus && !_dropdownCategoriaAbierto) {
+        _dropdownCategoriaAbierto = true;
         Future.delayed(const Duration(milliseconds: 100), () {
           final dropdownContext = categoriaDropdownKey.currentContext;
           if (dropdownContext != null) {
@@ -152,11 +218,15 @@ class _ModalAgregarNuevoProductoWidgetState
           }
         });
       }
+      if (!categoriaFocus.hasFocus) {
+        _dropdownCategoriaAbierto = false;
+      }
     });
 
     // Para desplegar automáticamente el dropdown de unidad de medida
     unidadMedidaFocus.addListener(() {
-      if (unidadMedidaFocus.hasFocus) {
+      if (unidadMedidaFocus.hasFocus && !_dropdownUnidadAbierto) {
+        _dropdownUnidadAbierto = true;
         Future.delayed(const Duration(milliseconds: 100), () {
           final dropdownContext = unidadMedidaDropdownKey.currentContext;
           if (dropdownContext != null) {
@@ -172,6 +242,9 @@ class _ModalAgregarNuevoProductoWidgetState
             detector?.onTap?.call();
           }
         });
+      }
+      if (!unidadMedidaFocus.hasFocus) {
+        _dropdownUnidadAbierto = false;
       }
     });
 
@@ -360,6 +433,9 @@ class _ModalAgregarNuevoProductoWidgetState
                     cambiarCategoria(value);
                     FocusScope.of(context).requestFocus(costoFocus);
                   },
+                  onDropdownTap: () {
+                    _dropdownCategoriaAbierto = true;
+                  },
                 ),
                 const SizedBox(height: 20),
                 //***********************INPUT DE COSTO Y VENTA*/
@@ -384,6 +460,9 @@ class _ModalAgregarNuevoProductoWidgetState
                   stockFocus: stockFocus,
                   onStockSubmitted: (_) =>
                       FocusScope.of(context).requestFocus(descuentoFocus),
+                  onDropdownTap: () {
+                    _dropdownUnidadAbierto = true;
+                  },
                 ),
                 const SizedBox(height: 20),
                 //***********************BOTON PARA AGREGAR EL Descuento*/
@@ -396,6 +475,160 @@ class _ModalAgregarNuevoProductoWidgetState
                 const SizedBox(
                     height:
                         30), // En lugar de Spacer() que puede causar problemas
+
+                //aqui agregar el nuevo contenido
+                //aqui agregar el nuevo contenido
+                // ...existing code...
+
+//aqui agregar el nuevo contenido
+                Row(
+                  children: [
+                    const Text(
+                      '¿Deseas vender el producto a granel?',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Switch(
+                      value: esMayoreo,
+                      onChanged: (value) {
+                        setState(() {
+                          esMayoreo = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                if (esMayoreo) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text(
+                        'Precio a granel:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextFormField(
+                          controller: precioMayoreoController,
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 20),
+                            labelText: 'Precio mayoreo',
+                          ),
+                          style: const TextStyle(
+                            backgroundColor: Colors.transparent,
+                          ),
+                          validator: (value) {
+                            if (esMayoreo && (value == null || value.isEmpty)) {
+                              return 'Ingrese el precio a granel';
+                            }
+                            if (esMayoreo &&
+                                value != null &&
+                                value.isNotEmpty) {
+                              final precio = double.tryParse(value);
+                              if (precio == null || precio <= 0) {
+                                return 'El precio debe ser mayor a 0';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      const Text(
+                        'Cantidad mínima:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextFormField(
+                          controller: cantidadMinimaMayoreoController,
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1),
+                            ),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 20),
+                            labelText: 'Cantidad mínima',
+                          ),
+                          style: const TextStyle(
+                            backgroundColor: Colors.transparent,
+                          ),
+                          validator: (value) {
+                            if (esMayoreo && (value == null || value.isEmpty)) {
+                              return 'Ingrese el precio a granel';
+                            }
+                            if (esMayoreo &&
+                                value != null &&
+                                value.isNotEmpty) {
+                              final precio = double.tryParse(value);
+                              if (precio == null || precio <= 0) {
+                                return 'El precio debe ser mayor a 0';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 20),
                 SizedBox(
                   width: 300,
                   child: InkWell(
@@ -454,6 +687,7 @@ class InputMedidaYCantidad extends StatelessWidget {
     required this.unidadMedidaFocus, // Nuevo parámetro
     required this.stockFocus,
     this.onStockSubmitted,
+    required this.onDropdownTap, // <-- nuevo parámetro
   });
 
   final String unidadDeMedidaController;
@@ -462,6 +696,7 @@ class InputMedidaYCantidad extends StatelessWidget {
   final FocusNode unidadMedidaFocus; // Nuevo parámetro
   final FocusNode stockFocus;
   final void Function(String)? onStockSubmitted;
+  final VoidCallback onDropdownTap; // <-- nuevo parámetro
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +716,7 @@ class InputMedidaYCantidad extends StatelessWidget {
           width: 200,
           child: DropdownButtonFormField<String>(
             value: unidadDeMedidaController,
-            focusNode: unidadMedidaFocus, // Asigna el focusNode aquí
+            focusNode: unidadMedidaFocus,
             items: const [
               DropdownMenuItem(value: 'Gramo', child: Text('Gramo')),
               DropdownMenuItem(value: 'Kilo', child: Text('Kilo')),
@@ -489,12 +724,9 @@ class InputMedidaYCantidad extends StatelessWidget {
             ],
             onChanged: (value) {
               onChanged(value!);
-              // Al seleccionar, pasa el foco al campo de stock
               FocusScope.of(context).requestFocus(stockFocus);
             },
-            onTap: () {
-              // Opcional: puedes abrir el dropdown automáticamente si lo deseas
-            },
+            onTap: onDropdownTap, // <-- aquí
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.transparent,
@@ -679,12 +911,14 @@ class InputCategoria extends StatelessWidget {
   final String categoriaController;
   final FocusNode focusNode;
   final void Function(String) onChanged;
+  final VoidCallback onDropdownTap; // <-- nuevo parámetro
 
   InputCategoria({
     super.key,
     required this.categoriaController,
     required this.focusNode,
     required this.onChanged,
+    required this.onDropdownTap, // <-- nuevo parámetro
   });
 
   final ObtenerCategoriasController obtenerCategoriasController =
@@ -713,6 +947,7 @@ class InputCategoria extends StatelessWidget {
               onChanged: (value) {
                 if (value != null) onChanged(value);
               },
+              onTap: onDropdownTap, // <-- aquí
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.transparent,

@@ -163,6 +163,9 @@ class FilaTablaProductoWidget extends StatelessWidget {
                               unidadMedida: producto.unidadMedida ?? '',
                               imgBase64: producto.urlImagen ?? '',
                               descuento: producto.descuento ?? 0,
+                              esMayoreo: producto.esMayoreo,
+                              precioMayoreo: producto.precioMayoreo ?? 0,
+                              cantidadMinimaMayoreo: producto.cantidadMinimaMayoreo ?? 0,
                             );
                           });
                     },

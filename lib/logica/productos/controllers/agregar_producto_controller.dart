@@ -28,6 +28,9 @@ class AgregarProductoController extends GetxController {
     String urlImagen,
     int idCategoria,
     double descuento,
+    bool esMayoreo,
+    double? precioMayoreo,
+    double? cantidadMinimaMayoreo,
   ) async {
     try {
       estado.value = Estado.carga;
@@ -53,7 +56,10 @@ class AgregarProductoController extends GetxController {
           eliminado,
           descripcion,
           unidad_medida,
-          descuento
+          descuento,
+          es_mayoreo,
+          precio_mayoreo,
+          cantidad_minima_mayoreo
         ) VALUES (
           @id_categoria,
           @id_usuario,
@@ -66,7 +72,10 @@ class AgregarProductoController extends GetxController {
           @eliminado,
           @descripcion,
           @unidad_medida,
-          @descuento
+          @descuento,
+          @es_mayoreo,
+          @precio_mayoreo,
+          @cantidad_minima_mayoreo
         );
       ''');
 
@@ -85,6 +94,9 @@ class AgregarProductoController extends GetxController {
         'descripcion': descripcion,
         'unidad_medida': unidadMedida,
         'descuento': descuento,
+        'es_mayoreo': esMayoreo,
+        'precio_mayoreo': precioMayoreo,
+        'cantidad_minima_mayoreo': cantidadMinimaMayoreo,
       });
 
       estado.value = Estado.exito;

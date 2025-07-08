@@ -26,6 +26,9 @@ class ActualizarProductoController extends GetxController {
     String urlImagen,
     int idCategoria,
     double descuento,
+    bool esMayoreo,
+    double? precioMayoreo,
+    double? cantidadMinimaMayoreo,
   ) async {
     try {
       estado.value = Estado.carga;
@@ -52,25 +55,30 @@ class ActualizarProductoController extends GetxController {
           eliminado = @eliminado,
           descripcion = @descripcion,
           unidad_medida = @unidad_medida,
-          descuento = @descuento
+          descuento = @descuento,
+          es_mayoreo = @es_mayoreo,
+          precio_mayoreo = @precio_mayoreo,
+          cantidad_minima_mayoreo = @cantidad_minima_mayoreo
         WHERE id_producto = @id_producto;
       ''');
-
 
       await Database.conn.execute(sql, parameters: {
         'id_producto': idProducto,
         'id_categoria': idCategoria,
-        'id_usuario': 1,
+        'id_usuario': SesionActiva().idUsuario,
         'nombre': nombre,
         'cantidad': cantidad,
         'precio': precio,
         'costo': costo,
-        'codigo_de_barras': codigoDeBarras,
+        'codigo_de_barras': codigoDeBarras.isEmpty ? null : codigoDeBarras,
         'url_imagen': imagenBase64,
         'eliminado': false,
         'descripcion': descripcion,
         'unidad_medida': unidadMedida,
-        'descuento': descuento
+        'descuento': descuento,
+        'es_mayoreo': esMayoreo,
+        'precio_mayoreo': precioMayoreo,
+        'cantidad_minima_mayoreo': cantidadMinimaMayoreo,
       });
 
       if (cantidad != cantidad_anterior) {
@@ -98,7 +106,6 @@ class ActualizarProductoController extends GetxController {
           'idUsuario': SesionActiva().idUsuario,
           'fecha': DateTime.now().toIso8601String(),
         });
-        
       }
 
       estado.value = Estado.exito;
