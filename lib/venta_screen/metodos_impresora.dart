@@ -26,23 +26,69 @@ class AdminImpresora {
     double? promocionDescuento,
   }) async {
     String nombreArchivo = 'ticket_temp.txt';
-    
+
+    String saberSiElPrecioEsGranel(
+      ProductoCarrito producto,
+    ) {
+      if (producto.producto.esMayoreo) {
+        if (producto.cantidad >= producto.producto.cantidadMinimaMayoreo!) {
+          return 'G.R';
+        } else {
+          return '';
+        }
+      } else {
+        return '';
+      }
+    }
+
+    double obtenerElTotalDeVentDeProducto(
+      ProductoCarrito producto,
+    ) {
+      if (producto.producto.esMayoreo) {
+        if (producto.cantidad >= producto.producto.cantidadMinimaMayoreo!) {
+          return (producto.producto.precioMayoreo! * producto.cantidad);
+        } else {
+          return (producto.producto.precio * producto.cantidad);
+        }
+      } else {
+        return (producto.producto.precio * producto.cantidad);
+      }
+    }
+
+    String retornarPrecioGranel(
+      ProductoCarrito producto,
+    ) {
+      if (producto.producto.esMayoreo) {
+        if (producto.cantidad >= producto.producto.cantidadMinimaMayoreo!) {
+          return 'Precio G.:\$${producto.producto.precioMayoreo!.toStringAsFixed(2)}';
+        } else {
+          return 'Precio U.:\$${producto.producto.precio.toStringAsFixed(2)}';
+        }
+      } else {
+        return 'Precio U.:\$${producto.producto.precio.toStringAsFixed(2)}';
+      }
+    }
+
     try {
       final tempDir = Directory.systemTemp;
       final file = await File('${tempDir.path}/$nombreArchivo').create();
 
       // Calcular totales
-      double subtotal = carrito.fold(0.0, (suma, item) => suma + item.totalConMayoreo);
-      
+      double subtotal =
+          carrito.fold(0.0, (suma, item) => suma + item.totalConMayoreo);
+
       // Descuentos individuales por producto (ya vienen como positivos)
-      double descuentosProductos = carrito.fold(0.0, (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad));
-      
+      double descuentosProductos = carrito.fold(
+          0.0,
+          (suma, item) =>
+              suma + ((item.producto.descuento ?? 0) * item.cantidad));
+
       // Promoción (viene positiva, la convertimos a negativa para el cálculo)
       double promocionAplicada = promocionDescuento ?? 0;
-      
+
       // Total de descuentos (ambos como positivos para mostrar)
       double totalDescuentos = descuentosProductos + promocionAplicada;
-      
+
       // Cálculo final: subtotal menos todos los descuentos
       double totalFinal = subtotal - totalDescuentos;
 
@@ -63,13 +109,12 @@ Ticket: #${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}
 
 ${carrito.map((producto) {
         String nombreLimpio = producto.producto.nombre;
-        String descripcionLimpia = producto.producto.descripcion ?? "Sin descripcion";
-        double precioUnitario = producto.producto.precio;
+        String precioUnitario = retornarPrecioGranel(producto);
         double descuentoUnitario = producto.producto.descuento ?? 0;
-        double totalProducto = (precioUnitario - descuentoUnitario) * producto.cantidad;
-        
-        return '${producto.cantidad}x $nombreLimpio\n'
-            '   Precio unitario: \$${precioUnitario.toStringAsFixed(2)}\n'
+        double totalProducto = obtenerElTotalDeVentDeProducto(producto);
+
+        return '${producto.cantidad}x $nombreLimpio ${saberSiElPrecioEsGranel(producto)}\n'
+            '   ${retornarPrecioGranel(producto)}\n'
             '   Descuento: \$${descuentoUnitario.toStringAsFixed(2)}\n'
             '   Subtotal: \$${totalProducto.toStringAsFixed(2)}\n'
             '   ----------------------\n';
@@ -109,14 +154,8 @@ TOTAL A PAGAR:         \$${totalFinal.toStringAsFixed(2)}
 
       await file.writeAsString(textoLimpio, encoding: utf8);
 
-
-      
-
-
       final rutaArchivo = file.path.replaceAll('/', '\\');
       final nombreCompartido = r'\\localhost\printtest';
-
-
 
       final result = await Process.run(
         'cmd',
@@ -124,8 +163,7 @@ TOTAL A PAGAR:         \$${totalFinal.toStringAsFixed(2)}
         runInShell: true,
       );
 
-      if (result.stderr.isNotEmpty) {
-      }
+      if (result.stderr.isNotEmpty) {}
 
       await file.delete();
       print('Archivo eliminado');
