@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AdminImpresora {
   static AdminImpresora? _instance;
@@ -18,6 +19,7 @@ class AdminImpresora {
     return _instance!;
   }
 
+
   static Future<void> imprimirTicket({
     String puerto = 'USB002',
     required List<ProductoCarrito> carrito,
@@ -26,7 +28,7 @@ class AdminImpresora {
     double? promocionDescuento,
   }) async {
     String nombreArchivo = 'ticket_temp.txt';
-
+    final box = GetStorage();
     String saberSiElPrecioEsGranel(
       ProductoCarrito producto,
     ) {
@@ -69,6 +71,13 @@ class AdminImpresora {
       }
     }
 
+    String _nombreController = box.read('ticket_nombre') ?? '';
+    String _direccionController = box.read('ticket_direccion') ?? '';
+    String _telefonoController = box.read('ticket_telefono') ?? '';
+    print('Nombre: $_nombreController');
+    print('Dirección: $_direccionController');
+    print('Teléfono: $_telefonoController');
+
     try {
       final tempDir = Directory.systemTemp;
       final file = await File('${tempDir.path}/$nombreArchivo').create();
@@ -95,12 +104,12 @@ class AdminImpresora {
       // Ticket usando los productos REALES del carrito
       String ticketPrueba = '''
 ================================
-        CAFE PAQUITO
-         Cafeteria
+         $_nombreController
+Tel: $_telefonoController
+Dir: $_direccionController
 ================================
 
-Fecha: ${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year}
-Hora: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}
+Fecha: ${DateTime.now().day.toString().padLeft(2, '0')}/${DateTime.now().month.toString().padLeft(2, '0')}/${DateTime.now().year} : ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}
 Ticket: #${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}
 
 ================================
