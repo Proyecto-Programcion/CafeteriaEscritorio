@@ -71,11 +71,19 @@ class ProductoCarrito {
     return (precio - descuento) * cantidad;
   }
 
+  // Getter para saber si aplica precio de mayoreo
+  bool get aplicaPrecioMayoreo {
+    return producto.esMayoreo &&
+        producto.cantidadMinimaMayoreo != null &&
+        producto.precioMayoreo != null &&
+        cantidad >= producto.cantidadMinimaMayoreo!;
+  }
+
   // Método para obtener el precio según si aplica mayoreo o no
   double get precioFinal {
     // Si el producto tiene mayoreo y la cantidad es suficiente
-    if (producto.esMayoreo && 
-        producto.cantidadMinimaMayoreo != null && 
+    if (producto.esMayoreo &&
+        producto.cantidadMinimaMayoreo != null &&
         producto.precioMayoreo != null &&
         cantidad >= producto.cantidadMinimaMayoreo!) {
       return producto.precioMayoreo!;

@@ -5,8 +5,8 @@ import 'package:cafe/common/enums.dart';
 import 'package:cafe/logica/productos/controllers/buscador_productos_controller.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:cafe/logica/promociones/promocion_producto_gratis_modelo.dart';
-import 'package:cafe/logica/venta/controllers/realizar_venta_controller.dart';
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/logica/venta/controllers/realizar_venta_controller.dart';
 import 'package:cafe/venta_screen/widgets/cabezera_tabla_carrito_venta.dart';
 import 'package:cafe/venta_screen/widgets/modal_realizar_Venta.dart';
 import 'package:cafe/venta_screen/widgets/producto_seleccionado_fila_widget.dart';
@@ -95,10 +95,7 @@ class _VentaScreenState extends State<VentaScreen> {
   double get totalVenta {
     return carrito.fold<double>(
       0,
-      (suma, item) =>
-          suma +
-          (((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
-              item.cantidad),
+      (suma, item) => suma + item.totalConMayoreo,
     );
   }
 
@@ -202,14 +199,11 @@ class _VentaScreenState extends State<VentaScreen> {
   Widget build(BuildContext context) {
     final double totalVenta = carrito.fold<double>(
       0,
-      (suma, item) =>
-          suma +
-          ((item.producto.precio ?? 0) - (item.producto.descuento ?? 0)) *
-              item.cantidad,
+      (suma, item) => suma + item.totalConMayoreo,
     );
     final double descuento = carrito.fold<double>(
       0,
-      (suma, item) => suma + (item.producto.descuento ?? 0) * item.cantidad,
+      (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad),
     );
 
     return RawKeyboardListener(

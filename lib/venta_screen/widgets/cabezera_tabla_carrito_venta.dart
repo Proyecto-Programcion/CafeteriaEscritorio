@@ -97,7 +97,7 @@ class ProductoCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          height: 180,
+          height: 220,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: const Color(0xFFF9F1E7),
@@ -211,6 +211,39 @@ class ProductoCard extends StatelessWidget {
                             fontSize: 16,
                           ),
                         )
+                      ]),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        Text(
+                          'Precio: \$${(producto.precio ?? 0).toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            decoration: producto.esMayoreo &&
+                                     producto.cantidadMinimaMayoreo != null &&
+                                     producto.precioMayoreo != null
+                                     ? TextDecoration.lineThrough
+                                     : TextDecoration.none,
+                            color: producto.esMayoreo &&
+                                   producto.cantidadMinimaMayoreo != null &&
+                                   producto.precioMayoreo != null
+                                   ? Colors.grey[600]
+                                   : Colors.black,
+                          ),
+                        ),
+                        if (producto.esMayoreo &&
+                            producto.cantidadMinimaMayoreo != null &&
+                            producto.precioMayoreo != null) ...[
+                          const SizedBox(width: 10),
+                          Text(
+                            'Mayoreo: \$${producto.precioMayoreo!.toStringAsFixed(2)} (min: ${producto.cantidadMinimaMayoreo!.toStringAsFixed(producto.cantidadMinimaMayoreo!.truncateToDouble() == producto.cantidadMinimaMayoreo! ? 0 : 2)})',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
                       ])
                     ],
                   ),

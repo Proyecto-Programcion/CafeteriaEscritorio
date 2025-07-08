@@ -32,7 +32,7 @@ class AdminImpresora {
       final file = await File('${tempDir.path}/$nombreArchivo').create();
 
       // Calcular totales
-      double subtotal = carrito.fold(0.0, (suma, item) => suma + (item.producto.precio * item.cantidad));
+      double subtotal = carrito.fold(0.0, (suma, item) => suma + item.totalConMayoreo);
       
       // Descuentos individuales por producto (ya vienen como positivos)
       double descuentosProductos = carrito.fold(0.0, (suma, item) => suma + ((item.producto.descuento ?? 0) * item.cantidad));

@@ -46,7 +46,9 @@ class RealizarVentaController extends GetxController {
     double descuento = 0.0;
 
     for (var item in carrito) {
-      final precioBase = item.producto.precio * item.cantidad;
+      // Usar el nuevo método que considera precio de mayoreo
+      final precioUnitario = item.precioFinal;
+      final precioBase = precioUnitario * item.cantidad;
       final descuentoItem = (item.producto.descuento ?? 0) * item.cantidad;
 
       total += precioBase;
@@ -250,7 +252,7 @@ class RealizarVentaController extends GetxController {
           'id_venta': idVenta,
           'id_producto': producto.idProducto,
           'cantidad': cantidad,
-          'precio_unitario': producto.precio,
+          'precio_unitario': item.precioFinal, // Usar precio con mayoreo si aplica
           'descuento_unitario': producto.descuento ?? 0,
         });
 

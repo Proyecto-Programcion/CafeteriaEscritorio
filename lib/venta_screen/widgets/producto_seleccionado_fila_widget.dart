@@ -104,9 +104,12 @@ class _ProductoSeleccionadoFilaWidgetState
   Widget build(BuildContext context) {
     final producto = widget.productoCarrito.producto;
     final cantidad = widget.productoCarrito.cantidad;
-    final precio = producto.precio ?? 0;
+    
+    // Nuevas variables para mayoreo
+    final aplicaMayoreo = widget.productoCarrito.aplicaPrecioMayoreo;
+    final precioMostrar = widget.productoCarrito.precioFinal;
     final descuento = producto.descuento ?? 0;
-    final total = (precio - descuento) * cantidad;
+    final total = widget.productoCarrito.totalConMayoreo; // Usar el total con mayoreo
 
     return Container(
       width: double.infinity,
@@ -116,20 +119,67 @@ class _ProductoSeleccionadoFilaWidgetState
       ),
       child: Row(
         children: [
+          // Nombre del producto con indicador de mayoreo
           Expanded(
             flex: 4,
-            child: Text(
-              producto.nombre,
-              textAlign: TextAlign.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  producto.nombre,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                if (aplicaMayoreo)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.green[100],
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      'Precio Mayoreo',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.green[800],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
+          
+          // Precio unitario con indicador si es mayoreo
           Expanded(
             flex: 2,
-            child: Text(
-              '\$${precio.toStringAsFixed(2)}',
-              textAlign: TextAlign.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '\$${precioMostrar.toStringAsFixed(2)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: aplicaMayoreo ? FontWeight.bold : FontWeight.normal,
+                    color: aplicaMayoreo ? Colors.green[700] : Colors.black,
+                  ),
+                ),
+                if (aplicaMayoreo && producto.precio != precioMostrar)
+                  Text(
+                    '\$${producto.precio.toStringAsFixed(2)}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      decoration: TextDecoration.lineThrough,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+              ],
             ),
           ),
+          
           Expanded(
             flex: 2,
             child: Text(
@@ -137,6 +187,8 @@ class _ProductoSeleccionadoFilaWidgetState
               textAlign: TextAlign.center,
             ),
           ),
+          
+          // MANTENER TODA LA LÓGICA DE FRACCIONES
           Expanded(
             flex: 4,
             child: Row(
@@ -189,13 +241,21 @@ class _ProductoSeleccionadoFilaWidgetState
               ],
             ),
           ),
+          
+          // Total con color diferente si es mayoreo
           Expanded(
             flex: 2,
             child: Text(
               '\$${total.toStringAsFixed(2)}',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: aplicaMayoreo ? Colors.green[700] : Colors.black,
+              ),
             ),
           ),
+          
           SizedBox(
             width: 40,
             child: IconButton(

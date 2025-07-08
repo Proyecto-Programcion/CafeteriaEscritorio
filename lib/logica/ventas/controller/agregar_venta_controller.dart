@@ -38,11 +38,10 @@ class AgregarVentaController extends GetxController {
           parameters: {
             'id_venta': idVenta,
             'id_producto': item.producto.idProducto,
-            'precio': item.producto.precio,
+            'precio': item.precioFinal, // Usar precio con mayoreo si aplica
             'cantidad': item.cantidad,
-            'precio_total': item.producto.precio * item.cantidad,
-            'precio_descuento': ((item.producto.precio ?? 0) -
-                (item.producto.descuento ?? 0) * item.cantidad),
+            'precio_total': item.totalConMayoreo,
+            'precio_descuento': item.totalConMayoreo - ((item.producto.descuento ?? 0) * item.cantidad),
           },
         );
       }
