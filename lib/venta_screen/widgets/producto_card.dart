@@ -57,8 +57,8 @@ class ProductoCard extends StatelessWidget {
               children: [
                 // Imagen del producto
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 80,
+                  height: 90,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(8),

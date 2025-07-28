@@ -21,6 +21,9 @@ class ObtenerProductosControllers extends GetxController {
   Future<void> obtenerProductos() async {
     try {
       estado.value = Estado.carga;
+      mensaje.value = '';
+      totalProductos.value = 0;
+      listaProductos.clear();
       // Simulación de la obtención de productos
       final sql = Sql.named('''
         SELECT 

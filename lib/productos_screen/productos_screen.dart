@@ -212,55 +212,61 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
-                  } else if (obtenerProductosControllers.estado.value ==
+                  }
+                  if (obtenerProductosControllers.estado.value ==
                       Estado.error) {
                     return const Center(
                       child: Text('Error al cargar los productos'),
                     );
-                  } else if (obtenerProductosControllers
-                      .listaProductos.isEmpty) {
-                    return const Center(
-                      child: Text('No hay productos disponibles'),
-                    );
-                  } else {
-                    return ListView.builder(
-                      itemCount:
-                          obtenerProductosControllers.listaProductos.length,
-                      itemBuilder: (context, index) {
-                        final producto =
-                            obtenerProductosControllers.listaProductos[index];
-                        return FilaTablaProductoWidget(
-                          index: index,
-                          producto: producto,
-                          actualizarImagen: actualizarImagen,
-                        );
-                      },
-                    );
                   }
+                  if (obtenerProductosControllers.estado.value ==Estado.exito) {
+                    if (obtenerProductosControllers.listaProductos.isEmpty) {
+                      return const Center(
+                        child: Text('No hay productos disponibles'),
+                      );
+                    } else {
+                      return ListView.builder(
+                        itemCount:
+                            obtenerProductosControllers.listaProductos.length,
+                        itemBuilder: (context, index) {
+                          final producto =
+                              obtenerProductosControllers.listaProductos[index];
+                          return FilaTablaProductoWidget(
+                            index: index,
+                            producto: producto,
+                            actualizarImagen: actualizarImagen,
+                          );
+                        },
+                      );
+                    }
+                  }
+                  return const Center(
+                    child: Text('Estado desconocido, si este error ocurre, reinicie la aplicacion, si continua el error, contacte al desarrollador'),
+                  );
                 })),
               ],
             ),
           )),
-           //Maneja el estado del controlador para mostrar mensajes sobre si se agrego correctamente el stock o si hubo un error
-            Obx(() {
-              final estado = aumentarStockProductoController.estado.value;
-              if (estado == Estado.exito || estado == Estado.error) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      duration: const Duration(seconds: 1),
-                      content:
-                          Text(aumentarStockProductoController.mensaje.value),
-                      backgroundColor:
-                          estado == Estado.exito ? Colors.green : Colors.red,
-                    ),
-                  );
-                  // Resetear para evitar múltiples SnackBars
-                  aumentarStockProductoController.estado.value = Estado.inicio;
-                });
-              }
-              return const SizedBox.shrink();
-            }),
+          //Maneja el estado del controlador para mostrar mensajes sobre si se agrego correctamente el stock o si hubo un error
+          Obx(() {
+            final estado = aumentarStockProductoController.estado.value;
+            if (estado == Estado.exito || estado == Estado.error) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(seconds: 1),
+                    content:
+                        Text(aumentarStockProductoController.mensaje.value),
+                    backgroundColor:
+                        estado == Estado.exito ? Colors.green : Colors.red,
+                  ),
+                );
+                // Resetear para evitar múltiples SnackBars
+                aumentarStockProductoController.estado.value = Estado.inicio;
+              });
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );

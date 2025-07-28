@@ -47,7 +47,19 @@ class _VentaScreenState extends State<VentaScreen> {
     super.initState();
     cargarProductos();
     _searchController.addListener(_onSearchChanged);
-    // YA NO NECESITAMOS _verificarImpresoraWindows() aquí porque se hace en el singleton
+
+    // Escucha cambios en la lista reactiva y actualiza productosFiltrados si no hay búsqueda
+    ever(obtenerProductosControllers.listaProductos, (_) {
+      if (_searchController.text.trim().isEmpty) {
+        setState(() {
+          productosFiltrados = List<ProductoModelo>.from(
+              obtenerProductosControllers.listaProductos);
+        });
+        setState(() {
+          
+        });
+      }
+    });
   }
 
   @override
@@ -270,8 +282,8 @@ class _VentaScreenState extends State<VentaScreen> {
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
                       child: Text(
                         '',
                         style: TextStyle(
@@ -324,17 +336,20 @@ class _VentaScreenState extends State<VentaScreen> {
                     ),
                     const SizedBox(height: 10),
                     Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          if (obtenerProductosControllers.estado.value ==
-                              Estado.carga) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (obtenerProductosControllers.estado.value ==
-                              Estado.error) {
-                            return const Center(
-                                child: Text('Error al cargar los productos'));
-                          } else if (productosFiltrados.isEmpty) {
+                      child: Obx(() {
+                        if (obtenerProductosControllers.estado.value ==
+                            Estado.carga) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        if (obtenerProductosControllers.estado.value ==
+                            Estado.error) {
+                          return const Center(
+                              child: Text('Error al cargar los productos'));
+                        }
+                        if (obtenerProductosControllers.estado.value ==
+                            Estado.exito) {
+                          if (productosFiltrados.isEmpty) {
                             return const Center(
                                 child: Text('No hay productos disponibles'));
                           } else {
@@ -398,8 +413,9 @@ class _VentaScreenState extends State<VentaScreen> {
                               },
                             );
                           }
-                        },
-                      ),
+                        }
+                        return Text('Estado desconocido, por favor reinicie, si el error persiste comuniquese con soporte tecnico.');
+                      }),
                     ),
                   ],
                 ),

@@ -7,9 +7,7 @@ import 'package:cafe/common/enums.dart';
 import 'package:cafe/common/sesion_activa.dart';
 import 'package:cafe/logica/productos/controllers/obtener_productos_controllers.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+
 import 'package:postgres/postgres.dart';
 
 class AgregarProductoController extends GetxController {

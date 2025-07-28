@@ -9,7 +9,8 @@ class AumentarStockProductoController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   RxString mensaje = ''.obs;
 
-  Future<bool> aumentarStockProducto(int idProducto, double cantidad, double cantidadAnterior, String unidad_medida) async {
+  Future<bool> aumentarStockProducto(int idProducto, double cantidad,
+      double cantidadAnterior, String unidad_medida) async {
     try {
       estado.value = Estado.carga;
       mensaje.value = '';
@@ -20,7 +21,6 @@ class AumentarStockProductoController extends GetxController {
         WHERE id_producto = @idProducto
         RETURNING cantidad;
       ''');
-
 
       await Database.conn.execute(sql, parameters: {
         'cantidad': cantidad,
@@ -52,6 +52,7 @@ class AumentarStockProductoController extends GetxController {
       });
       final ObtenerProductosControllers obtenerProductosController =
           Get.find<ObtenerProductosControllers>();
+      
 
       mensaje.value = 'Stock aumentado correctamente';
       obtenerProductosController.obtenerProductos();

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cafe/logica/productos/producto_modelos.dart';
+import 'package:cafe/productos_screen/widgets/modal_Agregar_stock_widget.dart';
 import 'package:flutter/material.dart';
 
 class CabezeraTablaCarritoVenta extends StatelessWidget {
@@ -124,8 +125,8 @@ class ProductoCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Container(
-                width: 80, // <--- Cambiado de 150 a 80
-                height: 80, // <--- Cambiado de 150 a 80
+                width: 95, // <--- Cambiado de 150 a 80
+                height: 110, // <--- Cambiado de 150 a 80
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
@@ -157,12 +158,32 @@ class ProductoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        producto.nombre,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            producto.nombre,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return ModalAgregarStockWidget(
+                                          idProducto: producto.idProducto,
+                                          nombreProducto: producto.nombre,
+                                          unidadDeMedida:
+                                              producto.unidadMedida!,
+                                          stockActual: producto.cantidad);
+                                    });
+                              },
+                              icon: const Icon(Icons.inventory))
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -220,15 +241,15 @@ class ProductoCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             decoration: producto.esMayoreo &&
-                                     producto.cantidadMinimaMayoreo != null &&
-                                     producto.precioMayoreo != null
-                                     ? TextDecoration.lineThrough
-                                     : TextDecoration.none,
+                                    producto.cantidadMinimaMayoreo != null &&
+                                    producto.precioMayoreo != null
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
                             color: producto.esMayoreo &&
-                                   producto.cantidadMinimaMayoreo != null &&
-                                   producto.precioMayoreo != null
-                                   ? Colors.grey[600]
-                                   : Colors.black,
+                                    producto.cantidadMinimaMayoreo != null &&
+                                    producto.precioMayoreo != null
+                                ? Colors.grey[600]
+                                : Colors.black,
                           ),
                         ),
                         if (producto.esMayoreo &&

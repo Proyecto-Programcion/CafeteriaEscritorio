@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
   void initState() {
     super.initState();
     _setupMaximizeListener();
-     // Solicitar foco al iniciar
+    // Solicitar foco al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with WindowListener {
 
   //FocusNode para manejar el teclado
   // Esto es necesario para que el KeyboardListener funcione correctamente
-  final FocusNode _focusNode = FocusNode(); 
+  final FocusNode _focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
