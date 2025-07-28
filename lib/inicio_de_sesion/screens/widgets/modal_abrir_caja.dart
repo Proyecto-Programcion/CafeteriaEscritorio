@@ -19,9 +19,9 @@ class ModalAbrirCaja extends StatelessWidget {
         fechaInicio: DateTime.now(),
         montoInicial: double.tryParse(_cantidadController.text) ?? 0.0,
       );
-
+      print('Respuesta de abrir caja: $resp');
       if (resp) {
-        Navigator.pop(context, true);
+        Navigator.pushNamed(context, '/home');
       } else {
         Navigator.pop(context, false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,27 +62,27 @@ class ModalAbrirCaja extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Form(
-              key: _formKey,
+                key: _formKey,
                 child: TextFormField(
-              controller: _cantidadController,
-              decoration: InputDecoration(
-                labelText: 'Cantidad a abrir',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa una cantidad';
-                }
-                final cantidad = double.tryParse(value);
-                if (cantidad == null || cantidad <= -1) {
-                  return 'Ingresa un número válido mayor a 0';
-                }
-                return null;
-              },
-            )),
+                  controller: _cantidadController,
+                  decoration: InputDecoration(
+                    labelText: 'Cantidad a abrir',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa una cantidad';
+                    }
+                    final cantidad = double.tryParse(value);
+                    if (cantidad == null || cantidad <= -1) {
+                      return 'Ingresa un número válido mayor a 0';
+                    }
+                    return null;
+                  },
+                )),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {

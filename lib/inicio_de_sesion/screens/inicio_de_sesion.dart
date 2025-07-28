@@ -23,12 +23,12 @@ class _InicioDeSesion01State extends State<InicioDeSesion01> {
     // TODO: implement initState
     super.initState();
 
-    evaluarSiHayCajaAbiertaController.evaluarSiHayCajaAbierta().then((value) {
-      if (value) {
-        print('Caja abierta, redirigiendo a la pantalla de inicio');
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      }
-    });
+    // evaluarSiHayCajaAbiertaController.evaluarSiHayCajaAbierta().then((value) {
+    //   if (value) {
+    //     print('Caja abierta, redirigiendo a la pantalla de inicio');
+    //     Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    //   }
+    // });
   }
 
   @override

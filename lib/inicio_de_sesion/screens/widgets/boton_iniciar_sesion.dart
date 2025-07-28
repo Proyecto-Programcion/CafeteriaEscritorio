@@ -1,4 +1,6 @@
+import 'package:cafe/common/enums.dart';
 import 'package:cafe/common/sesion_activa.dart';
+import 'package:cafe/inicio_de_sesion/controllers/evaluar_si_hay_caja_abierta.dart';
 import 'package:cafe/inicio_de_sesion/controllers/iniciar_sesion_controller.dart';
 import 'package:cafe/inicio_de_sesion/screens/widgets/modal_abrir_caja.dart';
 import 'package:cafe/inicio_de_sesion/screens/widgets/modal_iniciar_sesion.dart';
@@ -19,27 +21,32 @@ class BottonIniciarSesion extends StatelessWidget {
 
   final IniciarSesionController iniciarSesionController =
       Get.put(IniciarSesionController());
+  final EvaluarSiHayCajaAbiertaController evaluarSiHayCajaAbiertaController =
+      Get.put(EvaluarSiHayCajaAbiertaController());
 
   void _iniciarSesion(BuildContext context) async {
     if (formKey.currentState!.validate()) {
       final resp = await iniciarSesionController.iniciarSesion(
           correoController.text, contrasenaController.text);
-      if (resp == true) {
-        showDialog(
+      if (resp) {
+        final resp = await evaluarSiHayCajaAbiertaController
+            .evaluarSiHayCajaAbierta(idUsuario: SesionActiva().idUsuario!);
+            print('Respuesta de evaluar si hay caja abierta: $resp');
+        if (resp) {
+          // Si hay caja abierta, redirigir a la pantalla de inicio
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        } else {
+          // Si no hay caja abierta, mostrar modal para abrir caja
+          showDialog(
             context: context,
             builder: (context) {
               return ModalAbrirCaja();
-            }).then((value) {
-          if (value == true) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else {
-            SesionActiva().limpiarSesion();
-          }
-        });
+            },
+          );
+        }
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

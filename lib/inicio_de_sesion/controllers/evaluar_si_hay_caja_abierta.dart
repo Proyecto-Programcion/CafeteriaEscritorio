@@ -8,34 +8,37 @@ class EvaluarSiHayCajaAbiertaController extends GetxController {
   Rx<Estado> estado = Estado.inicio.obs;
   RxString mensajeError = ''.obs;
 
-  Future<bool> evaluarSiHayCajaAbierta() async {
+  Future<bool> evaluarSiHayCajaAbierta({required int idUsuario}) async {
     try {
       estado.value = Estado.carga;
 
       final sql = Sql.named('''
-      SELECT * FROM turnos_caja 
-      ORDER BY id DESC 
-      LIMIT 1;
-      ''');
+  SELECT * FROM turnos_caja 
+  WHERE fecha_fin IS NULL
+  AND id_usuario = @idUsuario
+  ORDER BY id DESC 
+  LIMIT 1;
+''');
 
-      final resp = await Database.conn.execute(sql);
+      final resp = await Database.conn.execute(sql, parameters: {
+        'idUsuario': idUsuario, // <-- Debe coincidir con @idUsuario
+      });
 
       final existeCajaAbierta = resp.isNotEmpty && resp.first[6] as bool;
-      final idUser = resp.isNotEmpty ? resp.first[1] as int : null;
 
       if (!existeCajaAbierta) {
         estado.value = Estado.error;
         mensajeError.value = 'No hay caja abierta';
         return false;
       }
+
       // SI EXISTE CAJA ABIERTA, OBTENER USUARIO PARA DARLE VALORES A SESION_ACTIVA
       final sesionSql = Sql.named('''
       SELECT * FROM usuarios WHERE id_usuario = @idUser;
       ''');
 
-
       final sesionResp = await Database.conn.execute(sesionSql, parameters: {
-        'idUser': idUser,
+        'idUser': idUsuario,
       });
 
       SesionActiva().idUsuario = sesionResp.first[0] as int;

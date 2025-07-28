@@ -39,6 +39,7 @@ class AgregarTurnoCajaController extends GetxController {
 
       estado.value = Estado.exito;
       SesionActiva().idTurnoCaja = int.parse(resp.first[0].toString());
+      
       return true;
     } catch (e) {
       estado.value = Estado.error;

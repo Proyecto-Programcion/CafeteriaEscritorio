@@ -207,7 +207,6 @@ class _CustomTextFieldState extends State<_CustomTextField> {
     super.initState();
     _obscure = widget.obscureText;
   }
-  
 
   @override
   Widget build(BuildContext context) {
