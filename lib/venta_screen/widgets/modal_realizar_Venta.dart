@@ -45,6 +45,7 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
   PromocionProductoGratiConNombreDelProductosModelo?
       promocionProductoGratisSeleccionada;
   final TextEditingController _buscadorController = TextEditingController();
+  final TextEditingController _pagoController = TextEditingController(); // <-- nuevo
   final ObtenerClientesController clientesController =
       Get.put(ObtenerClientesController());
   final ObtenerPromocionesController obtenerPromocionesController =
@@ -65,6 +66,7 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
   void dispose() {
     _focusNodeModal.dispose();
     _buscadorController.dispose();
+    _pagoController.dispose(); // <-- nuevo
     _scrollController.dispose();
     clientesController.filtro.value = '';
     super.dispose();
@@ -157,12 +159,23 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
     // final FocusNode _focusNodeModal = FocusNode();
 
     void _handleIrAPagar() {
+      final totalConDesc = widget.totalVenta - calcularDescuento();
+      final pago = double.tryParse(_pagoController.text.replaceAll(',', '.')) ?? 0;
+      if (pago < totalConDesc) {
+        Get.snackbar(
+          'Pago insuficiente',
+          'El pago debe ser al menos \$${totalConDesc.toStringAsFixed(2)}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withOpacity(0.85),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
       RealizarVentaController realizarVentaController =
           Get.put(RealizarVentaController());
       realizarVentaController.cambiarEstadoAcarga();
-
       final descuentoCalculado = calcularDescuento();
-
       if (widget.onIrAPagar != null) {
         widget.onIrAPagar!(
           usuarioSeleccionado,
@@ -172,12 +185,13 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
           descuentoCalculado,
         );
       }
-
       Navigator.of(context).pop({
         'usuario': usuarioSeleccionado,
         'promocionDescuento': promocionDescuentoSeleccionada,
         'promocionProductoGratis': promocionProductoGratisSeleccionada,
         'descuentoCalculado': descuentoCalculado,
+        'pago': pago,
+        'cambio': (pago - totalConDesc),
       });
     }
 
@@ -481,76 +495,139 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 3, horizontal: 3),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Total:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.black87,
+                        child: Builder(builder: (context) {
+                          final totalConDesc = widget.totalVenta - calcularDescuento();
+                          final pago = double.tryParse(
+                                  _pagoController.text.replaceAll(',', '.')) ??
+                              0;
+                          final cambio = pago - totalConDesc;
+                          final pagoInsuficiente = pago > 0 && pago < totalConDesc;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Total:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '\$${widget.totalVenta.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.black87,
+                                  Text(
+                                    '\$${widget.totalVenta.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Descuento:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 16,
-                                    color: Colors.green,
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Descuento:',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.green,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '-\$${calcularDescuento().toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 16,
-                                    color: Colors.green,
+                                  Text(
+                                    '-\$${calcularDescuento().toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.green,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Total con descuento:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.green,
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Total con descuento:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.green,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '\$${(widget.totalVenta - calcularDescuento()).toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.green,
+                                  Text(
+                                    '\$${totalConDesc.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.green,
+                                    ),
                                   ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: _pagoController,
+                                keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.,]')),
+                                ],
+                                decoration: InputDecoration(
+                                  labelText: 'Pago',
+                                  hintText: 'Monto recibido',
+                                  prefixIcon: const Icon(Icons.payments),
+                                  filled: true,
+                                  fillColor: Colors.orange[50],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.orange.shade200,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.orange.shade200,
+                                    ),
+                                  ),
+                                  errorText:
+                                      pagoInsuficiente ? 'Pago insuficiente' : null,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
+                                onChanged: (_) => setState(() {}),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Cambio:',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    cambio >= 0
+                                        ? '\$${cambio.toStringAsFixed(2)}'
+                                        : '\$0.00',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: cambio >= 0
+                                          ? Colors.blueAccent
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        }),
                       ),
                       const SizedBox(height: 30),
                       SizedBox(
@@ -567,7 +644,24 @@ class _ModalRealizarVentaState extends State<ModalRealizarVenta> {
                                 borderRadius: BorderRadius.circular(22)),
                             elevation: 0,
                           ),
-                          onPressed: _handleIrAPagar,
+                          onPressed: () {
+                            final totalConDesc = widget.totalVenta - calcularDescuento();
+                            final pago = double.tryParse(
+                                    _pagoController.text.replaceAll(',', '.')) ??
+                                0;
+                            if (pago < totalConDesc) {
+                              Get.snackbar(
+                                'Pago insuficiente',
+                                'Necesita al menos \$${totalConDesc.toStringAsFixed(2)}',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red.withOpacity(0.85),
+                                colorText: Colors.white,
+                                duration: const Duration(seconds: 2),
+                              );
+                              return;
+                            }
+                            _handleIrAPagar();
+                          },
                           label: const Text(
                             'Ir a pagar',
                             style: TextStyle(color: Colors.white),
