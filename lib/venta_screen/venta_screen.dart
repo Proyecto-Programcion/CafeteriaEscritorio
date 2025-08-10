@@ -42,23 +42,29 @@ class _VentaScreenState extends State<VentaScreen> {
   final List<ProductoCarrito> carrito = [];
   final List<FocusNode> focusNodesCarrito = [];
 
+  // Key para preservar el scroll de la lista de productos (ventas)
+  final PageStorageKey _listaProductosVentaKey = const PageStorageKey('lista_productos_venta');
+  // Controlador para la lista y la Scrollbar
+  late final ScrollController _ventaProductosScrollController;
+
+  // Guarda el Worker para poder cancelarlo
+  Worker? _productosWorker;
+
   @override
   void initState() {
     super.initState();
     cargarProductos();
     _searchController.addListener(_onSearchChanged);
-
+    _ventaProductosScrollController = ScrollController();
     // Escucha cambios en la lista reactiva y actualiza productosFiltrados si no hay búsqueda
-    ever(obtenerProductosControllers.listaProductos, (_) {
-      if (_searchController.text.trim().isEmpty) {
-        setState(() {
-          productosFiltrados = List<ProductoModelo>.from(
-              obtenerProductosControllers.listaProductos);
-        });
-        setState(() {
-          
-        });
-      }
+    _productosWorker = ever(obtenerProductosControllers.listaProductos, (_) {
+      if (!mounted) return;
+      if (_searchController.text.trim().isNotEmpty) return;
+      setState(() {
+        productosFiltrados = List<ProductoModelo>.from(
+          obtenerProductosControllers.listaProductos,
+        );
+      });
     });
   }
 
@@ -71,6 +77,11 @@ class _VentaScreenState extends State<VentaScreen> {
       focusNode.dispose();
     }
     focusNodesCarrito.clear();
+    _ventaProductosScrollController.dispose(); // <-- dispose del scroll
+
+    // Cancela el listener de GetX para evitar setState después de dispose
+    _productosWorker?.dispose();
+
     super.dispose();
   }
 
@@ -353,70 +364,84 @@ class _VentaScreenState extends State<VentaScreen> {
                             return const Center(
                                 child: Text('No hay productos disponibles'));
                           } else {
-                            return ListView.builder(
-                              itemCount: productosFiltrados.length,
-                              itemBuilder: (context, index) {
-                                final producto = productosFiltrados[index];
-                                final bool sinStock = producto.cantidad <= 0;
-                                return ProductoCard(
-                                  producto: producto,
-                                  seleccionado: selectedIndexes.contains(index),
-                                  sinStock: sinStock,
-                                  onTap: () {
-                                    if (sinStock) {
-                                      Get.snackbar(
-                                        'Sin stock',
-                                        'El producto "${producto.nombre}" no tiene stock disponible',
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        backgroundColor:
-                                            Colors.orange.withOpacity(0.8),
-                                        colorText: Colors.white,
-                                        margin: const EdgeInsets.all(8),
-                                        duration: const Duration(seconds: 2),
-                                        icon: const Icon(Icons.warning,
-                                            color: Colors.white),
-                                      );
-                                      return;
-                                    }
-                                    if (mounted) {
-                                      setState(() {
-                                        final yaEnCarrito = carrito.indexWhere(
-                                          (e) =>
-                                              e.producto.idProducto ==
-                                              producto.idProducto,
+                            return RawScrollbar(
+                              controller: _ventaProductosScrollController,
+                              thumbVisibility: true,       // siempre visible
+                              trackVisibility: true,
+                              thickness: 10,
+                              radius: const Radius.circular(12),
+                              thumbColor: const Color(0xFF996708),  // color del pulgar
+                              trackColor: const Color(0x33996708),  // pista con transparencia
+                              child: ListView.builder(
+                                key: _listaProductosVentaKey,
+                                controller: _ventaProductosScrollController,
+                                itemCount: productosFiltrados.length,
+                                itemBuilder: (context, index) {
+                                  final producto = productosFiltrados[index];
+                                  final bool sinStock = producto.cantidad <= 0;
+                                  return ProductoCard(
+                                    producto: producto,
+                                    seleccionado: selectedIndexes.contains(index),
+                                    sinStock: sinStock,
+                                    onTap: () {
+                                      if (sinStock) {
+                                        Get.snackbar(
+                                          'Sin stock',
+                                          'El producto "${producto.nombre}" no tiene stock disponible',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor:
+                                              Colors.orange.withOpacity(0.8),
+                                          colorText: Colors.white,
+                                          margin: const EdgeInsets.all(8),
+                                          duration: const Duration(seconds: 2),
+                                          icon: const Icon(Icons.warning,
+                                              color: Colors.white),
                                         );
-                                        if (yaEnCarrito >= 0) {
-                                          carrito.removeAt(yaEnCarrito);
-                                          focusNodesCarrito[yaEnCarrito]
-                                              .dispose();
-                                          focusNodesCarrito
-                                              .removeAt(yaEnCarrito);
-                                          selectedIndexes.remove(index);
-                                        } else {
-                                          carrito.add(ProductoCarrito(
-                                              producto: producto));
-                                          focusNodesCarrito.add(FocusNode());
-                                          selectedIndexes.add(index);
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                            if (mounted &&
-                                                focusNodesCarrito.isNotEmpty) {
-                                              focusNodesCarrito.last
-                                                  .requestFocus();
-                                            }
-                                          });
-                                        }
-                                      });
-                                    }
-                                  },
-                                );
-                              },
+                                        return;
+                                      }
+                                      if (mounted) {
+                                        setState(() {
+                                          final yaEnCarrito = carrito.indexWhere(
+                                            (e) =>
+                                                e.producto.idProducto ==
+                                                producto.idProducto,
+                                          );
+                                          if (yaEnCarrito >= 0) {
+                                            carrito.removeAt(yaEnCarrito);
+                                            focusNodesCarrito[yaEnCarrito]
+                                                .dispose();
+                                            focusNodesCarrito
+                                                .removeAt(yaEnCarrito);
+                                            selectedIndexes.remove(index);
+                                          } else {
+                                            carrito.add(ProductoCarrito(
+                                                producto: producto));
+                                            focusNodesCarrito.add(FocusNode());
+                                            selectedIndexes.add(index);
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (mounted &&
+                                                  focusNodesCarrito.isNotEmpty) {
+                                                focusNodesCarrito.last
+                                                    .requestFocus();
+                                              }
+                                            });
+                                          }
+                                        });
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
                             );
                           }
                         }
-                        return Text('Estado desconocido, por favor reinicie, si el error persiste comuniquese con soporte tecnico.');
+                        return const Text(
+                          'Estado desconocido, por favor reinicie, si el error persiste comuniquese con soporte tecnico.',
+                        );
                       }),
                     ),
+
                   ],
                 ),
               ),

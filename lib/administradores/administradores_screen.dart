@@ -30,49 +30,17 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
   final AgregarAdministradorController agregarAdministradorController =
       Get.put(AgregarAdministradorController());
 
+  // Scroll y Key para la lista de administradores
+  final PageStorageKey _listaAdminsKey = const PageStorageKey('lista_admins');
+  late final ScrollController _adminsScrollController;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       listarAdministradoresController.obtenerAdministradores();
-
-      // SOLUCIÓN: Usar ever() para escuchar cambios de estado
-      ever(agregarAdministradorController.estado, (Estado estado) {
-        if (estado == Estado.exito) {
-          Get.snackbar(
-            'Éxito',
-            'Administrador agregado con éxito',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.8),
-            colorText: Colors.white,
-            margin: const EdgeInsets.all(8),
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.check_circle, color: Colors.white),
-          );
-
-          // Cerrar modal después de un pequeño delay
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && Navigator.canPop(context)) {
-              Navigator.of(context).pop();
-            }
-          });
-
-          // Recargar la lista
-          listarAdministradoresController.obtenerAdministradores();
-        } else if (estado == Estado.error) {
-          Get.snackbar(
-            'Error',
-            'Error al agregar el administrador',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red.withOpacity(0.8),
-            colorText: Colors.white,
-            margin: const EdgeInsets.all(8),
-            duration: const Duration(seconds: 3),
-            icon: const Icon(Icons.error, color: Colors.white),
-          );
-        }
-      });
     });
+    _adminsScrollController = ScrollController();
   }
 
   @override
@@ -231,17 +199,26 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
                       child: Text('No hay administradores registrados'),
                     );
                   }
-                  return ListView.builder(
-                    itemCount:
-                        listarAdministradoresController.administradores.length,
-                    itemBuilder: (context, index) {
-                      print(listarAdministradoresController
-                          .administradores[index].imagen);
-                      return RowTablaAdministradores(
-                        administradorModelo: listarAdministradoresController
-                            .administradores[index],
-                      );
-                    },
+                  return RawScrollbar(
+                    controller: _adminsScrollController,
+                    thumbVisibility: true,        // siempre visible
+                    trackVisibility: true,
+                    thickness: 10,
+                    radius: const Radius.circular(12),
+                    thumbColor: const Color(0xFF996708), // color del pulgar
+                    trackColor: const Color(0x33996708), // pista con transparencia
+                    child: ListView.builder(
+                      key: _listaAdminsKey,
+                      controller: _adminsScrollController,
+                      itemCount:
+                          listarAdministradoresController.administradores.length,
+                      itemBuilder: (context, index) {
+                        return RowTablaAdministradores(
+                          administradorModelo:
+                              listarAdministradoresController.administradores[index],
+                        );
+                      },
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -254,6 +231,7 @@ class _AdministradoresScreenState extends State<AdministradoresScreen> {
   @override
   void dispose() {
     // Limpiar listeners al salir de la pantalla
+    _adminsScrollController.dispose();
     super.dispose();
   }
 }

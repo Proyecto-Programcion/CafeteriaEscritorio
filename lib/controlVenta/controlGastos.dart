@@ -45,6 +45,9 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
   bool _editando = false;
   int? _idGastoEditando;
 
+  final PageStorageKey _listaGastosKey = const PageStorageKey('lista_gastos');
+  late final ScrollController _gastosScrollController;
+
   void _limpiarFormulario() {
     _descripcionController.clear();
     _montoController.clear();
@@ -172,6 +175,20 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red[50]);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _gastosScrollController = ScrollController();
+    // si ya llamas a obtenerGastos en otro lado, omite
+    // gastosController.obtenerGastos();
+  }
+
+  @override
+  void dispose() {
+    _gastosScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -806,45 +823,56 @@ class _ControlDeGastosScreenState extends State<ControlDeGastosScreen> {
                                       );
                                     }
                                     final gastos = gastosController.listaGastos;
-                                    return ListView.separated(
-                                      itemCount: gastos.length,
-                                      separatorBuilder: (_, __) =>
-                                          const Divider(height: 1),
-                                      itemBuilder: (context, index) {
-                                        final gasto = gastos[index];
-                                        return ListTile(
-                                          onTap: () =>
-                                              _llenarFormularioParaEditar(
-                                                  gasto),
-                                          leading: CircleAvatar(
-                                            backgroundColor:
-                                                ControlDeGastosScreen
-                                                    .primaryTextColor
-                                                    .withOpacity(0.08),
-                                            child: const Icon(
-                                                Icons.attach_money,
-                                                color: ControlDeGastosScreen
-                                                    .primaryTextColor,
-                                                size: 19),
-                                          ),
-                                          title: Text(
-                                            gasto.descripcion,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                          subtitle: Text(
-                                            "${gasto.nombreCategoria}  |  ${gasto.fechaGasto.day.toString().padLeft(2, '0')}/${gasto.fechaGasto.month.toString().padLeft(2, '0')}/${gasto.fechaGasto.year}  |  \$${gasto.monto.toStringAsFixed(2)}",
-                                            style:
-                                                const TextStyle(fontSize: 14),
-                                          ),
-                                          trailing: Text(
-                                            gasto.metodoPago,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black54),
-                                          ),
-                                        );
-                                      },
+                                    return RawScrollbar(
+                                      controller: _gastosScrollController,
+                                      thumbVisibility: true,
+                                      trackVisibility: true,
+                                      thickness: 10,
+                                      radius: const Radius.circular(12),
+                                      thumbColor: const Color(0xFF996708),
+                                      trackColor: const Color(0x33996708),
+                                      child: ListView.separated(
+                                        key: _listaGastosKey,
+                                        controller: _gastosScrollController,
+                                        itemCount: gastos.length,
+                                        separatorBuilder: (_, __) =>
+                                            const Divider(height: 1),
+                                        itemBuilder: (context, index) {
+                                          final gasto = gastos[index];
+                                          return ListTile(
+                                            onTap: () =>
+                                                _llenarFormularioParaEditar(
+                                                    gasto),
+                                            leading: CircleAvatar(
+                                              backgroundColor:
+                                                  ControlDeGastosScreen
+                                                      .primaryTextColor
+                                                      .withOpacity(0.08),
+                                              child: const Icon(
+                                                  Icons.attach_money,
+                                                  color: ControlDeGastosScreen
+                                                      .primaryTextColor,
+                                                  size: 19),
+                                            ),
+                                            title: Text(
+                                              gasto.descripcion,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                            subtitle: Text(
+                                              "${gasto.nombreCategoria}  |  ${gasto.fechaGasto.day.toString().padLeft(2, '0')}/${gasto.fechaGasto.month.toString().padLeft(2, '0')}/${gasto.fechaGasto.year}  |  \$${gasto.monto.toStringAsFixed(2)}",
+                                              style: const TextStyle(
+                                                  fontSize: 14),
+                                            ),
+                                            trailing: Text(
+                                              gasto.metodoPago,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black54),
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     );
                                   }),
                                 ),

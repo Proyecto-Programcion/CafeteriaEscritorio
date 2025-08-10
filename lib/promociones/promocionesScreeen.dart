@@ -41,83 +41,101 @@ class _PromocionesPageState extends State<PromocionesPage> {
       obtenerPromocionesProductosGratisController =
       Get.put(ObtenerPromocionesProductosGratisController());
 
+  // Scroll y Key para la lista de promociones
+  final PageStorageKey _listaPromosKey = const PageStorageKey('lista_promociones');
+  late final ScrollController _promosScrollController;
+
   @override
   void initState() {
     super.initState();
     obtenerController.obtenerPromociones();
     obtenerPromocionesProductosGratisController.obtenerPromociones();
+    _promosScrollController = ScrollController();
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF8F8F8),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Reemplazamos el Row fijo por un SingleChildScrollView horizontal
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                FormPromocionDescuento(),
-                const SizedBox(width: 24),
-                FormPromocionProductoGratis()
-              ],
+
+  @override
+  void dispose() {
+    _promosScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      // Eliminado SingleChildScrollView vertical, ahora usamos Padding + Column + Expanded
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Reemplazamos el Row fijo por un SingleChildScrollView horizontal
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  FormPromocionDescuento(),
+                  const SizedBox(width: 24),
+                  FormPromocionProductoGratis(),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 38),
-          const Text(
-            "Promociones activas:",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-          ),
-          const SizedBox(height: 12),
-          Obx(() {
-            if (obtenerController.estado.value == Estado.carga ||
-                obtenerPromocionesProductosGratisController.estado.value ==
-                    Estado.carga) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (obtenerController.listaPromociones.isEmpty &&
-                obtenerPromocionesProductosGratisController
-                    .listaPromociones.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.only(top: 24),
-                child: Text("Aún no hay promociones registradas."),
-              );
-            }
-            final List<Object> listaPromociones = [
-              ...obtenerController.promocionesFiltradas,
-              ...obtenerPromocionesProductosGratisController.listaPromociones
-            ];
-            print('PROMOCIONES FILTRADAS: ${listaPromociones}');
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: listaPromociones.length,
-              itemBuilder: (context, i) {
-                final promo = listaPromociones[i];
-                if (promo is Promocion) {
-                  return ContenedorPromocionDescuento(
-                    promocion: promo,
-                  );
-                } else if (promo
-                    is PromocionProductoGratiConNombreDelProductosModelo) {
-                  return ContenedorPromocionProductoGratis(
-                    promocion: promo,
-                  );
-                } else {
-                  return const SizedBox.shrink();
+            const SizedBox(height: 38),
+            const Text(
+              "Promociones activas:",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Obx(() {
+                if (obtenerController.estado.value == Estado.carga ||
+                    obtenerPromocionesProductosGratisController.estado.value == Estado.carga) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-              },
-            );
-          }),
-        ],
+                if (obtenerController.listaPromociones.isEmpty &&
+                    obtenerPromocionesProductosGratisController.listaPromociones.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 24),
+                    child: Text("Aún no hay promociones registradas."),
+                  );
+                }
+
+                final List<Object> listaPromociones = [
+                  ...obtenerController.promocionesFiltradas,
+                  ...obtenerPromocionesProductosGratisController.listaPromociones,
+                ];
+
+                return RawScrollbar(
+                  controller: _promosScrollController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
+                  thickness: 10,
+                  radius: const Radius.circular(12),
+                  thumbColor: const Color(0xFF996708),
+                  trackColor: const Color(0x33996708),
+                  child: ListView.builder(
+                    key: _listaPromosKey,
+                    controller: _promosScrollController,
+                    itemCount: listaPromociones.length,
+                    itemBuilder: (context, i) {
+                      final promo = listaPromociones[i];
+                      if (promo is Promocion) {
+                        return ContenedorPromocionDescuento(promocion: promo);
+                      } else if (promo is PromocionProductoGratiConNombreDelProductosModelo) {
+                        return ContenedorPromocionProductoGratis(promocion: promo);
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 void mostrarModalRegistroExitoso(BuildContext context) {
   showDialog(

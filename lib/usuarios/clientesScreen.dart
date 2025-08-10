@@ -8,8 +8,35 @@ import 'package:get/get.dart';
 
 // Enum para el orden
 
-class ClientesScreen extends StatelessWidget {
+class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
+
+  @override
+  State<ClientesScreen> createState() => _ClientesScreenState();
+}
+
+class _ClientesScreenState extends State<ClientesScreen> {
+  // Controladores GetX
+  late final ObtenerClientesController clientesController;
+  late final EliminarClienteController eliminarController;
+
+  // Scroll y Key para preservar posición
+  final PageStorageKey _listaClientesKey = const PageStorageKey('lista_clientes');
+  late final ScrollController _clientesScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    clientesController = Get.put(ObtenerClientesController());
+    eliminarController = Get.put(EliminarClienteController());
+    _clientesScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _clientesScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +45,6 @@ class ClientesScreen extends StatelessWidget {
     const primaryTextColor = Color(0xFF9B7B22);
     const tableHeaderColor = Color(0xFFF0F0F0);
     const rowAltColor = Color(0xFFF5F5F5);
-
-    // Inyecta los controladores solo una vez
-    final clientesController = Get.put(ObtenerClientesController());
-    final eliminarController = Get.put(EliminarClienteController());
 
     return Container(
       color: fondoColor,
@@ -203,117 +226,124 @@ class ClientesScreen extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (clientesController.estado.value == Estado.error) {
-                        return Center(
-                            child: Text(clientesController.mensaje.value));
+                        return Center(child: Text(clientesController.mensaje.value));
                       }
                       if (clientesController.clientesFiltrados.isEmpty) {
-                        return const Center(
-                            child: Text('No hay clientes registrados.'));
+                        return const Center(child: Text('No hay clientes registrados.'));
                       }
-                      return ListView.builder(
-                        itemCount: clientesController.clientesFiltrados.length,
-                        itemBuilder: (context, i) {
-                          final cliente =
-                              clientesController.clientesFiltrados[i];
-                          return Container(
-                            color: i % 2 == 0 ? Colors.white : rowAltColor,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 17, vertical: 13),
-                            child: Row(
-                              children: [
-                                Expanded(flex: 1, child: Text('${i + 1}')),
-                                Expanded(flex: 4, child: Text(cliente.nombre)),
-                                Expanded(
-                                    flex: 3,
-                                    child: Text(cliente.numeroTelefono)),
-                                Expanded(
-                                  flex: 2,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit,
-                                            color: primaryTextColor),
-                                        tooltip: 'Editar',
-                                        onPressed: () async {
-                                          await showDialog(
-                                            context: context,
-                                            builder: (context) =>
-                                                ModalEditarNombreCliente(
-                                              idCliente: cliente.idCliente,
-                                              nombreActual: cliente.nombre,
-                                            ),
-                                          );
-                                          await clientesController
-                                              .obtenerClientes();
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            color: Colors.red),
-                                        tooltip: 'Eliminar',
-                                        onPressed: () async {
-                                          final confirm =
-                                              await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text(
-                                                  'Eliminar cliente'),
-                                              content: Text(
-                                                  '¿Seguro que quieres eliminar a "${cliente.nombre}"? Esta acción no se puede deshacer.'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(false),
-                                                  child: const Text('Cancelar'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(true),
-                                                  child: const Text(
-                                                    'Eliminar',
-                                                    style: TextStyle(
-                                                        color: Colors.red),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                          if (confirm == true) {
-                                            try {
-                                              await eliminarController
-                                                  .eliminarCliente(
-                                                      idCliente:
-                                                          cliente.idCliente);
-                                              await clientesController
-                                                  .obtenerClientes();
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(const SnackBar(
-                                                content:
-                                                    Text('Cliente eliminado.'),
-                                                backgroundColor:
-                                                    primaryTextColor,
-                                              ));
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(SnackBar(
+                      return RawScrollbar(
+                        controller: _clientesScrollController,
+                        thumbVisibility: true,      // siempre visible
+                        trackVisibility: true,
+                        thickness: 10,
+                        radius: const Radius.circular(12),
+                        thumbColor: const Color(0xFF996708),  // color del pulgar
+                        trackColor: const Color(0x33996708),  // pista con transparencia
+                        child: ListView.builder(
+                          key: _listaClientesKey,
+                          controller: _clientesScrollController,
+                          itemCount: clientesController.clientesFiltrados.length,
+                          itemBuilder: (context, i) {
+                            final cliente = clientesController.clientesFiltrados[i];
+                            return Container(
+                              color: i % 2 == 0 ? Colors.white : rowAltColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 13),
+                              child: Row(
+                                children: [
+                                  Expanded(flex: 1, child: Text('${i + 1}')),
+                                  Expanded(flex: 4, child: Text(cliente.nombre)),
+                                  Expanded(
+                                      flex: 3,
+                                      child: Text(cliente.numeroTelefono)),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit,
+                                              color: primaryTextColor),
+                                          tooltip: 'Editar',
+                                          onPressed: () async {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (context) =>
+                                                  ModalEditarNombreCliente(
+                                                idCliente: cliente.idCliente,
+                                                nombreActual: cliente.nombre,
+                                              ),
+                                            );
+                                            await clientesController
+                                                .obtenerClientes();
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          tooltip: 'Eliminar',
+                                          onPressed: () async {
+                                            final confirm =
+                                                await showDialog<bool>(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text(
+                                                    'Eliminar cliente'),
                                                 content: Text(
-                                                    'Error al eliminar: $e'),
-                                                backgroundColor: Colors.red,
-                                              ));
+                                                    '¿Seguro que quieres eliminar a "${cliente.nombre}"? Esta acción no se puede deshacer.'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(false),
+                                                    child: const Text('Cancelar'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                    child: const Text(
+                                                      'Eliminar',
+                                                      style: TextStyle(
+                                                          color: Colors.red),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirm == true) {
+                                              try {
+                                                await eliminarController
+                                                    .eliminarCliente(
+                                                        idCliente:
+                                                            cliente.idCliente);
+                                                await clientesController
+                                                    .obtenerClientes();
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(const SnackBar(
+                                                  content:
+                                                      Text('Cliente eliminado.'),
+                                                  backgroundColor:
+                                                      primaryTextColor,
+                                                ));
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'Error al eliminar: $e'),
+                                                  backgroundColor: Colors.red,
+                                                ));
+                                              }
                                             }
-                                          }
-                                        },
-                                      ),
-                                    ],
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       );
                     }),
                   ),

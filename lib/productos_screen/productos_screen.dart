@@ -22,6 +22,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
   final ObtenerProductosControllers obtenerProductosControllers =
       Get.put(ObtenerProductosControllers());
   String imagenController = '';
+  
+  // Key para la lista (preserva scroll/estado)
+  final PageStorageKey _listaProductosKey = const PageStorageKey('lista_productos');
+
+  // Controlador para la lista y la Scrollbar
+  late final ScrollController _productosScrollController;
 
   //Seleccionar la imagen
   Future<void> selectImage() async {
@@ -51,7 +57,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
         .actualizarImagenProducto(idProducto, imagenController);
     if (imagenActualizada) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Imagen actualizada con éxito'),
           backgroundColor: Colors.green,
         ),
@@ -64,9 +70,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     obtenerProductosControllers.obtenerProductos();
+    _productosScrollController = ScrollController();
   }
 
   @override
@@ -225,18 +231,30 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         child: Text('No hay productos disponibles'),
                       );
                     } else {
-                      return ListView.builder(
-                        itemCount:
-                            obtenerProductosControllers.listaProductos.length,
-                        itemBuilder: (context, index) {
-                          final producto =
-                              obtenerProductosControllers.listaProductos[index];
-                          return FilaTablaProductoWidget(
-                            index: index,
-                            producto: producto,
-                            actualizarImagen: actualizarImagen,
-                          );
-                        },
+                      return RawScrollbar(
+                        controller: _productosScrollController,
+                        thumbVisibility: true, // siempre visible
+                        trackVisibility: true,
+                        
+                        thickness: 10,
+                        radius: const Radius.circular(12),
+                        thumbColor: const Color(0xFF996708),  // color del pulgar
+                        trackColor: const Color(0x33996708),  // pista con transparencia
+                        child: ListView.builder(
+                          key: _listaProductosKey,
+                          controller: _productosScrollController,
+                          itemCount:
+                              obtenerProductosControllers.listaProductos.length,
+                          itemBuilder: (context, index) {
+                            final producto =
+                                obtenerProductosControllers.listaProductos[index];
+                            return FilaTablaProductoWidget(
+                              index: index,
+                              producto: producto,
+                              actualizarImagen: actualizarImagen,
+                            );
+                          },
+                        ),
                       );
                     }
                   }
@@ -270,5 +288,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _productosScrollController.dispose();
+    super.dispose();
   }
 }
